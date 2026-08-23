@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ORBIT</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            <span class="logo-icon">◉</span>
+            <span>ORBIT</span>
+        </div>
+
+
+        <nav class="navigation">
+
+            <a href="#" class="nav-item active" data-page="dashboard">
+                <span>⌂</span>
+                <span>Dashboard</span>
+            </a>
+
+
+            <a href="#" class="nav-item" data-page="tasks">
+                <span>✓</span>
+                <span>Tarefas</span>
+            </a>
+
+
+            <a href="#" class="nav-item" data-page="calendar">
+                <span>📅</span>
+                <span>Agenda</span>
+            </a>
+
+
+            <a href="#" class="nav-item" data-page="projects">
+                <span>▣</span>
+                <span>Projetos</span>
+            </a>
+
+
+            <a href="#" class="nav-item" data-page="studies">
+                <span>📚</span>
+                <span>Estudos</span>
+            </a>
+
+
+            <a href="#" class="nav-item" data-page="finance">
+                <span>💰</span>
+                <span>Finanças</span>
+            </a>
+
+
+            <div class="nav-section">
+                <span>ENTRETENIMENTO</span>
+            </div>
+
+
+            <a href="#" class="nav-item" data-page="anime">
+                <span>🎌</span>
+                <span>Animes</span>
+            </a>
+
+
+            <a href="#" class="nav-item" data-page="movies">
+                <span>🎬</span>
+                <span>Filmes</span>
+            </a>
+
+
+            <a href="#" class="nav-item" data-page="series">
+                <span>📺</span>
+                <span>Séries</span>
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <a href="#" class="nav-item">
+                <span>⚙</span>
+                <span>Configurações</span>
+            </a>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- CONTEÚDO PRINCIPAL -->
+
+    <main class="main-content">
+
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div>
+
+                <h1>
+                    Bom dia, Celen 👋
+                </h1>
+
+                <p>
+                    Tudo que importa, em um só lugar.
+                </p>
+
+            </div>
+
+
+            <div class="user-area">
+
+                <span>🔔</span>
+
+                <span>Celen</span>
+
+                <span>⚙️</span>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =========================
+             DASHBOARD
+        ========================== -->
+
+        <section
+            class="dashboard page"
+            id="dashboard"
+        >
+
+            <div class="welcome">
+
+                <h2>
+                    Seu painel pessoal
+                </h2>
+
+                <p>
+                    Acompanhe o que está acontecendo na sua vida.
+                </p>
+
+            </div>
+
+
+            <div class="stats">
+
+
+                <div class="stat-card">
+
+                    <span>💰</span>
+
+                    <h3>
+                        Finanças
+                    </h3>
+
+                    <strong>
+                        R$ 1.240
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>📚</span>
+
+                    <h3>
+                        Estudos
+                    </h3>
+
+                    <strong>
+                        72%
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>💻</span>
+
+                    <h3>
+                        Projetos
+                    </h3>
+
+                    <strong id="dashboard-project-count">
+                        0 ativos
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>🎬</span>
+
+                    <h3>
+                        Entretenimento
+                    </h3>
+
+                    <strong>
+                        12 pendentes
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="dashboard-grid">
+
+
+                <section class="panel projects-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <h2>
+                                Projetos
+                            </h2>
+
+                            <p>
+                                Acompanhe o que está em andamento.
+                            </p>
+
+                        </div>
+
+
+                        <a
+                            href="#"
+                            id="dashboard-projects-link"
+                        >
+                            Ver todos →
+                        </a>
+
+                    </div>
+
+
+                    <div
+                        id="dashboard-projects"
+                    >
+
+                        <div class="empty-dashboard-projects">
+
+                            <span>▣</span>
+
+                            <p>
+                                Nenhum projeto criado ainda.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+
+                <section class="panel focus-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <h2>
+                                ⚡ Foco de hoje
+                            </h2>
+
+                            <p>
+                                Uma coisa de cada vez.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="focus-content">
+
+                        <span class="focus-label">
+                            PRÓXIMA TAREFA
+                        </span>
+
+
+                        <h3>
+                            Continuar estudando JavaScript
+                        </h3>
+
+
+                        <p>
+                            Finalizar o próximo módulo do curso.
+                        </p>
+
+
+                        <button>
+                            Continuar →
+                        </button>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =========================
+             TAREFAS
+        ========================== -->
+
+        <section
+            class="page hidden"
+            id="tasks"
+        >
+
+            <div class="page-header">
+
+                <div>
+
+                    <h1>
+                        Tarefas
+                    </h1>
+
+                    <p>
+                        Organize seu dia e mantenha o foco.
+                    </p>
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    id="add-task-button"
+                >
+                    + Nova tarefa
+                </button>
+
+            </div>
+
+
+
+            <div class="task-stats">
+
+
+                <div class="task-stat">
+
+                    <span class="task-stat-icon">
+                        ✓
+                    </span>
+
+                    <div>
+
+                        <strong id="total-tasks">
+                            0
+                        </strong>
+
+                        <p>
+                            Total
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="task-stat">
+
+                    <span class="task-stat-icon">
+                        ○
+                    </span>
+
+                    <div>
+
+                        <strong id="pending-tasks">
+                            0
+                        </strong>
+
+                        <p>
+                            Pendentes
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="task-stat">
+
+                    <span class="task-stat-icon">
+                        ✓
+                    </span>
+
+                    <div>
+
+                        <strong id="completed-tasks">
+                            0
+                        </strong>
+
+                        <p>
+                            Concluídas
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="task-toolbar">
+
+                <div class="task-filters">
+
+                    <button
+                        class="task-filter active"
+                        data-filter="all"
+                    >
+                        Todas
+                    </button>
+
+
+                    <button
+                        class="task-filter"
+                        data-filter="pending"
+                    >
+                        Pendentes
+                    </button>
+
+
+                    <button
+                        class="task-filter"
+                        data-filter="completed"
+                    >
+                        Concluídas
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <div
+                class="task-form hidden"
+                id="task-form"
+            >
+
+                <input
+                    type="text"
+                    id="task-title"
+                    placeholder="O que você precisa fazer?"
+                >
+
+
+                <select id="task-priority">
+
+                    <option value="normal">
+                        Normal
+                    </option>
+
+                    <option value="high">
+                        Alta
+                    </option>
+
+                    <option value="low">
+                        Baixa
+                    </option>
+
+                </select>
+
+
+                <button
+                    class="primary-button"
+                    id="save-task"
+                >
+                    Adicionar
+                </button>
+
+            </div>
+
+
+
+            <div
+                class="tasks-container"
+                id="tasks-container"
+            >
+
+                <div class="empty-tasks">
+
+                    <span>✓</span>
+
+                    <h3>
+                        Nenhuma tarefa ainda
+                    </h3>
+
+                    <p>
+                        Adicione sua primeira tarefa.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =========================
+             AGENDA
+        ========================== -->
+
+        <section
+            class="page hidden"
+            id="calendar"
+        >
+
+            <div class="page-header">
+
+                <div>
+
+                    <h1>
+                        Agenda
+                    </h1>
+
+                    <p>
+                        Seus compromissos, eventos e lembretes.
+                    </p>
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    id="add-event-button"
+                >
+                    + Novo evento
+                </button>
+
+            </div>
+
+
+
+            <div class="calendar-navigation">
+
+                <button
+                    class="calendar-arrow"
+                    id="previous-day"
+                >
+                    ←
+                </button>
+
+
+                <div class="calendar-current-day">
+
+                    <strong id="calendar-date"></strong>
+
+                    <span id="calendar-weekday"></span>
+
+                </div>
+
+
+                <button
+                    class="calendar-arrow"
+                    id="next-day"
+                >
+                    →
+                </button>
+
+            </div>
+
+
+
+            <div
+                class="event-form hidden"
+                id="event-form"
+            >
+
+                <div class="event-form-header">
+
+                    <div>
+
+                        <h2>
+                            Novo evento
+                        </h2>
+
+                        <p>
+                            Adicione algo à sua agenda.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        id="close-event-form"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+
+                <div class="event-form-grid">
+
+
+                    <div class="form-field full">
+
+                        <label for="event-title">
+                            Título
+                        </label>
+
+                        <input
+                            type="text"
+                            id="event-title"
+                            placeholder="Ex: Reunião com supervisor"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label for="event-date">
+                            Data
+                        </label>
+
+                        <input
+                            type="date"
+                            id="event-date"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label for="event-start">
+                            Horário
+                        </label>
+
+                        <input
+                            type="time"
+                            id="event-start"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label for="event-end">
+                            Fim
+                        </label>
+
+                        <input
+                            type="time"
+                            id="event-end"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label for="event-reminder">
+                            🔔 Lembrete
+                        </label>
+
+                        <select id="event-reminder">
+
+                            <option value="none">
+                                Sem lembrete
+                            </option>
+
+                            <option value="0">
+                                Na hora
+                            </option>
+
+                            <option value="5">
+                                5 minutos antes
+                            </option>
+
+                            <option value="15">
+                                15 minutos antes
+                            </option>
+
+                            <option value="30">
+                                30 minutos antes
+                            </option>
+
+                            <option value="60">
+                                1 hora antes
+                            </option>
+
+                            <option value="1440">
+                                1 dia antes
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-field full">
+
+                        <label for="event-notes">
+                            📝 Notas
+                        </label>
+
+                        <textarea
+                            id="event-notes"
+                            placeholder="Alguma informação importante..."
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="event-form-actions">
+
+                    <button
+                        class="secondary-button"
+                        id="cancel-event"
+                    >
+                        Cancelar
+                    </button>
+
+
+                    <button
+                        class="primary-button"
+                        id="save-event"
+                    >
+                        Criar evento
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <div
+                class="agenda"
+                id="agenda"
+            ></div>
+
+        </section>
+
+
+
+        <!-- =========================
+             PROJETOS
+        ========================== -->
+
+        <section
+            class="page hidden"
+            id="projects"
+        >
+
+
+            <div class="page-header">
+
+                <div>
+
+                    <h1>
+                        Projetos
+                    </h1>
+
+                    <p>
+                        Transforme ideias em coisas reais.
+                    </p>
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    id="add-project-button"
+                >
+                    + Novo projeto
+                </button>
+
+            </div>
+
+
+
+            <!-- ESTATÍSTICAS -->
+
+            <div class="project-stats">
+
+
+                <div class="project-stat">
+
+                    <span class="project-stat-icon">
+                        ▣
+                    </span>
+
+                    <div>
+
+                        <strong id="total-projects">
+                            0
+                        </strong>
+
+                        <p>
+                            Total
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="project-stat">
+
+                    <span class="project-stat-icon">
+                        ◉
+                    </span>
+
+                    <div>
+
+                        <strong id="active-projects">
+                            0
+                        </strong>
+
+                        <p>
+                            Em andamento
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="project-stat">
+
+                    <span class="project-stat-icon">
+                        ✓
+                    </span>
+
+                    <div>
+
+                        <strong id="finished-projects">
+                            0
+                        </strong>
+
+                        <p>
+                            Concluídos
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="project-stat">
+
+                    <span class="project-stat-icon">
+                        %
+                    </span>
+
+                    <div>
+
+                        <strong id="average-project-progress">
+                            0%
+                        </strong>
+
+                        <p>
+                            Progresso médio
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- FORMULÁRIO -->
+
+            <div
+                class="project-form hidden"
+                id="project-form"
+            >
+
+
+                <div class="project-form-header">
+
+                    <div>
+
+                        <h2>
+                            Novo projeto
+                        </h2>
+
+                        <p>
+                            Crie um projeto para acompanhar seu progresso.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        id="close-project-form"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+
+                <div class="project-form-grid">
+
+
+                    <div class="form-field full">
+
+                        <label for="project-name">
+                            Nome do projeto
+                        </label>
+
+                        <input
+                            type="text"
+                            id="project-name"
+                            placeholder="Ex: Criar meu portfólio"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label for="project-status">
+                            Status
+                        </label>
+
+                        <select id="project-status">
+
+                            <option value="active">
+                                Em andamento
+                            </option>
+
+                            <option value="paused">
+                                Pausado
+                            </option>
+
+                            <option value="completed">
+                                Concluído
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label for="project-progress">
+                            Progresso
+                        </label>
+
+                        <input
+                            type="number"
+                            id="project-progress"
+                            min="0"
+                            max="100"
+                            value="0"
+                            placeholder="0"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label for="project-deadline">
+                            Prazo
+                        </label>
+
+                        <input
+                            type="date"
+                            id="project-deadline"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field full">
+
+                        <label for="project-description">
+                            Objetivo / descrição
+                        </label>
+
+                        <textarea
+                            id="project-description"
+                            placeholder="O que você quer alcançar com esse projeto?"
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="project-form-actions">
+
+                    <button
+                        class="secondary-button"
+                        id="cancel-project"
+                    >
+                        Cancelar
+                    </button>
+
+
+                    <button
+                        class="primary-button"
+                        id="save-project"
+                    >
+                        Criar projeto
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- FILTROS -->
+
+            <div class="project-toolbar">
+
+                <div class="project-filters">
+
+                    <button
+                        class="project-filter active"
+                        data-project-filter="all"
+                    >
+                        Todos
+                    </button>
+
+
+                    <button
+                        class="project-filter"
+                        data-project-filter="active"
+                    >
+                        Em andamento
+                    </button>
+
+
+                    <button
+                        class="project-filter"
+                        data-project-filter="paused"
+                    >
+                        Pausados
+                    </button>
+
+
+                    <button
+                        class="project-filter"
+                        data-project-filter="completed"
+                    >
+                        Concluídos
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- LISTA DE PROJETOS -->
+
+            <div
+                class="projects-container"
+                id="projects-container"
+            >
+
+                <div class="empty-projects">
+
+                    <span>
+                        ▣
+                    </span>
+
+                    <h3>
+                        Nenhum projeto ainda
+                    </h3>
+
+                    <p>
+                        Crie seu primeiro projeto e comece a acompanhar seu progresso.
+                    </p>
+
+                    <button
+                        class="primary-button"
+                        id="empty-project-button"
+                    >
+                        + Criar primeiro projeto
+                    </button>
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =========================
+             ESTUDOS
+        ========================== -->
+
+        <section
+            class="page hidden"
+            id="studies"
+        >
+
+            <h2>
+                Estudos
+            </h2>
+
+            <p>
+                Acompanhe seu aprendizado.
+            </p>
+
+        </section>
+
+
+
+        <!-- =========================
+             FINANÇAS
+        ========================== -->
+
+        <section
+            class="page hidden"
+            id="finance"
+        >
+
+            <h2>
+                Finanças
+            </h2>
+
+            <p>
+                Acompanhe suas finanças.
+            </p>
+
+        </section>
+
+
+
+        <!-- =========================
+             ANIMES
+        ========================== -->
+
+        <section
+            class="page hidden"
+            id="anime"
+        >
+
+            <h2>
+                Animes
+            </h2>
+
+            <p>
+                Sua biblioteca de animes.
+            </p>
+
+        </section>
+
+
+
+        <!-- =========================
+             FILMES
+        ========================== -->
+
+        <section
+            class="page hidden"
+            id="movies"
+        >
+
+            <h2>
+                Filmes
+            </h2>
+
+            <p>
+                Sua biblioteca de filmes.
+            </p>
+
+        </section>
+
+
+
+        <!-- =========================
+             SÉRIES
+        ========================== -->
+
+        <section
+            class="page hidden"
+            id="series"
+        >
+
+            <h2>
+                Séries
+            </h2>
+
+            <p>
+                Sua biblioteca de séries.
+            </p>
+
+        </section>
+
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
