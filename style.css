@@ -1427,74 +1427,131 @@ body {
    MOBILE
 ========================= */
 
-@media (max-width: 900px) {
+/* =========================
+   MOBILE — NAVEGAÇÃO
+========================= */
+
+@media (max-width: 768px) {
 
     .sidebar {
-        width: 72px;
+        position: fixed;
 
-        padding: 20px 8px;
+        left: 0;
+        right: 0;
+        top: auto;
+        bottom: 0;
+
+        width: 100%;
+        height: 68px;
+
+        padding: 6px 10px;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        background: var(--surface);
+
+        border-right: none;
+        border-top: 1px solid var(--border);
+
+        z-index: 1000;
     }
 
+    .nav-section,
+    .sidebar-bottom {
+        display: none;
+    }
 
-    .logo {
-        justify-content: center;
+    .sidebar .logo {
+        display: flex;
 
+        width: 72px;
+        height: 56px;
+
+        margin: 0;
         padding: 0;
 
-        margin-bottom: 25px;
-    }
+        flex-shrink: 0;
 
-
-    .logo span:last-child {
-        display: none;
-    }
-
-
-    .nav-item {
+        align-items: center;
         justify-content: center;
 
-        padding: 12px;
+        gap: 5px;
     }
 
+    .sidebar .logo .orbit-logo {
+        width: 24px;
+        height: 24px;
+    }
 
-    .nav-item span:last-child {
+    .sidebar .logo span {
+        font-size: 11px;
+    }
+
+    .navigation {
+        flex: 1;
+
+        width: auto;
+        height: auto;
+
+        display: flex;
+        flex-direction: row;
+
+        align-items: center;
+        justify-content: space-around;
+
+        gap: 4px;
+    }
+
+    .navigation .nav-item {
+        flex: 1;
+
+        min-width: 0;
+        height: 56px;
+
+        display: flex;
+        flex-direction: column;
+
+        align-items: center;
+        justify-content: center;
+
+        gap: 4px;
+
+        padding: 5px;
+
+        font-size: 10px;
+    }
+
+    .navigation .nav-item span:last-child {
+        display: block;
+    }
+
+    .navigation .nav-item svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .navigation .nav-item[data-page="studies"],
+    .navigation .nav-item[data-page="finance"],
+    .navigation .nav-item[data-page="anime"],
+    .navigation .nav-item[data-page="movies"],
+    .navigation .nav-item[data-page="series"] {
         display: none;
     }
 
+    .nav-more {
+        flex: 1;
 
-    .nav-section {
-        display: none;
+        min-width: 0;
+        height: 56px;
     }
-
 
     .main-content {
-        margin-left: 72px;
+        margin-left: 0;
 
-        padding: 25px 20px;
+        padding: 20px 14px 90px;
     }
-
-
-    .stats {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-
-
-    .project-stats {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-
-    .projects-container {
-        grid-template-columns: 1fr;
-    }
-
 }
 
 
@@ -2002,4 +2059,265 @@ body {
         width: 100%;
     }
 
+}
+
+/* =====================================================
+   ORBIT — LOGO
+===================================================== */
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.orbit-logo {
+    width: 25px;
+    height: 25px;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   ORBIT — ÍCONES DA SIDEBAR
+===================================================== */
+
+.nav-item svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    opacity: 0.85;
+
+    transition:
+        color 0.2s ease,
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.nav-item:hover svg {
+    opacity: 1;
+}
+
+.nav-item.active svg {
+    opacity: 1;
+}
+
+.nav-item:hover svg {
+    transform: scale(1.04);
+}
+
+.nav-item {
+    gap: 10px;
+}
+
+/* =====================================================
+   ORBIT — ÍCONES DO DASHBOARD
+===================================================== */
+
+.icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 28px;
+    height: 28px;
+
+    padding: 0;
+    border: 0;
+    background: transparent;
+
+    color: inherit;
+    cursor: pointer;
+}
+
+.icon-button svg {
+    width: 15px;
+    height: 15px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    opacity: 0.8;
+}
+
+.icon-button:hover svg {
+    opacity: 1;
+}
+
+.card-icon {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.card-icon svg {
+    width: 19px;
+    height: 19px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    opacity: 0.85;
+}
+
+.focus-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.focus-title svg {
+    width: 17px;
+    height: 17px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* =====================================================
+   ORBIT — BOTÃO MAIS (MOBILE)
+===================================================== */
+
+.nav-more {
+    display: none;
+
+    border: 0;
+    background: transparent;
+    color: inherit;
+
+    font: inherit;
+    cursor: pointer;
+}
+
+.nav-more-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-more svg {
+    width: 18px;
+    height: 18px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+}
+
+@media (max-width: 600px) {
+
+    .nav-more {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        gap: 4px;
+
+        flex: 1;
+        height: 58px;
+
+        padding: 6px 2px;
+
+        border-radius: 10px;
+
+        color: inherit;
+        font-size: 10px;
+    }
+
+    .nav-more:hover {
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+}
+
+.mobile-more-menu {
+    display: none;
+}
+
+@media (max-width: 600px) {
+
+    .mobile-more-menu {
+        position: fixed;
+        right: 12px;
+        bottom: 78px;
+
+        width: 180px;
+
+        display: none;
+        flex-direction: column;
+
+        padding: 8px;
+
+        background: #15151b;
+        border: 1px solid #292932;
+        border-radius: 14px;
+
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+
+        z-index: 1100;
+    }
+
+    .mobile-more-menu.open {
+        display: flex;
+    }
+
+    .mobile-more-item {
+        padding: 11px 12px;
+
+        color: inherit;
+        text-decoration: none;
+
+        border-radius: 9px;
+
+        font-size: 13px;
+    }
+
+    .mobile-more-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Itens que ficam dentro do menu "Mais" */
+
+.navigation .nav-item[data-page="studies"],
+.navigation .nav-item[data-page="finance"],
+.navigation .nav-item[data-page="anime"],
+.navigation .nav-item[data-page="movies"],
+.navigation .nav-item[data-page="series"] {
+    display: none;
+}
+}
+
+/* Ajuste da logo na sidebar */
+@media (max-width: 768px) {
+    .sidebar .logo {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+
+        height: 56px;
+        margin: 0 !important;
+        padding: 0 !important;
+
+        align-self: center;
+    }
 }

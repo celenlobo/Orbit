@@ -2587,3 +2587,45 @@ events.forEach(
 
     }
 );
+
+const mobileMoreButton = document.getElementById("mobile-more-button");
+const mobileMoreMenu = document.getElementById("mobile-more-menu");
+
+mobileMoreButton.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    mobileMoreMenu.classList.toggle("open");
+});
+
+const mobileMoreItems = document.querySelectorAll(".mobile-more-item");
+
+mobileMoreItems.forEach((item) => {
+    item.addEventListener("click", (event) => {
+        event.preventDefault();
+
+        const pageId = item.dataset.page;
+
+        if (!pageId) {
+            mobileMoreMenu.classList.remove("open");
+            return;
+        }
+
+        pages.forEach((page) => {
+            page.classList.add("hidden");
+        });
+
+        const selectedPage = document.getElementById(pageId);
+
+        if (selectedPage) {
+            selectedPage.classList.remove("hidden");
+        }
+
+        navItems.forEach((navItem) => {
+            navItem.classList.remove("active");
+        });
+
+        mobileMoreButton.classList.add("active");
+
+        mobileMoreMenu.classList.remove("open");
+    });
+});
