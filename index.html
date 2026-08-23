@@ -1228,6 +1228,111 @@
 
         </section>
 
+        <!-- MODAL DE DETALHES DO PROJETO -->
+
+<div class="project-modal hidden" id="project-modal">
+
+    <div class="project-modal-content">
+
+        <div class="project-modal-header">
+
+            <div>
+                <h2 id="modal-project-name">
+                    Projeto
+                </h2>
+
+                <p id="modal-project-description">
+                    Descrição do projeto.
+                </p>
+            </div>
+
+            <button
+                class="project-modal-close"
+                id="close-project-modal"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="modal-project-progress">
+
+            <div class="project-progress-info">
+
+                <span>Progresso</span>
+
+                <strong id="modal-project-progress">
+                    0%
+                </strong>
+
+            </div>
+
+            <div class="project-progress">
+
+                <div
+                    class="project-progress-bar"
+                    id="modal-project-progress-bar"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <div class="project-tasks-header">
+
+            <div>
+
+                <h3>Tarefas</h3>
+
+                <span id="modal-task-count">
+                    0 de 0 concluídas
+                </span>
+
+            </div>
+
+            <button
+                class="primary-button"
+                id="add-project-task"
+            >
+                + Nova tarefa
+            </button>
+
+        </div>
+
+
+        <div
+            class="project-task-form hidden"
+            id="project-task-form"
+        >
+
+            <input
+                type="text"
+                id="project-task-title"
+                placeholder="O que precisa ser feito?"
+            >
+
+            <button
+                class="primary-button"
+                id="save-project-task"
+            >
+                Adicionar
+            </button>
+
+        </div>
+
+
+        <div
+            class="project-tasks-container"
+            id="project-tasks-container"
+        >
+
+        </div>
+
+    </div>
+
+</div>
 
     </main>
 

@@ -1677,3 +1677,329 @@ body {
     font-size: 13px;
     font-weight: bold;
 }
+
+/* =====================================================
+   MODAL DE PROJETO
+===================================================== */
+
+.project-modal {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.65);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    z-index: 9999;
+}
+
+.project-modal.hidden {
+    display: none;
+}
+
+.project-modal-content {
+    width: min(700px, 100%);
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: 20px;
+
+    padding: 28px;
+
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.project-modal-header {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 28px;
+}
+
+.project-modal-header h2 {
+    margin: 0 0 6px;
+
+    font-size: 26px;
+}
+
+.project-modal-header p {
+    margin: 0;
+
+    color: var(--text-muted);
+
+    line-height: 1.5;
+}
+
+.project-modal-close {
+    width: 36px;
+    height: 36px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: var(--surface-2);
+
+    color: var(--text-muted);
+
+    font-size: 24px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.project-modal-close:hover {
+    color: var(--text);
+}
+
+.modal-project-progress {
+    margin-bottom: 30px;
+}
+
+.project-tasks-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 18px;
+}
+
+.project-tasks-header h3 {
+    margin: 0 0 4px;
+
+    font-size: 18px;
+}
+
+.project-tasks-header span {
+    font-size: 13px;
+
+    color: var(--text-muted);
+}
+
+.project-task-form {
+    display: flex;
+
+    gap: 10px;
+
+    margin-bottom: 18px;
+}
+
+.project-task-form.hidden {
+    display: none;
+}
+
+.project-task-form input {
+    flex: 1;
+
+    min-width: 0;
+
+    padding: 12px 14px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 10px;
+
+    background: var(--surface-2);
+
+    color: var(--text);
+
+    outline: none;
+}
+
+.project-task-form input:focus {
+    border-color: var(--accent);
+}
+
+.project-tasks-container {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+.project-task {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 14px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+
+    background: var(--surface-2);
+
+    transition: 0.2s;
+}
+
+.project-task:hover {
+    border-color: var(--accent);
+}
+
+.project-task-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+
+    width: 20px;
+    height: 20px;
+
+    flex-shrink: 0;
+
+    border: 1px solid var(--border);
+
+    border-radius: 6px;
+
+    background: var(--surface);
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+.project-task-checkbox:checked {
+    background: var(--accent);
+
+    border-color: var(--accent);
+}
+
+.project-task-checkbox:checked::after {
+    content: "✓";
+
+    color: white;
+
+    font-size: 13px;
+
+    font-weight: bold;
+}
+
+.project-task-title {
+    flex: 1;
+
+    font-size: 14px;
+
+    color: var(--text);
+}
+
+.project-task.completed .project-task-title {
+    text-decoration: line-through;
+
+    opacity: 0.5;
+}
+
+.delete-project-task {
+    width: 30px;
+    height: 30px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: var(--text-muted);
+
+    font-size: 20px;
+
+    cursor: pointer;
+}
+
+.delete-project-task:hover {
+    color: #ef4444;
+
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.empty-project-tasks {
+    padding: 35px 20px;
+
+    text-align: center;
+
+    color: var(--text-muted);
+
+    border: 1px dashed var(--border);
+
+    border-radius: 12px;
+}
+
+.empty-project-tasks span {
+    display: block;
+
+    font-size: 30px;
+
+    margin-bottom: 8px;
+}
+
+
+/* =====================================================
+   MODAL — CELULAR
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .project-modal {
+        align-items: flex-end;
+
+        padding: 0;
+    }
+
+    .project-modal-content {
+        width: 100%;
+
+        max-height: 92vh;
+
+        border-radius: 20px 20px 0 0;
+
+        padding: 22px 18px;
+    }
+
+    .project-modal-header h2 {
+        font-size: 22px;
+    }
+
+    .project-tasks-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .project-tasks-header .primary-button {
+        width: 100%;
+    }
+
+    .project-task-form {
+        flex-direction: column;
+    }
+
+    .project-task-form .primary-button {
+        width: 100%;
+    }
+
+}

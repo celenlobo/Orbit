@@ -26,7 +26,8 @@ navItems.forEach((item) => {
             page.classList.add("hidden");
         });
 
-        const selectedPage = document.getElementById(pageId);
+        const selectedPage =
+            document.getElementById(pageId);
 
         if (selectedPage) {
             selectedPage.classList.remove("hidden");
@@ -138,7 +139,6 @@ function addTask() {
         return;
     }
 
-
     const newTask = {
 
         id: Date.now(),
@@ -151,13 +151,11 @@ function addTask() {
 
     };
 
-
     tasks.push(newTask);
 
     saveTasks();
 
     renderTasks();
-
 
     taskTitle.value = "";
 
@@ -168,55 +166,41 @@ function addTask() {
 }
 
 
-taskFilters.forEach(
-    (filterButton) => {
+taskFilters.forEach((filterButton) => {
 
-        filterButton.addEventListener(
-            "click",
-            () => {
+    filterButton.addEventListener(
+        "click",
+        () => {
 
-                taskFilters.forEach(
-                    (button) => {
-                        button.classList.remove(
-                            "active"
-                        );
-                    }
-                );
+            taskFilters.forEach((button) => {
+                button.classList.remove("active");
+            });
 
+            filterButton.classList.add("active");
 
-                filterButton.classList.add(
-                    "active"
-                );
+            currentTaskFilter =
+                filterButton.dataset.filter;
 
+            renderTasks();
 
-                currentTaskFilter =
-                    filterButton.dataset.filter;
+        }
+    );
 
-
-                renderTasks();
-
-            }
-        );
-
-    }
-);
+});
 
 
 function renderTasks() {
 
     updateTaskStats();
 
-
-    let filteredTasks =
-        tasks;
+    let filteredTasks = tasks;
 
 
     if (currentTaskFilter === "pending") {
 
         filteredTasks =
             tasks.filter(
-                (task) =>
-                    !task.completed
+                (task) => !task.completed
             );
 
     }
@@ -226,8 +210,7 @@ function renderTasks() {
 
         filteredTasks =
             tasks.filter(
-                (task) =>
-                    task.completed
+                (task) => task.completed
             );
 
     }
@@ -261,123 +244,112 @@ function renderTasks() {
     tasksContainer.innerHTML = "";
 
 
-    filteredTasks.forEach(
-        (task) => {
+    filteredTasks.forEach((task) => {
 
-            const taskElement =
-                document.createElement("div");
+        const taskElement =
+            document.createElement("div");
 
-
-            taskElement.classList.add(
-                "task"
-            );
+        taskElement.classList.add("task");
 
 
-            if (task.completed) {
-
-                taskElement.classList.add(
-                    "completed"
-                );
-
-            }
+        if (task.completed) {
+            taskElement.classList.add("completed");
+        }
 
 
-            let priorityText =
-                "Normal";
+        let priorityText = "Normal";
 
 
-            if (task.priority === "high") {
-                priorityText = "Alta";
-            }
+        if (task.priority === "high") {
+            priorityText = "Alta";
+        }
 
 
-            if (task.priority === "low") {
-                priorityText = "Baixa";
-            }
+        if (task.priority === "low") {
+            priorityText = "Baixa";
+        }
 
 
-            taskElement.innerHTML = `
+        taskElement.innerHTML = `
 
-                <input
-                    type="checkbox"
-                    class="task-checkbox"
-                    ${task.completed ? "checked" : ""}
-                >
+            <input
+                type="checkbox"
+                class="task-checkbox"
+                ${task.completed ? "checked" : ""}
+            >
 
-                <div class="task-content">
+            <div class="task-content">
 
-                    <div class="task-title">
-                        ${escapeHTML(task.title)}
-                    </div>
-
-                    <div class="task-priority">
-                        Prioridade: ${priorityText}
-                    </div>
-
+                <div class="task-title">
+                    ${escapeHTML(task.title)}
                 </div>
 
-                <button
-                    class="delete-task"
-                    title="Excluir tarefa"
-                >
-                    ×
-                </button>
+                <div class="task-priority">
+                    Prioridade: ${priorityText}
+                </div>
 
-            `;
+            </div>
+
+            <button
+                class="delete-task"
+                title="Excluir tarefa"
+            >
+                ×
+            </button>
+
+        `;
 
 
-            const checkbox =
-                taskElement.querySelector(
-                    ".task-checkbox"
-                );
-
-
-            checkbox.addEventListener(
-                "change",
-                () => {
-
-                    task.completed =
-                        checkbox.checked;
-
-                    saveTasks();
-
-                    renderTasks();
-
-                }
+        const checkbox =
+            taskElement.querySelector(
+                ".task-checkbox"
             );
 
 
-            const deleteButton =
-                taskElement.querySelector(
-                    ".delete-task"
-                );
+        checkbox.addEventListener(
+            "change",
+            () => {
+
+                task.completed =
+                    checkbox.checked;
+
+                saveTasks();
+
+                renderTasks();
+
+            }
+        );
 
 
-            deleteButton.addEventListener(
-                "click",
-                () => {
-
-                    tasks =
-                        tasks.filter(
-                            (item) =>
-                                item.id !== task.id
-                        );
-
-
-                    saveTasks();
-
-                    renderTasks();
-
-                }
+        const deleteButton =
+            taskElement.querySelector(
+                ".delete-task"
             );
 
 
-            tasksContainer.appendChild(
-                taskElement
-            );
+        deleteButton.addEventListener(
+            "click",
+            () => {
 
-        }
-    );
+                tasks =
+                    tasks.filter(
+                        (item) =>
+                            item.id !== task.id
+                    );
+
+                saveTasks();
+
+                renderTasks();
+
+            }
+        );
+
+
+        tasksContainer.appendChild(
+            taskElement
+        );
+
+    });
 
 }
 
@@ -387,28 +359,20 @@ function updateTaskStats() {
     const total =
         tasks.length;
 
-
     const completed =
         tasks.filter(
-            (task) =>
-                task.completed
+            (task) => task.completed
         ).length;
-
 
     const pending =
         total - completed;
 
 
-    totalTasks.textContent =
-        total;
+    totalTasks.textContent = total;
 
+    pendingTasks.textContent = pending;
 
-    pendingTasks.textContent =
-        pending;
-
-
-    completedTasks.textContent =
-        completed;
+    completedTasks.textContent = completed;
 
 }
 
@@ -418,84 +382,52 @@ function updateTaskStats() {
 ===================================================== */
 
 const addEventButton =
-    document.getElementById(
-        "add-event-button"
-    );
+    document.getElementById("add-event-button");
 
 const eventForm =
-    document.getElementById(
-        "event-form"
-    );
+    document.getElementById("event-form");
 
 const closeEventForm =
-    document.getElementById(
-        "close-event-form"
-    );
+    document.getElementById("close-event-form");
 
 const cancelEvent =
-    document.getElementById(
-        "cancel-event"
-    );
+    document.getElementById("cancel-event");
 
 const saveEventButton =
-    document.getElementById(
-        "save-event"
-    );
+    document.getElementById("save-event");
 
 const eventTitle =
-    document.getElementById(
-        "event-title"
-    );
+    document.getElementById("event-title");
 
 const eventDate =
-    document.getElementById(
-        "event-date"
-    );
+    document.getElementById("event-date");
 
 const eventStart =
-    document.getElementById(
-        "event-start"
-    );
+    document.getElementById("event-start");
 
 const eventEnd =
-    document.getElementById(
-        "event-end"
-    );
+    document.getElementById("event-end");
 
 const eventReminder =
-    document.getElementById(
-        "event-reminder"
-    );
+    document.getElementById("event-reminder");
 
 const eventNotes =
-    document.getElementById(
-        "event-notes"
-    );
+    document.getElementById("event-notes");
 
 const agenda =
-    document.getElementById(
-        "agenda"
-    );
+    document.getElementById("agenda");
 
 const calendarDate =
-    document.getElementById(
-        "calendar-date"
-    );
+    document.getElementById("calendar-date");
 
 const calendarWeekday =
-    document.getElementById(
-        "calendar-weekday"
-    );
+    document.getElementById("calendar-weekday");
 
 const previousDay =
-    document.getElementById(
-        "previous-day"
-    );
+    document.getElementById("previous-day");
 
 const nextDay =
-    document.getElementById(
-        "next-day"
-    );
+    document.getElementById("next-day");
 
 
 let events =
@@ -504,8 +436,7 @@ let events =
     ) || [];
 
 
-let selectedDate =
-    new Date();
+let selectedDate = new Date();
 
 
 function saveEvents() {
@@ -567,6 +498,10 @@ function formatWeekday(date) {
 
 function updateCalendarHeader() {
 
+    if (!calendarDate || !calendarWeekday) {
+        return;
+    }
+
     calendarDate.textContent =
         formatDate(selectedDate);
 
@@ -589,78 +524,96 @@ function changeDay(amount) {
 }
 
 
-previousDay.addEventListener(
-    "click",
-    () => changeDay(-1)
-);
+if (previousDay) {
+
+    previousDay.addEventListener(
+        "click",
+        () => changeDay(-1)
+    );
+
+}
 
 
-nextDay.addEventListener(
-    "click",
-    () => changeDay(1)
-);
+if (nextDay) {
+
+    nextDay.addEventListener(
+        "click",
+        () => changeDay(1)
+    );
+
+}
 
 
-addEventButton.addEventListener(
-    "click",
-    () => {
+if (addEventButton) {
 
-        eventForm.classList.remove(
-            "hidden"
-        );
+    addEventButton.addEventListener(
+        "click",
+        () => {
 
-        eventDate.value =
-            formatDateForInput(
-                selectedDate
-            );
+            eventForm.classList.remove("hidden");
 
-        eventTitle.focus();
+            eventDate.value =
+                formatDateForInput(
+                    selectedDate
+                );
 
-    }
-);
+            eventTitle.focus();
+
+        }
+    );
+
+}
 
 
 function closeEventFormFunction() {
 
-    eventForm.classList.add(
-        "hidden"
-    );
+    if (!eventForm) {
+        return;
+    }
+
+    eventForm.classList.add("hidden");
 
     eventTitle.value = "";
-
-    eventDate.value =
-        formatDateForInput(
-            selectedDate
-        );
 
     eventStart.value = "";
 
     eventEnd.value = "";
 
-    eventReminder.value =
-        "none";
+    eventReminder.value = "none";
 
     eventNotes.value = "";
 
 }
 
 
-closeEventForm.addEventListener(
-    "click",
-    closeEventFormFunction
-);
+if (closeEventForm) {
+
+    closeEventForm.addEventListener(
+        "click",
+        closeEventFormFunction
+    );
+
+}
 
 
-cancelEvent.addEventListener(
-    "click",
-    closeEventFormFunction
-);
+if (cancelEvent) {
+
+    cancelEvent.addEventListener(
+        "click",
+        closeEventFormFunction
+    );
+
+}
 
 
-saveEventButton.addEventListener(
-    "click",
-    saveEvent
-);
+if (saveEventButton) {
+
+    saveEventButton.addEventListener(
+        "click",
+        saveEvent
+    );
+
+}
 
 
 function saveEvent() {
@@ -732,14 +685,17 @@ function saveEvent() {
 
     closeEventFormFunction();
 
-    scheduleReminder(
-        newEvent
-    );
+    scheduleReminder(newEvent);
 
 }
 
 
 function renderAgenda() {
+
+    if (!agenda) {
+        return;
+    }
+
 
     const dateString =
         formatDateForInput(
@@ -762,9 +718,7 @@ function renderAgenda() {
             );
 
 
-    if (
-        dayEvents.length === 0
-    ) {
+    if (dayEvents.length === 0) {
 
         agenda.innerHTML = `
 
@@ -784,96 +738,90 @@ function renderAgenda() {
     agenda.innerHTML = "";
 
 
-    dayEvents.forEach(
-        (event) => {
+    dayEvents.forEach((event) => {
 
-            const eventElement =
-                document.createElement(
-                    "div"
-                );
+        const eventElement =
+            document.createElement("div");
 
 
-            eventElement.classList.add(
-                "agenda-time"
-            );
+        eventElement.classList.add(
+            "agenda-time"
+        );
 
 
-            const timeLabel =
-                event.start || "--:--";
+        const timeLabel =
+            event.start || "--:--";
 
 
-            const endLabel =
-                event.end
-                    ? ` - ${event.end}`
-                    : "";
+        const endLabel =
+            event.end
+                ? ` - ${event.end}`
+                : "";
 
 
-            eventElement.innerHTML = `
+        eventElement.innerHTML = `
 
-                <div class="agenda-time-label">
-                    ${timeLabel}
-                </div>
+            <div class="agenda-time-label">
+                ${timeLabel}
+            </div>
 
-                <div class="agenda-slot">
+            <div class="agenda-slot">
 
-                    <div class="calendar-event">
+                <div class="calendar-event">
 
-                        <div class="calendar-event-title">
-                            ${escapeHTML(event.title)}
-                        </div>
-
-                        <div class="calendar-event-time">
-                            ${timeLabel}${endLabel}
-                        </div>
-
-                        ${
-                            event.notes
-                                ? `
-                                    <div class="calendar-event-notes">
-                                        ${escapeHTML(event.notes)}
-                                    </div>
-                                `
-                                : ""
-                        }
-
-                        <button
-                            class="delete-event"
-                            title="Excluir evento"
-                        >
-                            ×
-                        </button>
-
+                    <div class="calendar-event-title">
+                        ${escapeHTML(event.title)}
                     </div>
 
+                    <div class="calendar-event-time">
+                        ${timeLabel}${endLabel}
+                    </div>
+
+                    ${
+                        event.notes
+                            ? `
+                                <div class="calendar-event-notes">
+                                    ${escapeHTML(event.notes)}
+                                </div>
+                            `
+                            : ""
+                    }
+
+                    <button
+                        class="delete-event"
+                        title="Excluir evento"
+                    >
+                        ×
+                    </button>
+
                 </div>
 
-            `;
+            </div>
+
+        `;
 
 
-            const deleteButton =
-                eventElement.querySelector(
-                    ".delete-event"
-                );
-
-
-            deleteButton.addEventListener(
-                "click",
-                () => {
-
-                    deleteEvent(
-                        event.id
-                    );
-
-                }
+        const deleteButton =
+            eventElement.querySelector(
+                ".delete-event"
             );
 
 
-            agenda.appendChild(
-                eventElement
-            );
+        deleteButton.addEventListener(
+            "click",
+            () => {
 
-        }
-    );
+                deleteEvent(event.id);
+
+            }
+        );
+
+
+        agenda.appendChild(
+            eventElement
+        );
+
+    });
 
 }
 
@@ -885,7 +833,6 @@ function deleteEvent(id) {
             (event) =>
                 event.id !== id
         );
-
 
     saveEvents();
 
@@ -901,7 +848,9 @@ function scheduleReminder(event) {
         !event.start ||
         !event.date
     ) {
+
         return;
+
     }
 
 
@@ -912,9 +861,7 @@ function scheduleReminder(event) {
 
 
     const reminderMinutes =
-        Number(
-            event.reminder
-        );
+        Number(event.reminder);
 
 
     const reminderTime =
@@ -1017,7 +964,6 @@ const saveProjectButton =
         "save-project"
     );
 
-
 const projectName =
     document.getElementById(
         "project-name"
@@ -1043,12 +989,10 @@ const projectDescription =
         "project-description"
     );
 
-
 const projectsContainer =
     document.getElementById(
         "projects-container"
     );
-
 
 const totalProjects =
     document.getElementById(
@@ -1070,12 +1014,10 @@ const averageProjectProgress =
         "average-project-progress"
     );
 
-
 const projectFilters =
     document.querySelectorAll(
         ".project-filter"
     );
-
 
 const dashboardProjectCount =
     document.getElementById(
@@ -1101,17 +1043,10 @@ let projects =
     ) || [];
 
 
-let currentProjectFilter =
-    "all";
+let currentProjectFilter = "all";
 
+let editingProjectId = null;
 
-let editingProjectId =
-    null;
-
-
-/* =====================================================
-   STORAGE
-===================================================== */
 
 function saveProjects() {
 
@@ -1123,11 +1058,11 @@ function saveProjects() {
 }
 
 
-/* =====================================================
-   ABRIR FORMULÁRIO
-===================================================== */
-
 function openProjectForm() {
+
+    if (!projectForm) {
+        return;
+    }
 
     projectForm.classList.remove(
         "hidden"
@@ -1138,39 +1073,26 @@ function openProjectForm() {
 }
 
 
-addProjectButton.addEventListener(
-    "click",
-    () => {
+function resetProjectForm() {
 
-        editingProjectId = null;
+    projectName.value = "";
 
-        resetProjectForm();
+    projectStatus.value = "active";
 
-        openProjectForm();
+    projectProgress.value = 0;
 
-    }
-);
+    projectDeadline.value = "";
 
+    projectDescription.value = "";
 
-emptyProjectButton.addEventListener(
-    "click",
-    () => {
+}
 
-        editingProjectId = null;
-
-        resetProjectForm();
-
-        openProjectForm();
-
-    }
-);
-
-
-/* =====================================================
-   FECHAR FORMULÁRIO
-===================================================== */
 
 function closeProjectFormFunction() {
+
+    if (!projectForm) {
+        return;
+    }
 
     projectForm.classList.add(
         "hidden"
@@ -1183,49 +1105,70 @@ function closeProjectFormFunction() {
 }
 
 
-closeProjectForm.addEventListener(
-    "click",
-    closeProjectFormFunction
-);
+if (addProjectButton) {
 
+    addProjectButton.addEventListener(
+        "click",
+        () => {
 
-cancelProject.addEventListener(
-    "click",
-    closeProjectFormFunction
-);
+            editingProjectId = null;
 
+            resetProjectForm();
 
-/* =====================================================
-   RESETAR FORMULÁRIO
-===================================================== */
+            openProjectForm();
 
-function resetProjectForm() {
-
-    projectName.value = "";
-
-    projectStatus.value =
-        "active";
-
-    projectProgress.value =
-        0;
-
-    projectDeadline.value =
-        "";
-
-    projectDescription.value =
-        "";
+        }
+    );
 
 }
 
 
-/* =====================================================
-   SALVAR PROJETO
-===================================================== */
+if (emptyProjectButton) {
 
-saveProjectButton.addEventListener(
-    "click",
-    saveProject
-);
+    emptyProjectButton.addEventListener(
+        "click",
+        () => {
+
+            editingProjectId = null;
+
+            resetProjectForm();
+
+            openProjectForm();
+
+        }
+    );
+
+}
+
+
+if (closeProjectForm) {
+
+    closeProjectForm.addEventListener(
+        "click",
+        closeProjectFormFunction
+    );
+
+}
+
+
+if (cancelProject) {
+
+    cancelProject.addEventListener(
+        "click",
+        closeProjectFormFunction
+    );
+
+}
+
+
+if (saveProjectButton) {
+
+    saveProjectButton.addEventListener(
+        "click",
+        saveProject
+    );
+
+}
 
 
 function saveProject() {
@@ -1233,20 +1176,14 @@ function saveProject() {
     const name =
         projectName.value.trim();
 
-
     const status =
         projectStatus.value;
 
-
     let progress =
-        Number(
-            projectProgress.value
-        );
-
+        Number(projectProgress.value);
 
     const deadline =
         projectDeadline.value;
-
 
     const description =
         projectDescription.value.trim();
@@ -1273,12 +1210,8 @@ function saveProject() {
     }
 
 
-    if (
-        status === "completed"
-    ) {
-
+    if (status === "completed") {
         progress = 100;
-
     }
 
 
@@ -1292,9 +1225,7 @@ function saveProject() {
     }
 
 
-    if (
-        editingProjectId !== null
-    ) {
+    if (editingProjectId !== null) {
 
         const project =
             projects.find(
@@ -1306,17 +1237,13 @@ function saveProject() {
 
         if (project) {
 
-            project.name =
-                name;
+            project.name = name;
 
-            project.status =
-                status;
+            project.status = status;
 
-            project.progress =
-                progress;
+            project.progress = progress;
 
-            project.deadline =
-                deadline;
+            project.deadline = deadline;
 
             project.description =
                 description;
@@ -1325,7 +1252,7 @@ function saveProject() {
 
     } else {
 
-        const newProject = {
+        projects.push({
 
             id: Date.now(),
 
@@ -1342,12 +1269,7 @@ function saveProject() {
             createdAt:
                 new Date().toISOString()
 
-        };
-
-
-        projects.push(
-            newProject
-        );
+        });
 
     }
 
@@ -1364,10 +1286,6 @@ function saveProject() {
 
 }
 
-
-/* =====================================================
-   FILTROS
-===================================================== */
 
 projectFilters.forEach(
     (filterButton) => {
@@ -1406,11 +1324,12 @@ projectFilters.forEach(
 );
 
 
-/* =====================================================
-   RENDER PROJETOS
-===================================================== */
-
 function renderProjects() {
+
+    if (!projectsContainer) {
+        return;
+    }
+
 
     let filteredProjects =
         projects;
@@ -1431,17 +1350,13 @@ function renderProjects() {
     }
 
 
-    if (
-        filteredProjects.length === 0
-    ) {
+    if (filteredProjects.length === 0) {
 
         projectsContainer.innerHTML = `
 
             <div class="empty-projects">
 
-                <span>
-                    ▣
-                </span>
+                <span>▣</span>
 
                 <h3>
                     Nenhum projeto encontrado
@@ -1463,18 +1378,17 @@ function renderProjects() {
         `;
 
 
-        const newEmptyButton =
+        const button =
             document.getElementById(
                 "empty-project-button"
             );
 
 
-        newEmptyButton.addEventListener(
+        button.addEventListener(
             "click",
             () => {
 
-                editingProjectId =
-                    null;
+                editingProjectId = null;
 
                 resetProjectForm();
 
@@ -1489,21 +1403,14 @@ function renderProjects() {
     }
 
 
-    projectsContainer.innerHTML =
-        "";
+    projectsContainer.innerHTML = "";
 
 
     filteredProjects.forEach(
         (project) => {
 
-            const card =
-                createProjectCard(
-                    project
-                );
-
-
             projectsContainer.appendChild(
-                card
+                createProjectCard(project)
             );
 
         }
@@ -1512,18 +1419,10 @@ function renderProjects() {
 }
 
 
-/* =====================================================
-   CRIAR CARD
-===================================================== */
-
-function createProjectCard(
-    project
-) {
+function createProjectCard(project) {
 
     const card =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
 
     card.classList.add(
@@ -1535,25 +1434,13 @@ function createProjectCard(
         "Em andamento";
 
 
-    if (
-        project.status ===
-        "paused"
-    ) {
-
-        statusText =
-            "Pausado";
-
+    if (project.status === "paused") {
+        statusText = "Pausado";
     }
 
 
-    if (
-        project.status ===
-        "completed"
-    ) {
-
-        statusText =
-            "Concluído";
-
+    if (project.status === "completed") {
+        statusText = "Concluído";
     }
 
 
@@ -1561,9 +1448,7 @@ function createProjectCard(
         "Sem prazo";
 
 
-    if (
-        project.deadline
-    ) {
+    if (project.deadline) {
 
         const deadline =
             new Date(
@@ -1626,7 +1511,10 @@ function createProjectCard(
 
             <div>
 
-                <div class="project-card-title">
+                <div
+                    class="project-card-title"
+                    style="cursor: pointer;"
+                >
                     ${escapeHTML(project.name)}
                 </div>
 
@@ -1689,7 +1577,6 @@ function createProjectCard(
                     ✎
                 </button>
 
-
                 <button
                     class="project-action delete delete-project"
                     title="Excluir projeto"
@@ -1702,6 +1589,24 @@ function createProjectCard(
         </div>
 
     `;
+
+
+    const title =
+        card.querySelector(
+            ".project-card-title"
+        );
+
+
+    title.addEventListener(
+        "click",
+        () => {
+
+            openProjectDetails(
+                project.id
+            );
+
+        }
+    );
 
 
     const editButton =
@@ -1745,10 +1650,6 @@ function createProjectCard(
 }
 
 
-/* =====================================================
-   EDITAR PROJETO
-===================================================== */
-
 function editProject(id) {
 
     const project =
@@ -1763,25 +1664,20 @@ function editProject(id) {
     }
 
 
-    editingProjectId =
-        id;
+    editingProjectId = id;
 
 
     projectName.value =
         project.name;
 
-
     projectStatus.value =
         project.status;
-
 
     projectProgress.value =
         project.progress;
 
-
     projectDeadline.value =
         project.deadline || "";
-
 
     projectDescription.value =
         project.description || "";
@@ -1791,10 +1687,6 @@ function editProject(id) {
 
 }
 
-
-/* =====================================================
-   EXCLUIR PROJETO
-===================================================== */
 
 function deleteProject(id) {
 
@@ -1828,7 +1720,16 @@ function deleteProject(id) {
         );
 
 
+    projectTasks =
+        projectTasks.filter(
+            (task) =>
+                task.projectId !== id
+        );
+
+
     saveProjects();
+
+    saveProjectTasks();
 
     renderProjects();
 
@@ -1839,11 +1740,17 @@ function deleteProject(id) {
 }
 
 
-/* =====================================================
-   ESTATÍSTICAS
-===================================================== */
-
 function updateProjectStats() {
+
+    if (
+        !totalProjects ||
+        !activeProjects ||
+        !finishedProjects ||
+        !averageProjectProgress
+    ) {
+        return;
+    }
+
 
     const total =
         projects.length;
@@ -1900,34 +1807,34 @@ function updateProjectStats() {
     totalProjects.textContent =
         total;
 
-
     activeProjects.textContent =
         active;
 
-
     finishedProjects.textContent =
         completed;
-
 
     averageProjectProgress.textContent =
         `${average}%`;
 
 
-    dashboardProjectCount.textContent =
-        `${active} ativo${active === 1 ? "" : "s"}`;
+    if (dashboardProjectCount) {
+
+        dashboardProjectCount.textContent =
+            `${active} ativo${active === 1 ? "" : "s"}`;
+
+    }
 
 }
 
 
-/* =====================================================
-   PROJETOS NO DASHBOARD
-===================================================== */
-
 function renderDashboardProjects() {
 
-    if (
-        projects.length === 0
-    ) {
+    if (!dashboardProjects) {
+        return;
+    }
+
+
+    if (projects.length === 0) {
 
         dashboardProjects.innerHTML = `
 
@@ -1958,9 +1865,7 @@ function renderDashboardProjects() {
             .slice(0, 4);
 
 
-    if (
-        dashboardList.length === 0
-    ) {
+    if (dashboardList.length === 0) {
 
         dashboardProjects.innerHTML = `
 
@@ -1981,17 +1886,14 @@ function renderDashboardProjects() {
     }
 
 
-    dashboardProjects.innerHTML =
-        "";
+    dashboardProjects.innerHTML = "";
 
 
     dashboardList.forEach(
         (project) => {
 
             const item =
-                document.createElement(
-                    "div"
-                );
+                document.createElement("div");
 
 
             item.classList.add(
@@ -2015,7 +1917,6 @@ function renderDashboardProjects() {
 
                 </div>
 
-
                 <div class="progress">
 
                     <div
@@ -2038,57 +1939,611 @@ function renderDashboardProjects() {
 }
 
 
-/* =====================================================
-   DASHBOARD → PROJETOS
-===================================================== */
+if (dashboardProjectsLink) {
 
-dashboardProjectsLink.addEventListener(
-    "click",
-    (event) => {
+    dashboardProjectsLink.addEventListener(
+        "click",
+        (event) => {
 
-        event.preventDefault();
+            event.preventDefault();
 
 
-        pages.forEach(
-            (page) => {
-                page.classList.add(
+            pages.forEach(
+                (page) => {
+
+                    page.classList.add(
+                        "hidden"
+                    );
+
+                }
+            );
+
+
+            document
+                .getElementById("projects")
+                .classList.remove(
                     "hidden"
                 );
-            }
+
+
+            navItems.forEach(
+                (item) => {
+
+                    item.classList.remove(
+                        "active"
+                    );
+
+
+                    if (
+                        item.dataset.page ===
+                        "projects"
+                    ) {
+
+                        item.classList.add(
+                            "active"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   MODAL DO PROJETO
+===================================================== */
+
+const projectModal =
+    document.getElementById(
+        "project-modal"
+    );
+
+const closeProjectModal =
+    document.getElementById(
+        "close-project-modal"
+    );
+
+const modalProjectName =
+    document.getElementById(
+        "modal-project-name"
+    );
+
+const modalProjectDescription =
+    document.getElementById(
+        "modal-project-description"
+    );
+
+const modalProjectProgress =
+    document.getElementById(
+        "modal-project-progress"
+    );
+
+const modalProjectProgressBar =
+    document.getElementById(
+        "modal-project-progress-bar"
+    );
+
+const modalTaskCount =
+    document.getElementById(
+        "modal-task-count"
+    );
+
+const addProjectTask =
+    document.getElementById(
+        "add-project-task"
+    );
+
+const projectTaskForm =
+    document.getElementById(
+        "project-task-form"
+    );
+
+const projectTaskTitle =
+    document.getElementById(
+        "project-task-title"
+    );
+
+const saveProjectTask =
+    document.getElementById(
+        "save-project-task"
+    );
+
+const projectTasksContainer =
+    document.getElementById(
+        "project-tasks-container"
+    );
+
+
+let currentProjectId = null;
+
+
+let projectTasks =
+    JSON.parse(
+        localStorage.getItem(
+            "orbitProjectTasks"
+        )
+    ) || [];
+
+
+function saveProjectTasks() {
+
+    localStorage.setItem(
+        "orbitProjectTasks",
+        JSON.stringify(
+            projectTasks
+        )
+    );
+
+}
+
+
+function openProjectDetails(id) {
+
+    const project =
+        projects.find(
+            (item) =>
+                item.id === id
         );
 
 
-        document
-            .getElementById("projects")
-            .classList.remove(
+    if (!project) {
+        return;
+    }
+
+
+    currentProjectId = id;
+
+
+    modalProjectName.textContent =
+        project.name;
+
+
+    modalProjectDescription.textContent =
+        project.description ||
+        "Sem descrição.";
+
+
+    projectModal.classList.remove(
+        "hidden"
+    );
+
+
+    renderProjectTasks();
+
+}
+
+
+if (closeProjectModal) {
+
+    closeProjectModal.addEventListener(
+        "click",
+        closeProjectDetails
+    );
+
+}
+
+
+if (projectModal) {
+
+    projectModal.addEventListener(
+        "click",
+        (event) => {
+
+            if (
+                event.target ===
+                projectModal
+            ) {
+
+                closeProjectDetails();
+
+            }
+
+        }
+    );
+
+}
+
+
+function closeProjectDetails() {
+
+    projectModal.classList.add(
+        "hidden"
+    );
+
+    currentProjectId = null;
+
+    projectTaskForm.classList.add(
+        "hidden"
+    );
+
+    projectTaskTitle.value = "";
+
+}
+
+
+if (addProjectTask) {
+
+    addProjectTask.addEventListener(
+        "click",
+        () => {
+
+            projectTaskForm.classList.toggle(
                 "hidden"
             );
 
 
-        navItems.forEach(
-            (item) => {
+            if (
+                !projectTaskForm.classList.contains(
+                    "hidden"
+                )
+            ) {
 
-                item.classList.remove(
-                    "active"
+                projectTaskTitle.focus();
+
+            }
+
+        }
+    );
+
+}
+
+
+if (saveProjectTask) {
+
+    saveProjectTask.addEventListener(
+        "click",
+        addProjectTaskFunction
+    );
+
+}
+
+
+if (projectTaskTitle) {
+
+    projectTaskTitle.addEventListener(
+        "keydown",
+        (event) => {
+
+            if (
+                event.key ===
+                "Enter"
+            ) {
+
+                addProjectTaskFunction();
+
+            }
+
+        }
+    );
+
+}
+
+
+function addProjectTaskFunction() {
+
+    if (
+        currentProjectId === null
+    ) {
+
+        return;
+
+    }
+
+
+    const title =
+        projectTaskTitle.value.trim();
+
+
+    if (title === "") {
+
+        return;
+
+    }
+
+
+    projectTasks.push({
+
+        id: Date.now(),
+
+        projectId:
+            currentProjectId,
+
+        title,
+
+        completed: false
+
+    });
+
+
+    saveProjectTasks();
+
+
+    projectTaskTitle.value = "";
+
+
+    projectTaskForm.classList.add(
+        "hidden"
+    );
+
+
+    renderProjectTasks();
+
+}
+
+
+function renderProjectTasks() {
+
+    if (
+        !projectTasksContainer ||
+        currentProjectId === null
+    ) {
+
+        return;
+
+    }
+
+
+    const tasks =
+        projectTasks.filter(
+            (task) =>
+                task.projectId ===
+                currentProjectId
+        );
+
+
+    const completed =
+        tasks.filter(
+            (task) =>
+                task.completed
+        ).length;
+
+
+    modalTaskCount.textContent =
+        `${completed} de ${tasks.length} concluídas`;
+
+
+    if (tasks.length === 0) {
+
+        projectTasksContainer.innerHTML = `
+
+            <div class="empty-project-tasks">
+
+                <span>✓</span>
+
+                <p>
+                    Nenhuma tarefa neste projeto.
+                </p>
+
+            </div>
+
+        `;
+
+
+        updateProjectProgress();
+
+        return;
+
+    }
+
+
+    projectTasksContainer.innerHTML = "";
+
+
+    tasks.forEach(
+        (task) => {
+
+            const element =
+                document.createElement(
+                    "div"
                 );
 
 
-                if (
-                    item.dataset.page ===
-                    "projects"
-                ) {
+            element.classList.add(
+                "project-task"
+            );
 
-                    item.classList.add(
-                        "active"
-                    );
 
-                }
+            if (task.completed) {
+
+                element.classList.add(
+                    "completed"
+                );
 
             }
-        );
+
+
+            element.innerHTML = `
+
+                <input
+                    type="checkbox"
+                    class="project-task-checkbox"
+                    ${task.completed ? "checked" : ""}
+                >
+
+                <span class="project-task-title">
+                    ${escapeHTML(
+                        task.title
+                    )}
+                </span>
+
+                <button
+                    class="delete-project-task"
+                    title="Excluir tarefa"
+                >
+                    ×
+                </button>
+
+            `;
+
+
+            const checkbox =
+                element.querySelector(
+                    ".project-task-checkbox"
+                );
+
+
+            checkbox.addEventListener(
+                "change",
+                () => {
+
+                    task.completed =
+                        checkbox.checked;
+
+                    saveProjectTasks();
+
+                    renderProjectTasks();
+
+                }
+            );
+
+
+            const deleteButton =
+                element.querySelector(
+                    ".delete-project-task"
+                );
+
+
+            deleteButton.addEventListener(
+                "click",
+                () => {
+
+                    projectTasks =
+                        projectTasks.filter(
+                            (item) =>
+                                item.id !==
+                                task.id
+                        );
+
+
+                    saveProjectTasks();
+
+                    renderProjectTasks();
+
+                }
+            );
+
+
+            projectTasksContainer.appendChild(
+                element
+            );
+
+        }
+    );
+
+
+    updateProjectProgress();
+
+}
+
+
+function updateProjectProgress() {
+
+    if (
+        currentProjectId === null
+    ) {
+
+        return;
 
     }
-);
+
+
+    const project =
+        projects.find(
+            (item) =>
+                item.id ===
+                currentProjectId
+        );
+
+
+    if (!project) {
+        return;
+    }
+
+
+    const tasks =
+        projectTasks.filter(
+            (task) =>
+                task.projectId ===
+                currentProjectId
+        );
+
+
+    const completed =
+        tasks.filter(
+            (task) =>
+                task.completed
+        ).length;
+
+
+    let progress = 0;
+
+
+    if (tasks.length > 0) {
+
+        progress =
+            Math.round(
+                (
+                    completed /
+                    tasks.length
+                ) * 100
+            );
+
+    }
+
+
+    project.progress =
+        progress;
+
+
+    if (
+        progress === 100 &&
+        tasks.length > 0
+    ) {
+
+        project.status =
+            "completed";
+
+    } else if (
+        project.status ===
+        "completed"
+    ) {
+
+        project.status =
+            "active";
+
+    }
+
+
+    if (modalProjectProgress) {
+
+        modalProjectProgress.textContent =
+            `${progress}%`;
+
+    }
+
+
+    if (modalProjectProgressBar) {
+
+        modalProjectProgressBar.style.width =
+            `${progress}%`;
+
+    }
+
+
+    saveProjects();
+
+    renderProjects();
+
+    renderDashboardProjects();
+
+    updateProjectStats();
+
+}
 
 
 /* =====================================================
@@ -2098,14 +2553,10 @@ dashboardProjectsLink.addEventListener(
 function escapeHTML(text) {
 
     const div =
-        document.createElement(
-            "div"
-        );
-
+        document.createElement("div");
 
     div.textContent =
         text;
-
 
     return div.innerHTML;
 
@@ -2132,9 +2583,7 @@ requestNotificationPermission();
 events.forEach(
     (event) => {
 
-        scheduleReminder(
-            event
-        );
+        scheduleReminder(event);
 
     }
 );
