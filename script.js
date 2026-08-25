@@ -2798,3 +2798,186 @@ mobileMoreItems.forEach((item) => {
         mobileMoreMenu.classList.remove("open");
     });
 });
+
+/* =====================================================
+   JOGOS
+===================================================== */
+
+const totalGames =
+    document.getElementById("total-games");
+
+const recentGames =
+    document.getElementById("recent-games");
+
+const totalAchievements =
+    document.getElementById("total-achievements");
+
+const totalPlaytime =
+    document.getElementById("total-playtime");
+
+const gamesContainer =
+    document.getElementById("games-container");
+
+
+const games = [
+
+    {
+        name: "Palworld",
+        platform: "Steam",
+        playtime: 126,
+        achievementsUnlocked: 32,
+        achievementsTotal: 50,
+        cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/1623730/header.jpg"
+    },
+    {
+        name: "Rocket League",
+        platform: "Steam",
+        playtime: 84,
+        achievementsUnlocked: 18,
+        achievementsTotal: 30,
+        cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/252950/header.jpg"
+    },
+
+    {
+        name: "Valorant",
+        platform: "Riot Games",
+        playtime: 210,
+        achievementsUnlocked: 0,
+        achievementsTotal: 0,
+        cover: ""
+    }
+
+];
+
+
+function renderGames() {
+
+    if (!gamesContainer) {
+        return;
+    }
+
+    gamesContainer.innerHTML = "";
+
+    games.forEach((game) => {
+
+        const achievementPercentage =
+            game.achievementsTotal > 0
+                ? Math.round(
+                    (game.achievementsUnlocked /
+                        game.achievementsTotal) * 100
+                )
+                : 0;
+
+
+        const card =
+            document.createElement("div");
+
+        card.className = "game-card";
+
+
+        card.innerHTML = `
+
+            <div class="game-cover">
+
+                ${
+                    game.cover
+                        ? `<img src="${game.cover}" alt="${game.name}">`
+                        : `<div class="game-cover-placeholder">🎮</div>`
+                }
+
+            </div>
+
+
+            <div class="game-info">
+
+                <h3>
+                    ${game.name}
+                </h3>
+
+                <span class="game-platform">
+                    ${game.platform}
+                </span>
+
+
+                <div class="game-stats">
+
+                    <span>
+                        ⏱ ${game.playtime}h
+                    </span>
+
+                    <span>
+                        🏆
+                        ${game.achievementsUnlocked}/${game.achievementsTotal}
+                    </span>
+
+                </div>
+
+
+                <div class="game-achievement">
+
+                    <div class="game-achievement-header">
+
+                        <span>
+                            Conquistas
+                        </span>
+
+                        <strong>
+                            ${achievementPercentage}%
+                        </strong>
+
+                    </div>
+
+
+                    <div class="game-progress">
+
+                        <div
+                            class="game-progress-bar"
+                            style="width: ${achievementPercentage}%"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        gamesContainer.appendChild(card);
+
+    });
+
+}
+
+
+if (
+    totalGames &&
+    recentGames &&
+    totalAchievements &&
+    totalPlaytime
+) {
+
+    totalGames.textContent =
+        games.length;
+
+    recentGames.textContent =
+        games.length;
+
+    totalAchievements.textContent =
+        games.reduce(
+            (total, game) =>
+                total + game.achievementsUnlocked,
+            0
+        );
+
+    totalPlaytime.textContent =
+        games.reduce(
+            (total, game) =>
+                total + game.playtime,
+            0
+        ) + "h";
+
+    renderGames();
+
+}
