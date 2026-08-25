@@ -411,6 +411,29 @@ const eventEnd =
 const eventReminder =
     document.getElementById("event-reminder");
 
+const eventRepeat =
+    document.getElementById("event-repeat");
+
+const eventWeekdays =
+    document.getElementById("event-weekdays");
+
+const eventWeekdayInputs =
+    document.querySelectorAll(".event-weekday");
+
+    if (eventRepeat) {
+
+    eventRepeat.addEventListener("change", () => {
+
+        if (eventRepeat.value === "weekdays") {
+            eventWeekdays.classList.remove("hidden");
+        } else {
+            eventWeekdays.classList.add("hidden");
+        }
+
+    });
+
+}
+
 const eventNotes =
     document.getElementById("event-notes");
 
@@ -422,6 +445,12 @@ const calendarDate =
 
 const calendarWeekday =
     document.getElementById("calendar-weekday");
+
+const calendarDatePicker =
+    document.getElementById("calendar-date-picker");
+
+const calendarDateInput =
+    document.getElementById("calendar-date-input");
 
 const previousDay =
     document.getElementById("previous-day");
@@ -543,6 +572,37 @@ if (nextDay) {
 
 }
 
+if (calendarDatePicker && calendarDateInput) {
+
+    calendarDatePicker.addEventListener(
+        "click",
+        () => {
+
+            calendarDateInput.showPicker();
+
+        }
+    );
+
+    calendarDateInput.addEventListener(
+        "change",
+        () => {
+
+            if (!calendarDateInput.value) {
+                return;
+            }
+
+            selectedDate =
+                new Date(
+                    `${calendarDateInput.value}T12:00:00`
+                );
+
+            updateCalendarHeader();
+
+        }
+    );
+
+}
+
 
 if (addEventButton) {
 
@@ -580,6 +640,16 @@ function closeEventFormFunction() {
     eventEnd.value = "";
 
     eventReminder.value = "none";
+
+    eventRepeat.value = "none";
+
+    eventWeekdayInputs.forEach(
+        input => {
+            input.checked = false;
+        }
+    );
+
+    eventWeekdays.classList.add("hidden");
 
     eventNotes.value = "";
 
@@ -636,6 +706,14 @@ function saveEvent() {
     const notes =
         eventNotes.value.trim();
 
+    const repeat =
+    eventRepeat.value;
+
+    const weekdays =
+        Array.from(eventWeekdayInputs)
+            .filter(input => input.checked)
+            .map(input => Number(input.value));
+
 
     if (
         title === "" ||
@@ -652,22 +730,16 @@ function saveEvent() {
 
 
     const newEvent = {
-
         id: Date.now(),
-
         title,
-
         date,
-
         start,
-
         end,
-
         reminder,
-
+        repeat,
+        weekdays,
         notes
-
-    };
+};
 
 
     events.push(newEvent);
@@ -689,6 +761,107 @@ function saveEvent() {
 
 }
 
+function eventOccursOnDate(event, date) {
+
+    const originalDate =
+        new Date(
+            `${event.date}T12:00:00`
+        );
+
+    const targetDate =
+        new Date(
+            `${formatDateForInput(date)}T12:00:00`
+        );
+
+    if (targetDate < originalDate) {
+        return false;
+    }
+
+    if (!event.repeat || event.repeat === "none") {
+        return (
+            formatDateForInput(targetDate) ===
+            event.date
+        );
+    }
+
+    if (event.repeat === "daily") {
+        return true;
+    }
+
+    if (event.repeat === "weekly") {
+        return (
+            targetDate.getDay() ===
+            originalDate.getDay()
+        );
+    }
+
+    if (event.repeat === "weekdays") {
+        return (
+            event.weekdays || []
+        ).includes(
+            targetDate.getDay()
+        );
+    }
+
+    if (event.repeat === "monthly") {
+        return (
+            targetDate.getDate() ===
+            originalDate.getDate()
+        );
+    }
+
+    return false;
+}
+
+function eventOccursOnDate(event, date) {
+
+    const originalDate =
+        new Date(`${event.date}T12:00:00`);
+
+    const targetDate =
+        new Date(`${formatDateForInput(date)}T12:00:00`);
+
+    if (targetDate < originalDate) {
+        return false;
+    }
+
+    if (!event.repeat || event.repeat === "none") {
+        return (
+            formatDateForInput(targetDate) ===
+            event.date
+        );
+    }
+
+    if (event.repeat === "daily") {
+        return true;
+    }
+
+    if (event.repeat === "weekly") {
+    return (
+        targetDate.getDay() ===
+        originalDate.getDay()
+    );
+}
+
+if (event.repeat === "monthly") {
+    return (
+        targetDate.getDate() ===
+        originalDate.getDate()
+    );
+}
+
+if (event.repeat === "weekdays") {
+    return (
+        event.weekdays || []
+    ).includes(
+        targetDate.getDay()
+    );
+}
+
+    return false;
+}
+
+
 
 function renderAgenda() {
 
@@ -704,18 +877,14 @@ function renderAgenda() {
 
 
     const dayEvents =
-        events
-            .filter(
-                (event) =>
-                    event.date === dateString
-            )
-            .sort(
-                (a, b) =>
-                    (a.start || "")
-                        .localeCompare(
-                            b.start || ""
-                        )
-            );
+    events
+        .filter(
+            (event) =>
+                eventOccursOnDate(
+                    event,
+                    selectedDate
+                )
+        )
 
 
     if (dayEvents.length === 0) {
