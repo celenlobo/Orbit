@@ -2819,35 +2819,144 @@ const gamesContainer =
     document.getElementById("games-container");
 
 
-const games = [
+let games = [];
 
-    {
-        name: "Palworld",
-        platform: "Steam",
-        playtime: 126,
-        achievementsUnlocked: 32,
-        achievementsTotal: 50,
-        cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/1623730/header.jpg"
-    },
-    {
-        name: "Rocket League",
-        platform: "Steam",
-        playtime: 84,
-        achievementsUnlocked: 18,
-        achievementsTotal: 30,
-        cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/252950/header.jpg"
-    },
 
-    {
-        name: "Valorant",
-        platform: "Riot Games",
-        playtime: 210,
-        achievementsUnlocked: 0,
-        achievementsTotal: 0,
-        cover: ""
+const steamIdInput =
+    document.getElementById("steam-id-input");
+
+const connectSteamButton =
+    document.getElementById("connect-steam-button");
+
+connectSteamButton.addEventListener("click", () => {
+
+    const steamId =
+        steamIdInput.value.trim();
+
+            console.log("Botão Steam clicado");
+            console.log("SteamID digitado:", steamId);
+
+    if (!steamId) {
+        alert("Informe seu SteamID64.");
+        return;
     }
 
-];
+    localStorage.setItem(
+        "orbitSteamId",
+        steamId
+    );
+
+    loadSteamGames(steamId);
+});
+
+
+
+async function loadSteamGames(steamId) {
+
+    console.log("SteamID usado:", steamId);
+
+    try {
+
+        const response =
+    await fetch(
+        `http://localhost:3000/api/steam/games?steamId=${steamId}`
+    );
+        const result =
+            await response.json();
+
+        if (!result.success) {
+            throw new Error(
+                result.message || "Erro ao buscar jogos"
+            );
+        }
+
+        games =
+            result.data.games || [];
+
+        console.log("Jogos recebidos da Steam:", result.data);
+        console.log("Quantidade de jogos:", games.length);
+
+        renderGames();
+
+        if (totalGames) {
+            totalGames.textContent =
+                games.length;
+        }
+
+        if (recentGames) {
+            recentGames.textContent =
+                games.filter(
+                    (game) => game.playtime_2weeks > 0
+                ).length;
+        }
+
+        if (totalPlaytime) {
+
+            const totalMinutes =
+                games.reduce(
+                    (total, game) =>
+                        total + (game.playtime_forever || 0),
+                    0
+                );
+
+            totalPlaytime.textContent =
+                Math.round(totalMinutes / 60) + "h";
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar jogos da Steam:",
+            error
+        );
+
+    }
+
+}
+
+
+
+async function loadGameAchievements(steamId, appId) {
+
+    try {
+
+        const response = await fetch(
+            `/api/steam/achievements?steamId=${steamId}&appId=${appId}`
+        );
+
+        const result = await response.json();
+
+        if (!result.success || !result.data) {
+            return null;
+        }
+
+        const achievements =
+            result.data.achievements || [];
+
+        const total =
+            achievements.length;
+
+        const unlocked =
+            achievements.filter(
+                (achievement) =>
+                    achievement.achieved === 1
+            ).length;
+
+        return {
+            total,
+            unlocked
+        };
+
+    } catch (error) {
+
+        console.error(
+            `Erro ao carregar conquistas do jogo ${appId}:`,
+            error
+        );
+
+        return null;
+    }
+}
 
 
 function renderGames() {
@@ -2858,15 +2967,42 @@ function renderGames() {
 
     gamesContainer.innerHTML = "";
 
-    games.forEach((game) => {
+    if (games.length === 0) {
 
-        const achievementPercentage =
-            game.achievementsTotal > 0
-                ? Math.round(
-                    (game.achievementsUnlocked /
-                        game.achievementsTotal) * 100
-                )
-                : 0;
+        gamesContainer.innerHTML = `
+
+            <div class="no-games">
+
+                <h3>
+                    Nenhum jogo encontrado
+                </h3>
+
+                <p>
+                    Não encontramos jogos nessa conta Steam.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+     games
+        .sort((a, b) => {
+            return (b.playtime_forever || 0) - (a.playtime_forever || 0);
+        })
+        .forEach(async (game) => {
+
+        const playtimeHours =
+            Math.round(
+                (game.playtime_forever || 0) / 60
+            );
+
+
+        const coverUrl =
+            `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`;
 
 
         const card =
@@ -2879,11 +3015,10 @@ function renderGames() {
 
             <div class="game-cover">
 
-                ${
-                    game.cover
-                        ? `<img src="${game.cover}" alt="${game.name}">`
-                        : `<div class="game-cover-placeholder">🎮</div>`
-                }
+                <img
+                    src="${coverUrl}"
+                    alt="${game.name}"
+                >
 
             </div>
 
@@ -2895,47 +3030,29 @@ function renderGames() {
                 </h3>
 
                 <span class="game-platform">
-                    ${game.platform}
+                    Steam
                 </span>
 
 
                 <div class="game-stats">
 
-                    <span>
-                        ⏱ ${game.playtime}h
-                    </span>
+                <span>
+                    ⏱ ${playtimeHours}h
+                </span>
+
+            </div>
+
+            <div class="game-achievement">
+
+                <div class="game-achievement-header">
 
                     <span>
-                        🏆
-                        ${game.achievementsUnlocked}/${game.achievementsTotal}
+                        🏆 Conquistas
                     </span>
 
-                </div>
-
-
-                <div class="game-achievement">
-
-                    <div class="game-achievement-header">
-
-                        <span>
-                            Conquistas
-                        </span>
-
-                        <strong>
-                            ${achievementPercentage}%
-                        </strong>
-
-                    </div>
-
-
-                    <div class="game-progress">
-
-                        <div
-                            class="game-progress-bar"
-                            style="width: ${achievementPercentage}%"
-                        ></div>
-
-                    </div>
+                    <strong class="achievement-value">
+                        Carregando...
+                    </strong>
 
                 </div>
 
@@ -2945,6 +3062,26 @@ function renderGames() {
 
 
         gamesContainer.appendChild(card);
+
+        const achievementElement =
+            card.querySelector(".achievement-value");
+
+        const achievements =
+            await loadGameAchievements(
+                localStorage.getItem("orbitSteamId"),
+                game.appid
+            );
+
+        if (!achievements) {
+
+            achievementElement.textContent =
+                "Sem dados";
+
+        } else {
+
+            achievementElement.textContent =
+                `${achievements.unlocked} / ${achievements.total}`;
+        }
 
     });
 
@@ -2981,3 +3118,4 @@ if (
     renderGames();
 
 }
+
