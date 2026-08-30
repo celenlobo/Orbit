@@ -3054,4 +3054,113 @@ body {
     border-color: #8b5cf6;
 }
 
+.movie-remove-button {
+    height: 40px;
+    padding: 0 14px;
+
+    background: transparent;
+    border: 1px solid #3a2a2f;
+    border-radius: 8px;
+
+    color: #b98a92;
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.movie-remove-button:hover {
+    background: #2a1c20;
+    border-color: #6b3540;
+    color: #e6aab3;
+}
+
+/* =========================
+   AÇÕES DE SÉRIES
+   ========================= */
+
+.series-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.series-favorite-button {
+    height: 40px;
+    padding: 0 16px;
+
+    background: #222229;
+    border: 1px solid #2a2a31;
+    border-radius: 8px;
+
+    color: #fff;
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.series-favorite-button:hover {
+    background: #2a2a31;
+    border-color: #3a3a44;
+}
+
+#series-status {
+    height: 40px;
+    padding: 0 36px 0 12px;
+
+    background-color: #18181c;
+    border: 1px solid #2a2a31;
+    border-radius: 8px;
+
+    color: #fff;
+    font-size: 13px;
+
+    cursor: pointer;
+    outline: none;
+
+    appearance: none;
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+#series-status:focus {
+    border-color: #8b5cf6;
+}
+
+.series-remove-button {
+    height: 40px;
+    padding: 0 14px;
+
+    background: transparent;
+    border: 1px solid #3a2a2f;
+    border-radius: 8px;
+
+    color: #b98a92;
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.series-remove-button:hover {
+    background: #2a1c20;
+    border-color: #6b3540;
+    color: #e6aab3;
+}
 

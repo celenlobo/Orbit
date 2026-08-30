@@ -813,6 +813,13 @@ function renderSeriesDetails(series) {
 
                     </select>
 
+                    <button
+                        class="series-remove-button"
+                        id="series-remove-button"
+                    >
+                        🗑️ Remover
+                    </button>
+
                 </div>
 
                 <div class="series-seasons">
@@ -863,6 +870,11 @@ function renderSeriesDetails(series) {
         document.getElementById(
             "series-status"
         );
+
+    const removeButton =
+        document.getElementById(
+            "series-remove-button"
+    );
 
     const savedSeries =
         getSavedSeries(series.id);
@@ -934,6 +946,17 @@ function renderSeriesDetails(series) {
         }
     );
 
+    removeButton.addEventListener(
+    "click",
+    () => {
+
+        removeSeries(series.id);
+
+        closeSeriesModal();
+
+    }
+);
+
 }
 
 function saveSeries(series, status = "want", favorite = false) {
@@ -986,6 +1009,28 @@ function getSavedSeries(seriesId) {
         (series) =>
             series.id === Number(seriesId)
     );
+
+}
+
+function removeSeries(seriesId) {
+
+    const savedSeries =
+        JSON.parse(
+            localStorage.getItem("orbitSeries")
+        ) || [];
+
+    const updatedSeries =
+        savedSeries.filter(
+            (series) =>
+                series.id !== Number(seriesId)
+        );
+
+    localStorage.setItem(
+        "orbitSeries",
+        JSON.stringify(updatedSeries)
+    );
+
+    renderSeriesLibrary();
 
 }
 
@@ -1322,6 +1367,13 @@ function renderMovieDetails(movie) {
 
                     </select>
 
+                    <button
+                        class="movie-remove-button"
+                        id="movie-remove-button"
+                    >
+                        🗑️ Remover
+                    </button>
+
                 </div>
 
             </div>
@@ -1334,6 +1386,9 @@ function renderMovieDetails(movie) {
 
     const statusSelect =
         document.getElementById("movie-status");
+
+    const removeButton =
+        document.getElementById("movie-remove-button");
 
     const savedMovie =
         getSavedMovie(movie.id);
@@ -1408,6 +1463,17 @@ function renderMovieDetails(movie) {
 
         }
     );
+
+    removeButton.addEventListener(
+    "click",
+    () => {
+
+        removeMovie(movie.id);
+
+        closeMovieModal();
+
+    }
+);
 
 }
 
@@ -1620,6 +1686,28 @@ function getSavedMovie(movieId) {
     return savedMovies.find(
         (movie) => movie.id === Number(movieId)
     );
+
+}
+
+function removeMovie(movieId) {
+
+    const savedMovies =
+        JSON.parse(
+            localStorage.getItem("orbitMovies")
+        ) || [];
+
+    const updatedMovies =
+        savedMovies.filter(
+            (movie) =>
+                movie.id !== Number(movieId)
+        );
+
+    localStorage.setItem(
+        "orbitMovies",
+        JSON.stringify(updatedMovies)
+    );
+
+    renderMovieLibrary();
 
 }
 
