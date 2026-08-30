@@ -376,6 +376,610 @@ function updateTaskStats() {
 
 }
 
+// =========================
+// FILMES - TMDB
+// =========================
+
+const movieSearchInput =
+    document.getElementById("movie-search-input");
+
+const movieSearchButton =
+    document.getElementById("movie-search-button");
+
+const moviesContainer =
+    document.getElementById("movies-container");
+
+
+movieSearchButton.addEventListener(
+    "click",
+    searchMovies
+);
+
+
+movieSearchInput.addEventListener(
+    "keydown",
+    (event) => {
+
+        if (event.key === "Enter") {
+            searchMovies();
+        }
+
+    }
+);
+
+
+async function searchMovies() {
+
+    const query =
+        movieSearchInput.value.trim();
+
+    if (!query) {
+        return;
+    }
+
+    moviesContainer.innerHTML =
+        "<p>Pesquisando filmes...</p>";
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/tmdb/search?query=${encodeURIComponent(query)}`
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Não foi possível buscar os filmes"
+            );
+        }
+
+        const result =
+            await response.json();
+
+        const movies =
+            result.data.results;
+
+        renderMovies(movies);
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao buscar filmes:",
+            error
+        );
+
+        moviesContainer.innerHTML =
+            "<p>Erro ao buscar filmes.</p>";
+
+    }
+
+}
+
+
+function renderMovies(movies) {
+
+    if (!movies || movies.length === 0) {
+
+        moviesContainer.innerHTML =
+            "<p>Nenhum filme encontrado.</p>";
+
+        return;
+    }
+
+
+    moviesContainer.innerHTML =
+        movies.map(
+            (movie) => {
+
+                const poster =
+                    movie.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                        : "https://via.placeholder.com/500x750?text=Sem+imagem";
+
+                const year =
+                    movie.release_date
+                        ? movie.release_date.slice(0, 4)
+                        : "Ano desconhecido";
+
+
+                return `
+                    <div
+                        class="movie-card"
+                        data-movie-id="${movie.id}"
+                    >
+
+                        <img
+                            src="${poster}"
+                            alt="${movie.title}"
+                        >
+
+                        <div class="movie-card-info">
+
+                            <h3>
+                                ${movie.title}
+                            </h3>
+
+                            <p>
+                                ${year}
+                            </p>
+
+                            <span>
+                                ⭐ ${movie.vote_average.toFixed(1)}
+                            </span>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }
+        ).join("");
+
+}
+
+// =========================
+// DETALHES DO FILME
+// =========================
+
+const movieModal =
+    document.getElementById("movie-modal");
+
+const movieModalBody =
+    document.getElementById("movie-modal-body");
+
+const movieModalClose =
+    document.getElementById("movie-modal-close");
+
+
+moviesContainer.addEventListener(
+    "click",
+    (event) => {
+
+        const card =
+            event.target.closest(".movie-card");
+
+        if (!card) {
+            return;
+        }
+
+        const movieId =
+            card.dataset.movieId;
+
+        openMovieDetails(movieId);
+
+    }
+);
+
+
+movieModalClose.addEventListener(
+    "click",
+    closeMovieModal
+);
+
+
+movieModal.addEventListener(
+    "click",
+    (event) => {
+
+        if (event.target === movieModal) {
+            closeMovieModal();
+        }
+
+    }
+);
+
+
+async function openMovieDetails(movieId) {
+
+    movieModalBody.innerHTML =
+        "<p>Carregando detalhes...</p>";
+
+    movieModal.classList.remove("hidden");
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/tmdb/movie/${movieId}`
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Erro ao carregar detalhes"
+            );
+        }
+
+        const result =
+            await response.json();
+
+        renderMovieDetails(result.data);
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar detalhes do filme:",
+            error
+        );
+
+        movieModalBody.innerHTML =
+            "<p>Não foi possível carregar os detalhes.</p>";
+
+    }
+
+}
+
+
+function renderMovieDetails(movie) {
+
+    const poster =
+        movie.poster_path
+            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : "";
+
+    const year =
+        movie.release_date
+            ? movie.release_date.slice(0, 4)
+            : "Ano desconhecido";
+
+    movieModalBody.innerHTML = `
+        <div class="movie-details">
+
+            <img
+                src="${poster}"
+                alt="${movie.title}"
+            >
+
+            <div class="movie-details-info">
+
+                <h2>
+                    ${movie.title}
+                </h2>
+
+                <p>
+                    ${year}
+                </p>
+
+                <p>
+                    ⭐ ${movie.vote_average.toFixed(1)}
+                </p>
+
+                <p>
+                    ${movie.overview || "Sinopse não disponível."}
+                </p>
+
+                <div class="movie-actions">
+
+                    <button
+                        class="movie-favorite-button"
+                        id="movie-favorite-button"
+                    >
+                        ♡ Favoritar
+                    </button>
+
+                    <select id="movie-status">
+
+                        <option value="want">
+                            Quero assistir
+                        </option>
+
+                        <option value="watching">
+                            Assistindo
+                        </option>
+
+                        <option value="completed">
+                            Concluído
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+        </div>
+    `;
+
+    const favoriteButton =
+        document.getElementById("movie-favorite-button");
+
+    const statusSelect =
+        document.getElementById("movie-status");
+
+    const savedMovie =
+        getSavedMovie(movie.id);
+
+
+    if (savedMovie) {
+
+        statusSelect.value =
+            savedMovie.status;
+
+        favoriteButton.textContent =
+            savedMovie.favorite
+                ? "❤️ Favoritado"
+                : "♡ Favoritar";
+
+    }
+
+
+    favoriteButton.addEventListener(
+        "click",
+        () => {
+
+            const currentMovie =
+                getSavedMovie(movie.id);
+
+            const favorite =
+                currentMovie
+                    ? !currentMovie.favorite
+                    : true;
+
+            const status =
+                currentMovie
+                    ? currentMovie.status
+                    : statusSelect.value;
+
+            saveMovie(
+                movie,
+                status,
+                favorite
+            );
+
+            favoriteButton.textContent =
+                favorite
+                    ? "❤️ Favoritado"
+                    : "♡ Favoritar";
+
+            renderMovieLibrary();
+
+        }
+    );
+
+
+    statusSelect.addEventListener(
+        "change",
+        () => {
+
+            const currentMovie =
+                getSavedMovie(movie.id);
+
+            const favorite =
+                currentMovie
+                    ? currentMovie.favorite
+                    : false;
+
+            saveMovie(
+                movie,
+                statusSelect.value,
+                favorite
+            );
+
+            renderMovieLibrary();
+
+        }
+    );
+
+}
+
+        // =========================
+// BIBLIOTECA DE FILMES
+// =========================
+
+const movieLibraryContainer =
+    document.getElementById("movie-library-container");
+
+const movieLibraryFilters =
+    document.querySelectorAll(".movie-library-filter");
+
+let currentMovieLibraryFilter = "all";
+
+
+function renderMovieLibrary() {
+
+    const savedMovies =
+        JSON.parse(
+            localStorage.getItem("orbitMovies")
+        ) || [];
+
+    let filteredMovies =
+        savedMovies;
+
+    if (currentMovieLibraryFilter === "favorite") {
+
+        filteredMovies =
+            savedMovies.filter(
+                (movie) => movie.favorite
+            );
+
+    } else if (currentMovieLibraryFilter !== "all") {
+
+        filteredMovies =
+            savedMovies.filter(
+                (movie) =>
+                    movie.status ===
+                    currentMovieLibraryFilter
+            );
+
+    }
+
+
+    if (filteredMovies.length === 0) {
+
+        movieLibraryContainer.innerHTML = `
+            <div class="empty-movie-library">
+
+                <h3>
+                    Nenhum filme aqui
+                </h3>
+
+                <p>
+                    Seus filmes salvos aparecerão aqui.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    movieLibraryContainer.innerHTML =
+        filteredMovies.map(
+            (movie) => {
+
+                const poster =
+                    movie.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                        : "";
+
+                const year =
+                    movie.release_date
+                        ? movie.release_date.slice(0, 4)
+                        : "Ano desconhecido";
+
+                return `
+                    <div
+                        class="movie-card"
+                        data-movie-id="${movie.id}"
+                    >
+
+                        <img
+                            src="${poster}"
+                            alt="${movie.title}"
+                        >
+
+                        <div class="movie-card-info">
+
+                            <h3>
+                                ${movie.title}
+                            </h3>
+
+                            <p>
+                                ${year}
+                            </p>
+
+                            <span>
+                                ⭐ ${movie.vote_average.toFixed(1)}
+                            </span>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }
+        ).join("");
+
+            movieLibraryContainer
+        .querySelectorAll(".movie-card")
+        .forEach((card) => {
+
+            card.addEventListener(
+                "click",
+                () => {
+
+                    const movieId =
+                        card.dataset.movieId;
+
+                    openMovieDetails(movieId);
+
+                }
+            );
+
+        });
+
+}
+
+
+movieLibraryFilters.forEach(
+    (filterButton) => {
+
+        filterButton.addEventListener(
+            "click",
+            () => {
+
+                movieLibraryFilters.forEach(
+                    (button) => {
+                        button.classList.remove("active");
+                    }
+                );
+
+                filterButton.classList.add("active");
+
+                currentMovieLibraryFilter =
+                    filterButton.dataset.libraryFilter;
+
+                renderMovieLibrary();
+
+            }
+        );
+
+    }
+);
+
+
+renderMovieLibrary();
+
+
+
+function saveMovie(movie, status = "want", favorite = false) {
+
+    const savedMovies =
+        JSON.parse(
+            localStorage.getItem("orbitMovies")
+        ) || [];
+
+    const existingMovie =
+        savedMovies.find(
+            (item) => item.id === movie.id
+        );
+
+    if (existingMovie) {
+
+        existingMovie.status = status;
+        existingMovie.favorite = favorite;
+
+    } else {
+
+        savedMovies.push({
+            id: movie.id,
+            title: movie.title,
+            poster_path: movie.poster_path,
+            release_date: movie.release_date,
+            vote_average: movie.vote_average,
+            status: status,
+            favorite: favorite
+        });
+
+    }
+
+    localStorage.setItem(
+        "orbitMovies",
+        JSON.stringify(savedMovies)
+    );
+
+}
+
+function getSavedMovie(movieId) {
+
+    const savedMovies =
+        JSON.parse(
+            localStorage.getItem("orbitMovies")
+        ) || [];
+
+    return savedMovies.find(
+        (movie) => movie.id === Number(movieId)
+    );
+
+}
+
+
+function closeMovieModal() {
+
+    movieModal.classList.add("hidden");
+
+}
+
 
 /* =====================================================
    AGENDA

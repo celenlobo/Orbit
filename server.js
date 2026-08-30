@@ -125,3 +125,104 @@ app.get("/api/steam/achievements", async (req, res) => {
     }
 
 });
+
+app.get("/api/tmdb/search", async (req, res) => {
+
+    try {
+
+        const query = req.query.query;
+
+        if (!query) {
+            return res.status(400).json({
+                success: false,
+                message: "Nome do filme não informado"
+            });
+        }
+
+        const url =
+            `https://api.themoviedb.org/3/search/movie` +
+            `?api_key=${process.env.TMDB_API_KEY}` +
+            `&query=${encodeURIComponent(query)}` +
+            `&language=pt-BR`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return res.status(response.status).json({
+                success: false,
+                message: "Erro ao buscar filmes no TMDB"
+            });
+        }
+
+        const data = await response.json();
+
+        res.json({
+            success: true,
+            data
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro TMDB:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Erro interno ao buscar filmes"
+        });
+
+    }
+
+});
+
+app.get("/api/tmdb/movie/:id", async (req, res) => {
+
+    try {
+
+        const movieId = req.params.id;
+
+        if (!movieId) {
+            return res.status(400).json({
+                success: false,
+                message: "ID do filme não informado"
+            });
+        }
+
+        const url =
+            `https://api.themoviedb.org/3/movie/${movieId}` +
+            `?api_key=${process.env.TMDB_API_KEY}` +
+            `&language=pt-BR`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return res.status(response.status).json({
+                success: false,
+                message: "Erro ao buscar detalhes do filme"
+            });
+        }
+
+        const data = await response.json();
+
+        res.json({
+            success: true,
+            data
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao buscar detalhes do filme:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Erro interno ao buscar detalhes"
+        });
+
+    }
+
+});

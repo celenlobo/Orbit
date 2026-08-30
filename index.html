@@ -1553,19 +1553,130 @@
         ========================== -->
 
         <section
-            class="page hidden"
-            id="movies"
-        >
+    class="page hidden"
+    id="movies"
+>
 
-            <h2>
+    <div class="page-header">
+        <div>
+            <h1>
                 Filmes
-            </h2>
+            </h1>
 
             <p>
                 Sua biblioteca de filmes.
             </p>
+        </div>
 
-        </section>
+        <button
+            class="primary-button"
+            id="add-movie-button"
+        >
+            + Adicionar filme
+        </button>
+    </div>
+
+    <div class="movie-toolbar">
+
+        <div class="movie-search">
+            <input
+                type="text"
+                id="movie-search-input"
+                placeholder="Pesquisar filmes..."
+            >
+
+            <button
+                class="primary-button"
+                id="movie-search-button"
+            >
+                Pesquisar
+            </button>
+        </div>
+
+    </div>
+
+    <div
+        class="movies-container"
+        id="movies-container"
+    >
+    </div>
+
+    <div class="movie-library">
+
+    <div class="movie-library-header">
+
+        <h2>
+            Minha biblioteca
+        </h2>
+
+        <div class="movie-library-filters">
+
+            <button
+                class="movie-library-filter active"
+                data-library-filter="all"
+            >
+                Todos
+            </button>
+
+            <button
+                class="movie-library-filter"
+                data-library-filter="favorite"
+            >
+                Favoritos
+            </button>
+
+            <button
+                class="movie-library-filter"
+                data-library-filter="want"
+            >
+                Quero assistir
+            </button>
+
+            <button
+                class="movie-library-filter"
+                data-library-filter="watching"
+            >
+                Assistindo
+            </button>
+
+            <button
+                class="movie-library-filter"
+                data-library-filter="completed"
+            >
+                Concluídos
+            </button>
+
+        </div>
+
+    </div>
+
+    <div
+        class="movies-container"
+        id="movie-library-container"
+    >
+    </div>
+
+</div>
+
+    <div
+    class="movie-modal hidden"
+    id="movie-modal"
+>
+    <div class="movie-modal-content">
+
+        <button
+            class="movie-modal-close"
+            id="movie-modal-close"
+        >
+            ×
+        </button>
+
+        <div id="movie-modal-body"></div>
+
+    </div>
+</div>
+
+</section>
 
 
 
@@ -1578,14 +1689,53 @@
             id="series"
         >
 
-            <h2>
-                Séries
-            </h2>
+            <div class="page-header">
 
-            <p>
-                Sua biblioteca de séries.
-            </p>
+    <div>
+        <h1>
+            Séries
+        </h1>
 
+        <p>
+            Sua biblioteca de séries.
+        </p>
+    </div>
+
+    <button
+        class="primary-button"
+        id="add-series-button"
+    >
+        + Adicionar série
+    </button>
+
+</div>
+
+<div class="series-toolbar">
+
+    <div class="series-search">
+
+        <input
+            type="text"
+            id="series-search-input"
+            placeholder="Pesquisar séries..."
+        >
+
+        <button
+            class="primary-button"
+            id="series-search-button"
+        >
+            Pesquisar
+        </button>
+
+    </div>
+
+</div>
+
+<div
+    class="series-container"
+    id="series-container"
+>
+</div>
         </section>
 
         <section
