@@ -518,6 +518,656 @@ function renderMovies(movies) {
 }
 
 // =========================
+// SÉRIES - TMDB
+// =========================
+
+const seriesSearchInput =
+    document.getElementById("series-search-input");
+
+const seriesSearchButton =
+    document.getElementById("series-search-button");
+
+const seriesContainer =
+    document.getElementById("series-container");
+
+
+seriesSearchButton.addEventListener(
+    "click",
+    searchSeries
+);
+
+
+seriesSearchInput.addEventListener(
+    "keydown",
+    (event) => {
+
+        if (event.key === "Enter") {
+            searchSeries();
+        }
+
+    }
+);
+
+
+async function searchSeries() {
+
+    const query =
+        seriesSearchInput.value.trim();
+
+    if (!query) {
+        return;
+    }
+
+    seriesContainer.innerHTML =
+        "<p>Pesquisando séries...</p>";
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/tmdb/series/search?query=${encodeURIComponent(query)}`
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Não foi possível buscar as séries"
+            );
+        }
+
+        const result =
+            await response.json();
+
+        const series =
+            result.data.results;
+
+        renderSeries(series);
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao buscar séries:",
+            error
+        );
+
+        seriesContainer.innerHTML =
+            "<p>Erro ao buscar séries.</p>";
+
+    }
+
+}
+
+
+function renderSeries(series) {
+
+    if (!series || series.length === 0) {
+
+        seriesContainer.innerHTML =
+            "<p>Nenhuma série encontrada.</p>";
+
+        return;
+    }
+
+
+    seriesContainer.innerHTML =
+        series.map(
+            (show) => {
+
+                const poster =
+                    show.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+                        : "https://via.placeholder.com/500x750?text=Sem+imagem";
+
+                const year =
+                    show.first_air_date
+                        ? show.first_air_date.slice(0, 4)
+                        : "Ano desconhecido";
+
+
+                return `
+                    <div
+                        class="series-card"
+                        data-series-id="${show.id}"
+                    >
+
+                        <img
+                            src="${poster}"
+                            alt="${show.name}"
+                        >
+
+                        <div class="movie-card-info">
+
+                            <h3>
+                                ${show.name}
+                            </h3>
+
+                            <p>
+                                ${year}
+                            </p>
+
+                            <span>
+                                ⭐ ${show.vote_average.toFixed(1)}
+                            </span>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }
+        ).join("");
+
+}
+
+// =========================
+// DETALHES DA SÉRIE
+// =========================
+
+const seriesModal =
+    document.getElementById("series-modal");
+
+const seriesModalBody =
+    document.getElementById("series-modal-body");
+
+const seriesModalClose =
+    document.getElementById("series-modal-close");
+
+
+seriesContainer.addEventListener(
+    "click",
+    (event) => {
+
+        const card =
+            event.target.closest("[data-series-id]");
+
+        if (!card) {
+            return;
+        }
+
+        const seriesId =
+            card.dataset.seriesId;
+
+        openSeriesDetails(seriesId);
+
+    }
+);
+
+
+seriesModalClose.addEventListener(
+    "click",
+    closeSeriesModal
+);
+
+
+seriesModal.addEventListener(
+    "click",
+    (event) => {
+
+        if (event.target === seriesModal) {
+            closeSeriesModal();
+        }
+
+    }
+);
+
+
+async function openSeriesDetails(seriesId) {
+
+    seriesModalBody.innerHTML =
+        "<p>Carregando detalhes...</p>";
+
+    seriesModal.classList.remove("hidden");
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/tmdb/series/${seriesId}`
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Erro ao carregar detalhes da série"
+            );
+        }
+
+        const result =
+            await response.json();
+
+        renderSeriesDetails(result.data);
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar detalhes da série:",
+            error
+        );
+
+        seriesModalBody.innerHTML =
+            "<p>Não foi possível carregar os detalhes.</p>";
+
+    }
+
+}
+
+
+function renderSeriesDetails(series) {
+
+    const poster =
+        series.poster_path
+            ? `https://image.tmdb.org/t/p/w500${series.poster_path}`
+            : "";
+
+    const year =
+        series.first_air_date
+            ? series.first_air_date.slice(0, 4)
+            : "Ano desconhecido";
+
+    seriesModalBody.innerHTML = `
+        <div class="movie-details">
+
+            <img
+                src="${poster}"
+                alt="${series.name}"
+            >
+
+            <div class="movie-details-info">
+
+                <h2>
+                    ${series.name}
+                </h2>
+
+                <p>
+                    ${year}
+                </p>
+
+                <p>
+                    ⭐ ${series.vote_average.toFixed(1)}
+                </p>
+
+                <p>
+                    ${series.overview || "Sinopse não disponível."}
+                </p>
+
+                <div class="series-actions">
+
+                    <button
+                        class="series-favorite-button"
+                        id="series-favorite-button"
+                    >
+                        ♡ Favoritar
+                    </button>
+
+                    <select id="series-status">
+
+                        <option value="want">
+                            Quero assistir
+                        </option>
+
+                        <option value="watching">
+                            Assistindo
+                        </option>
+
+                        <option value="completed">
+                            Concluído
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="series-seasons">
+
+    <h3>
+        Temporadas
+    </h3>
+
+    <div class="series-seasons-list">
+
+        ${series.seasons
+            .filter(
+                (season) =>
+                    season.season_number > 0
+            )
+            .map(
+                (season) => `
+                    <div class="series-season">
+
+                        <span>
+                            Temporada ${season.season_number}
+                        </span>
+
+                        <strong>
+                            ${season.episode_count} episódios
+                        </strong>
+
+                    </div>
+                `
+            )
+            .join("")}
+
+    </div>
+
+</div>
+
+            </div>
+
+        </div>
+    `;
+
+    const favoriteButton =
+        document.getElementById(
+            "series-favorite-button"
+        );
+
+    const statusSelect =
+        document.getElementById(
+            "series-status"
+        );
+
+    const savedSeries =
+        getSavedSeries(series.id);
+
+
+    if (savedSeries) {
+
+        statusSelect.value =
+            savedSeries.status;
+
+        favoriteButton.textContent =
+            savedSeries.favorite
+                ? "❤️ Favoritado"
+                : "♡ Favoritar";
+
+    }
+
+
+    favoriteButton.addEventListener(
+        "click",
+        () => {
+
+            const currentSeries =
+                getSavedSeries(series.id);
+
+            const favorite =
+                currentSeries
+                    ? !currentSeries.favorite
+                    : true;
+
+            const status =
+                currentSeries
+                    ? currentSeries.status
+                    : statusSelect.value;
+
+            saveSeries(
+                series,
+                status,
+                favorite
+            );
+
+            favoriteButton.textContent =
+                favorite
+                    ? "❤️ Favoritado"
+                    : "♡ Favoritar";
+
+        }
+    );
+
+
+    statusSelect.addEventListener(
+        "change",
+        () => {
+
+            const currentSeries =
+                getSavedSeries(series.id);
+
+            const favorite =
+                currentSeries
+                    ? currentSeries.favorite
+                    : false;
+
+            saveSeries(
+                series,
+                statusSelect.value,
+                favorite
+            );
+
+        }
+    );
+
+}
+
+function saveSeries(series, status = "want", favorite = false) {
+
+    const savedSeries =
+        JSON.parse(
+            localStorage.getItem("orbitSeries")
+        ) || [];
+
+    const existingSeries =
+        savedSeries.find(
+            (item) => item.id === series.id
+        );
+
+    if (existingSeries) {
+
+        existingSeries.status = status;
+        existingSeries.favorite = favorite;
+
+    } else {
+
+        savedSeries.push({
+            id: series.id,
+            name: series.name,
+            poster_path: series.poster_path,
+            first_air_date: series.first_air_date,
+            vote_average: series.vote_average,
+            status: status,
+            favorite: favorite
+        });
+
+    }
+
+    localStorage.setItem(
+        "orbitSeries",
+        JSON.stringify(savedSeries)
+    );
+
+}
+
+
+function getSavedSeries(seriesId) {
+
+    const savedSeries =
+        JSON.parse(
+            localStorage.getItem("orbitSeries")
+        ) || [];
+
+    return savedSeries.find(
+        (series) =>
+            series.id === Number(seriesId)
+    );
+
+}
+
+// =========================
+// BIBLIOTECA DE SÉRIES
+// =========================
+
+const seriesLibraryContainer =
+    document.getElementById("series-library-container");
+
+const seriesLibraryFilters =
+    document.querySelectorAll(".series-library-filter");
+
+let currentSeriesLibraryFilter = "all";
+
+
+function renderSeriesLibrary() {
+
+    const savedSeries =
+        JSON.parse(
+            localStorage.getItem("orbitSeries")
+        ) || [];
+
+    let filteredSeries =
+        savedSeries;
+
+
+    if (currentSeriesLibraryFilter === "favorite") {
+
+        filteredSeries =
+            savedSeries.filter(
+                (series) => series.favorite
+            );
+
+    } else if (
+        currentSeriesLibraryFilter !== "all"
+    ) {
+
+        filteredSeries =
+            savedSeries.filter(
+                (series) =>
+                    series.status ===
+                    currentSeriesLibraryFilter
+            );
+
+    }
+
+
+    if (filteredSeries.length === 0) {
+
+        seriesLibraryContainer.innerHTML = `
+            <div class="empty-movie-library">
+
+                <h3>
+                    Nenhuma série aqui
+                </h3>
+
+                <p>
+                    Suas séries salvas aparecerão aqui.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    seriesLibraryContainer.innerHTML =
+        filteredSeries.map(
+            (series) => {
+
+                const poster =
+                    series.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${series.poster_path}`
+                        : "https://via.placeholder.com/500x750?text=Sem+imagem";
+
+                const year =
+                    series.first_air_date
+                        ? series.first_air_date.slice(0, 4)
+                        : "Ano desconhecido";
+
+
+                return `
+                    <div
+                        class="series-card"
+                        data-series-id="${series.id}"
+                    >
+
+                        <img
+                            src="${poster}"
+                            alt="${series.name}"
+                        >
+
+                        <div class="movie-card-info">
+
+                            <h3>
+                                ${series.name}
+                            </h3>
+
+                            <p>
+                                ${year}
+                            </p>
+
+                            <span>
+                                ⭐ ${series.vote_average.toFixed(1)}
+                            </span>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }
+        ).join("");
+
+
+    seriesLibraryContainer
+        .querySelectorAll(".series-card")
+        .forEach((card) => {
+
+            card.addEventListener(
+                "click",
+                () => {
+
+                    const seriesId =
+                        card.dataset.seriesId;
+
+                    openSeriesDetails(seriesId);
+
+                }
+            );
+
+        });
+
+}
+
+
+seriesLibraryFilters.forEach(
+    (filterButton) => {
+
+        filterButton.addEventListener(
+            "click",
+            () => {
+
+                seriesLibraryFilters.forEach(
+                    (button) => {
+
+                        button.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+                filterButton.classList.add(
+                    "active"
+                );
+
+                currentSeriesLibraryFilter =
+                    filterButton.dataset
+                        .seriesLibraryFilter;
+
+                renderSeriesLibrary();
+
+            }
+        );
+
+    }
+);
+
+
+renderSeriesLibrary();
+
+
+function closeSeriesModal() {
+
+    seriesModal.classList.add("hidden");
+
+}
+
+// =========================
 // DETALHES DO FILME
 // =========================
 

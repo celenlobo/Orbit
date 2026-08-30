@@ -1568,12 +1568,7 @@
             </p>
         </div>
 
-        <button
-            class="primary-button"
-            id="add-movie-button"
-        >
-            + Adicionar filme
-        </button>
+        
     </div>
 
     <div class="movie-toolbar">
@@ -1691,24 +1686,18 @@
 
             <div class="page-header">
 
-    <div>
-        <h1>
-            Séries
-        </h1>
+                <div>
+                    <h1>
+                        Séries
+                    </h1>
 
-        <p>
-            Sua biblioteca de séries.
-        </p>
-    </div>
+                    <p>
+                        Sua biblioteca de séries.
+                    </p>
+                </div>
 
-    <button
-        class="primary-button"
-        id="add-series-button"
-    >
-        + Adicionar série
-    </button>
-
-</div>
+                
+            </div>
 
 <div class="series-toolbar">
 
@@ -1731,12 +1720,88 @@
 
 </div>
 
-<div
-    class="series-container"
-    id="series-container"
->
+    <div
+        class="series-container"
+        id="series-container"
+    >
+    </div>
+
+    <div class="series-library">
+
+    <div class="series-library-header">
+
+        <h2>
+            Minha biblioteca
+        </h2>
+
+        <div class="series-library-filters">
+
+            <button
+                class="series-library-filter active"
+                data-series-library-filter="all"
+            >
+                Todas
+            </button>
+
+            <button
+                class="series-library-filter"
+                data-series-library-filter="favorite"
+            >
+                Favoritas
+            </button>
+
+            <button
+                class="series-library-filter"
+                data-series-library-filter="want"
+            >
+                Quero assistir
+            </button>
+
+            <button
+                class="series-library-filter"
+                data-series-library-filter="watching"
+            >
+                Assistindo
+            </button>
+
+            <button
+                class="series-library-filter"
+                data-series-library-filter="completed"
+            >
+                Concluídas
+            </button>
+
+        </div>
+
+    </div>
+
+    <div
+        class="series-container"
+        id="series-library-container"
+    >
+    </div>
+
 </div>
-        </section>
+
+    <div
+        class="series-modal hidden"
+        id="series-modal"
+    >
+        <div class="series-modal-content">
+
+            <button
+                class="series-modal-close"
+                id="series-modal-close"
+            >
+                ×
+            </button>
+
+            <div id="series-modal-body"></div>
+
+        </div>
+    </div>
+
+</section>
 
         <section
     class="page hidden"

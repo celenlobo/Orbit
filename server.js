@@ -226,3 +226,104 @@ app.get("/api/tmdb/movie/:id", async (req, res) => {
     }
 
 });
+
+app.get("/api/tmdb/series/search", async (req, res) => {
+
+    try {
+
+        const query = req.query.query;
+
+        if (!query) {
+            return res.status(400).json({
+                success: false,
+                message: "Nome da série não informado"
+            });
+        }
+
+        const url =
+            `https://api.themoviedb.org/3/search/tv` +
+            `?api_key=${process.env.TMDB_API_KEY}` +
+            `&query=${encodeURIComponent(query)}` +
+            `&language=pt-BR`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return res.status(response.status).json({
+                success: false,
+                message: "Erro ao buscar séries no TMDB"
+            });
+        }
+
+        const data = await response.json();
+
+        res.json({
+            success: true,
+            data
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao buscar séries:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Erro interno ao buscar séries"
+        });
+
+    }
+
+});
+
+app.get("/api/tmdb/series/:id", async (req, res) => {
+
+    try {
+
+        const seriesId = req.params.id;
+
+        if (!seriesId) {
+            return res.status(400).json({
+                success: false,
+                message: "ID da série não informado"
+            });
+        }
+
+        const url =
+            `https://api.themoviedb.org/3/tv/${seriesId}` +
+            `?api_key=${process.env.TMDB_API_KEY}` +
+            `&language=pt-BR`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return res.status(response.status).json({
+                success: false,
+                message: "Erro ao buscar detalhes da série"
+            });
+        }
+
+        const data = await response.json();
+
+        res.json({
+            success: true,
+            data
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao buscar detalhes da série:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Erro interno ao buscar detalhes"
+        });
+
+    }
+
+});
