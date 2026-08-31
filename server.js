@@ -1,14 +1,415 @@
+require("dotenv").config();
+
+
 const express = require("express");
 const path = require("path");
-require("dotenv").config();
+const supabase = require("./supabase");
+const multer = require("multer");
 
 const app = express();
 const PORT = 3000;
+
+const upload =
+    multer({
+        storage: multer.memoryStorage()
+    });
 
 
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
+
+app.post(
+    "/api/studies/files",
+    upload.single("file"),
+    async (req, res) => {
+
+        try {
+
+            if (!req.file) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Nenhum arquivo enviado"
+                });
+            }
+
+
+            const subjectId =
+                Number(req.body.subjectId);
+
+
+            const title =
+                req.body.title?.trim();
+
+
+            if (!subjectId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Matéria não informada"
+                });
+            }
+
+
+            if (!title) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Título não informado"
+                });
+            }
+
+
+            const fileName =
+                `${Date.now()}-${req.file.originalname}`;
+
+
+            const filePath =
+                `studies/${fileName}`;
+
+
+            const { data: uploadedFile, error: uploadError } =
+                await supabase.storage
+                    .from("study-files")
+                    .upload(
+                        filePath,
+                        req.file.buffer,
+                        {
+                            contentType:
+                                req.file.mimetype,
+                            upsert: false
+                        }
+                    );
+
+
+            if (uploadError) {
+
+                console.error(
+                    "Erro ao enviar arquivo:",
+                    uploadError
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message: "Erro ao enviar arquivo"
+                });
+
+            }
+
+
+            const { data: savedFile, error: databaseError } =
+                await supabase
+                    .from("study_files")
+                    .insert({
+
+                        subject_id: subjectId,
+
+                        title: title,
+
+                        file_name:
+                            req.file.originalname,
+
+                        file_path:
+                            filePath,
+
+                        file_type:
+                            req.file.mimetype
+
+                    })
+                    .select()
+                    .single();
+
+
+            if (databaseError) {
+
+                console.error(
+                    "Erro ao salvar informações do arquivo:",
+                    databaseError
+                );
+
+
+                await supabase.storage
+                    .from("study-files")
+                    .remove([
+                        filePath
+                    ]);
+
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Arquivo enviado, mas não foi possível salvar suas informações"
+                });
+
+            }
+
+
+            res.json({
+
+                success: true,
+
+                file: savedFile
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Erro no upload:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Erro interno no servidor"
+            });
+
+        }
+
+    }
+);
+
+app.get(
+    "/api/studies/files/:subjectId",
+    async (req, res) => {
+
+        try {
+
+            const subjectId =
+                Number(req.params.subjectId);
+
+
+            if (!subjectId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Matéria não informada"
+                });
+            }
+
+
+            const { data, error } =
+                await supabase
+                    .from("study_files")
+                    .select("*")
+                    .eq("subject_id", subjectId)
+                    .order(
+                        "created_at",
+                        {
+                            ascending: false
+                        }
+                    );
+
+
+            if (error) {
+
+                console.error(
+                    "Erro ao buscar arquivos:",
+                    error
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Erro ao buscar arquivos"
+                });
+
+            }
+
+
+            res.json({
+                success: true,
+                files: data
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Erro ao listar arquivos:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Erro interno no servidor"
+            });
+
+        }
+
+    }
+);~
+
+app.get(
+    "/api/studies/file/:fileId",
+    async (req, res) => {
+
+        try {
+
+            const fileId =
+                req.params.fileId;
+
+
+            const { data: file, error: databaseError } =
+                await supabase
+                    .from("study_files")
+                    .select("file_path")
+                    .eq("id", fileId)
+                    .single();
+
+
+            if (databaseError || !file) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "Arquivo não encontrado"
+                });
+
+            }
+
+
+            const { data: signedUrl, error: urlError } =
+                await supabase.storage
+                    .from("study-files")
+                    .createSignedUrl(
+                        file.file_path,
+                        60 * 60
+                    );
+
+
+            if (urlError) {
+
+                console.error(
+                    "Erro ao gerar URL:",
+                    urlError
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Não foi possível abrir o arquivo"
+                });
+
+            }
+
+
+            res.json({
+                success: true,
+                url: signedUrl.signedUrl
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Erro ao abrir arquivo:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Erro interno no servidor"
+            });
+
+        }
+
+    }
+);
+
+app.delete(
+    "/api/studies/file/:fileId",
+    async (req, res) => {
+
+        try {
+
+            const fileId =
+                req.params.fileId;
+
+
+            const { data: file, error: databaseError } =
+                await supabase
+                    .from("study_files")
+                    .select("file_path")
+                    .eq("id", fileId)
+                    .single();
+
+
+            if (databaseError || !file) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "Arquivo não encontrado"
+                });
+
+            }
+
+
+            const { error: storageError } =
+                await supabase.storage
+                    .from("study-files")
+                    .remove([
+                        file.file_path
+                    ]);
+
+
+            if (storageError) {
+
+                console.error(
+                    "Erro ao remover arquivo do Storage:",
+                    storageError
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Não foi possível remover o arquivo"
+                });
+
+            }
+
+
+            const { error: deleteError } =
+                await supabase
+                    .from("study_files")
+                    .delete()
+                    .eq("id", fileId);
+
+
+            if (deleteError) {
+
+                console.error(
+                    "Erro ao remover registro:",
+                    deleteError
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Arquivo removido, mas o registro não pôde ser excluído"
+                });
+
+            }
+
+
+            res.json({
+                success: true
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Erro ao remover arquivo:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Erro interno no servidor"
+            });
+
+        }
+
+    }
+);
 
 app.get("/api/steam/games", async (req, res) => {
 

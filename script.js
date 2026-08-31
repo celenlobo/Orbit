@@ -4691,10 +4691,410 @@ function openStudySubject(subjectId) {
 
     renderStudyTopics(subject);
 
+    loadStudyFiles(subject.id);
+
 
     modal.classList.remove("hidden");
 
 }
+
+const studyFilesSearchInput =
+    document.getElementById(
+        "study-files-search-input"
+    );
+
+const topicsContainer =
+    document.getElementById(
+        "study-topics-container"
+    );
+
+async function loadStudyFiles(subjectId) {
+
+    const filesContainer =
+        document.getElementById(
+            "study-files-container"
+        );
+
+    if (!filesContainer) {
+        return;
+    }
+
+
+    filesContainer.innerHTML = `
+        <p>
+            Carregando arquivos...
+        </p>
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/studies/files/${subjectId}`
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                result.message ||
+                "Erro ao buscar arquivos"
+            );
+
+        }
+
+
+        renderStudyFiles(
+            result.files
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar arquivos:",
+            error
+        );
+
+
+        filesContainer.innerHTML = `
+            <div class="empty-study-files">
+
+                <span>
+                    ⚠️
+                </span>
+
+                <h3>
+                    Não foi possível carregar os arquivos
+                </h3>
+
+            </div>
+        `;
+
+    }
+
+}
+
+function renderStudyFiles(files) {
+
+    const filesContainer =
+        document.getElementById(
+            "study-files-container"
+        );
+
+
+    if (!files || files.length === 0) {
+
+        filesContainer.innerHTML = `
+            <div class="empty-study-files">
+
+                <span>
+                    📁
+                </span>
+
+                <h3>
+                    Nenhum arquivo ainda
+                </h3>
+
+                <p>
+                    Adicione materiais para esta matéria.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    filesContainer.innerHTML =
+        files.map(
+            (file) => `
+
+                <div
+                    class="study-file-card"
+                    data-file-id="${file.id}"
+                >
+
+                    <div class="study-file-info">
+
+                        <span class="study-file-icon">
+                            📄
+                        </span>
+
+                        <div>
+
+                            <h4>
+                                ${file.title}
+                            </h4>
+
+                            <p>
+                                ${file.file_name}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="study-file-actions">
+
+                        <button
+                            class="study-file-open"
+                            data-file-id="${file.id}"
+                        >
+                            Abrir
+                        </button>
+
+                        <button
+                            class="study-file-remove"
+                            data-file-id="${file.id}"
+                        >
+                            🗑️
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `
+        ).join("");
+
+
+    filesContainer
+        .querySelectorAll(
+            ".study-file-open"
+        )
+        .forEach(
+            (button) => {
+
+                button.addEventListener(
+                    "click",
+                    async () => {
+
+                        const fileId =
+                            button.dataset.fileId;
+
+
+                        try {
+
+                            button.disabled =
+                                true;
+
+                            button.textContent =
+                                "Abrindo...";
+
+
+                            const response =
+                                await fetch(
+                                    `/api/studies/file/${fileId}`
+                                );
+
+
+                            const result =
+                                await response.json();
+
+
+                            if (!response.ok) {
+
+                                throw new Error(
+                                    result.message ||
+                                    "Erro ao abrir arquivo"
+                                );
+
+                            }
+
+
+                            window.open(
+                                result.url,
+                                "_blank"
+                            );
+
+
+                        } catch (error) {
+
+                            console.error(
+                                "Erro ao abrir arquivo:",
+                                error
+                            );
+
+                            alert(
+                                "Não foi possível abrir o arquivo."
+                            );
+
+                        } finally {
+
+                            button.disabled =
+                                false;
+
+                            button.textContent =
+                                "Abrir";
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+    filesContainer
+        .querySelectorAll(
+            ".study-file-remove"
+        )
+        .forEach(
+            (button) => {
+
+                button.addEventListener(
+                    "click",
+                    async () => {
+
+                        const fileId =
+                            button.dataset.fileId;
+
+
+                        const confirmed =
+                            confirm(
+                                "Tem certeza que deseja remover este arquivo?"
+                            );
+
+
+                        if (!confirmed) {
+                            return;
+                        }
+
+
+                        try {
+
+                            button.disabled =
+                                true;
+
+                            button.textContent =
+                                "Removendo...";
+
+
+                            const response =
+                                await fetch(
+                                    `/api/studies/file/${fileId}`,
+                                    {
+                                        method: "DELETE"
+                                    }
+                                );
+
+
+                            const result =
+                                await response.json();
+
+
+                            if (!response.ok) {
+
+                                throw new Error(
+                                    result.message ||
+                                    "Erro ao remover arquivo"
+                                );
+
+                            }
+
+
+                            loadStudyFiles(
+                                currentStudySubjectId
+                            );
+
+
+                        } catch (error) {
+
+                            console.error(
+                                "Erro ao remover arquivo:",
+                                error
+                            );
+
+                            alert(
+                                "Não foi possível remover o arquivo."
+                            );
+
+
+                            button.disabled =
+                                false;
+
+                            button.textContent =
+                                "🗑️";
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+studyFilesSearchInput.addEventListener(
+    "input",
+    () => {
+
+        const search =
+            studyFilesSearchInput.value
+                .trim()
+                .toLowerCase();
+
+        const subjectId =
+            currentStudySubjectId;
+
+
+        fetch(
+            `/api/studies/files/${subjectId}`
+        )
+            .then(
+                (response) =>
+                    response.json()
+            )
+            .then(
+                (result) => {
+
+                    if (!result.success) {
+                        return;
+                    }
+
+
+                    const filteredFiles =
+                        result.files.filter(
+                            (file) =>
+                                file.title
+                                    .toLowerCase()
+                                    .includes(search) ||
+
+                                file.file_name
+                                    .toLowerCase()
+                                    .includes(search)
+                        );
+
+
+                    renderStudyFiles(
+                        filteredFiles
+                    );
+
+                }
+            )
+            .catch(
+                (error) => {
+
+                    console.error(
+                        "Erro ao pesquisar arquivos:",
+                        error
+                    );
+
+                }
+            );
+
+    }
+);
 
 function renderStudyNotes(subject) {
 
@@ -5181,6 +5581,10 @@ studySubjectModal.addEventListener(
     }
 );
 
+// =========================
+// ARQUIVOS DE ESTUDOS
+// =========================
+
 const addStudyFileButton =
     document.getElementById(
         "add-study-file-button"
@@ -5191,12 +5595,146 @@ const studyFileInput =
         "study-file-input"
     );
 
+const studyFileTitle =
+    document.getElementById(
+        "study-file-title"
+    );
+
 
 addStudyFileButton.addEventListener(
     "click",
     () => {
 
         studyFileInput.click();
+
+    }
+);
+
+
+studyFileInput.addEventListener(
+    "change",
+    async () => {
+
+        const file =
+            studyFileInput.files[0];
+
+        const title =
+            studyFileTitle.value.trim();
+
+
+        if (!file) {
+            return;
+        }
+
+
+        if (!title) {
+
+            alert(
+                "Digite um título para o arquivo."
+            );
+
+            studyFileInput.value = "";
+
+            studyFileTitle.focus();
+
+            return;
+
+        }
+
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "file",
+            file
+        );
+
+
+        formData.append(
+            "title",
+            title
+        );
+
+
+        formData.append(
+            "subjectId",
+            currentStudySubjectId
+        );
+
+
+        try {
+
+            addStudyFileButton.disabled =
+                true;
+
+            addStudyFileButton.textContent =
+                "Enviando...";
+
+
+            const response =
+                await fetch(
+                    "/api/studies/files",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    result.message ||
+                    "Erro ao enviar arquivo"
+                );
+
+            }
+
+
+            console.log(
+                "Arquivo enviado:",
+                result.file
+            );
+
+
+            studyFileTitle.value = "";
+
+            studyFileInput.value = "";
+
+
+            alert(
+                "Arquivo enviado com sucesso!"
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Erro no upload:",
+                error
+            );
+
+
+            alert(
+                error.message ||
+                "Não foi possível enviar o arquivo."
+            );
+
+        } finally {
+
+            addStudyFileButton.disabled =
+                false;
+
+            addStudyFileButton.textContent =
+                "+ Adicionar arquivo";
+
+        }
 
     }
 );
@@ -5229,12 +5767,6 @@ const cancelStudyTopicButton =
     document.getElementById(
         "cancel-study-topic"
     );
-
-const topicsContainer =
-    document.getElementById(
-        "study-topics-container"
-    );
-
 
 addStudyTopicButton.addEventListener(
     "click",
