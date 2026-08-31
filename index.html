@@ -1489,20 +1489,343 @@
              ESTUDOS
         ========================== -->
 
-        <section
-            class="page hidden"
-            id="studies"
-        >
+<section
+    class="page hidden"
+    id="studies"
+>
 
-            <h2>
+    <div class="page-header">
+
+        <div>
+
+            <h1>
                 Estudos
-            </h2>
+            </h1>
 
             <p>
-                Acompanhe seu aprendizado.
+                Organize seus estudos em um só lugar.
             </p>
 
-        </section>
+        </div>
+
+        <button
+            class="primary-button"
+            id="add-subject-button"
+        >
+            + Nova matéria
+        </button>
+
+    </div>
+
+
+    <div
+        class="subject-form hidden"
+        id="subject-form"
+    >
+
+        <input
+            type="text"
+            id="subject-name"
+            placeholder="Nome da matéria..."
+        >
+
+        <button
+            class="primary-button"
+            id="save-subject"
+        >
+            Criar matéria
+        </button>
+
+    </div>
+
+
+    <div
+        class="subjects-container"
+        id="subjects-container"
+    >
+    </div>
+
+
+    <div
+        class="study-subject-modal hidden"
+        id="study-subject-modal"
+    >
+
+        <div class="study-subject-modal-content">
+
+
+            <div class="study-subject-modal-header">
+
+                <div>
+
+                    <h2 id="study-subject-title">
+                        Matéria
+                    </h2>
+
+                    <p>
+                        Seus materiais de estudo.
+                    </p>
+
+                </div>
+
+                <button
+                    class="study-subject-modal-close"
+                    id="study-subject-modal-close"
+                >
+                    ×
+                </button>
+
+            </div>
+
+            <div class="study-progress">
+
+                <div class="study-progress-header">
+
+                    <span>
+                        Progresso
+                    </span>
+
+                    <strong id="study-progress-percent">
+                        0%
+                    </strong>
+
+                </div>
+
+                <div class="study-progress-bar">
+
+                    <div
+                        class="study-progress-fill"
+                        id="study-progress-fill"
+                    ></div>
+
+                </div>
+
+                <p id="study-progress-text">
+                    0 de 0 conteúdos concluídos
+                </p>
+
+            </div>
+
+
+            <div class="study-tabs">
+
+                <button
+                    class="study-tab active"
+                    data-study-tab="files"
+                >
+                    📁 Arquivos
+                </button>
+
+                <button
+                    class="study-tab"
+                    data-study-tab="notes"
+                >
+                    📝 Anotações
+                </button>
+
+                <button
+                    class="study-tab"
+                    data-study-tab="topics"
+                >
+                    ✅ Conteúdos
+                </button>
+
+            </div>
+
+
+            <!-- =========================
+                    ARQUIVOS
+                 ========================== -->
+
+            <div
+                class="study-tab-content active"
+                id="study-tab-files"
+            >
+
+                <div class="study-files-header">
+
+                    <h3>
+                        Arquivos
+                    </h3>
+
+                    <button
+                        class="primary-button"
+                        id="add-study-file-button"
+                    >
+                        + Adicionar arquivo
+                    </button>
+
+                </div>
+
+
+                <input
+                    type="file"
+                    id="study-file-input"
+                    hidden
+                >
+
+
+                <div
+                    class="study-files-container"
+                    id="study-files-container"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                    ANOTAÇÕES
+                ========================== -->
+
+            <div
+                class="study-tab-content hidden"
+                id="study-tab-notes"
+            >
+
+                <div class="study-notes-header">
+
+                    <h3>
+                        Anotações
+                    </h3>
+
+                    <button
+                        class="primary-button"
+                        id="add-study-note-button"
+                    >
+                        + Nova anotação
+                    </button>
+
+                </div>
+
+
+                <div class="study-notes-search">
+
+                    <input
+                        type="text"
+                        id="study-notes-search-input"
+                        placeholder="Pesquisar anotações..."
+                    >
+
+                </div>
+
+
+                <div
+                    class="study-note-form hidden"
+                    id="study-note-form"
+                >
+
+                    <input
+                        type="text"
+                        id="study-note-title"
+                        placeholder="Título da anotação..."
+                    >
+
+                    <textarea
+                        id="study-note-content"
+                        placeholder="Escreva sua anotação..."
+                    ></textarea>
+
+                    <div class="study-note-form-actions">
+
+                        <button
+                            class="primary-button"
+                            id="save-study-note"
+                        >
+                            Salvar
+                        </button>
+
+                        <button
+                            class="secondary-button"
+                            id="cancel-study-note"
+                        >
+                            Cancelar
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="study-notes-container"
+                    id="study-notes-container"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                    CONTEÚDOS
+                 ========================== -->
+
+            <div
+                class="study-tab-content hidden"
+                id="study-tab-topics"
+            >
+
+                <div class="study-topics-header">
+
+                    <h3>
+                        Conteúdos
+                    </h3>
+
+                    <div
+                        class="study-topic-form hidden"
+                        id="study-topic-form"
+                    >
+
+                        <input
+                            type="text"
+                            id="study-topic-title"
+                            placeholder="Nome do conteúdo..."
+                        >
+
+                        <div class="study-topic-form-actions">
+
+                            <button
+                                class="primary-button"
+                                id="save-study-topic"
+                            >
+                                Adicionar
+                            </button>
+
+                            <button
+                                class="secondary-button"
+                                id="cancel-study-topic"
+                            >
+                                Cancelar
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        class="primary-button"
+                        id="add-study-topic-button"
+                    >
+                        + Novo conteúdo
+                    </button>
+
+                </div>
+
+
+                <div
+                    class="study-topics-container"
+                    id="study-topics-container"
+                >
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</section>
 
 
 

@@ -4461,3 +4461,1053 @@ if (
 
 }
 
+// =========================
+// ESTUDOS
+// =========================
+
+const addSubjectButton =
+    document.getElementById("add-subject-button");
+
+const subjectForm =
+    document.getElementById("subject-form");
+
+const subjectName =
+    document.getElementById("subject-name");
+
+const saveSubjectButton =
+    document.getElementById("save-subject");
+
+const subjectsContainer =
+    document.getElementById("subjects-container");
+
+
+let subjects =
+    JSON.parse(
+        localStorage.getItem("orbitStudies")
+    ) || [];
+
+let currentStudySubjectId = null;
+
+
+function saveSubjects() {
+
+    localStorage.setItem(
+        "orbitStudies",
+        JSON.stringify(subjects)
+    );
+
+}
+
+
+addSubjectButton.addEventListener(
+    "click",
+    () => {
+
+        subjectForm.classList.toggle("hidden");
+
+        if (!subjectForm.classList.contains("hidden")) {
+            subjectName.focus();
+        }
+
+    }
+);
+
+
+saveSubjectButton.addEventListener(
+    "click",
+    addSubject
+);
+
+
+subjectName.addEventListener(
+    "keydown",
+    (event) => {
+
+        if (event.key === "Enter") {
+            addSubject();
+        }
+
+    }
+);
+
+
+function addSubject() {
+
+    const name =
+        subjectName.value.trim();
+
+    if (!name) {
+        return;
+    }
+
+
+    const newSubject = {
+
+        id: Date.now(),
+
+        name: name,
+
+        files: [],
+
+        notes: "",
+
+        topics: [],
+
+        studyHours: 0
+
+    };
+
+
+    subjects.push(newSubject);
+
+    saveSubjects();
+
+    renderSubjects();
+
+    subjectName.value = "";
+
+    subjectForm.classList.add("hidden");
+
+}
+
+
+function renderSubjects() {
+
+    if (subjects.length === 0) {
+
+        subjectsContainer.innerHTML = `
+            <div class="empty-subjects">
+
+                <span>
+                    📚
+                </span>
+
+                <h3>
+                    Nenhuma matéria ainda
+                </h3>
+
+                <p>
+                    Crie sua primeira matéria para começar.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    subjectsContainer.innerHTML =
+        subjects.map(
+            (subject) => `
+
+                <div
+                    class="subject-card"
+                    data-subject-id="${subject.id}"
+                >
+
+                    <div class="subject-card-icon">
+                        📚
+                    </div>
+
+                    <div class="subject-card-info">
+
+                        <h3>
+                            ${subject.name}
+                        </h3>
+
+                        <p>
+                            ${subject.files.length} arquivos
+                        </p>
+
+                    </div>
+
+                </div>
+
+            `
+        ).join("");
+
+}
+
+
+renderSubjects();
+
+subjectsContainer.addEventListener(
+    "click",
+    (event) => {
+
+        const card =
+            event.target.closest(".subject-card");
+
+        if (!card) {
+            return;
+        }
+
+        const subjectId =
+            Number(card.dataset.subjectId);
+
+        openStudySubject(subjectId);
+
+    }
+);
+
+function openStudySubject(subjectId) {
+
+    const subject =
+        subjects.find(
+            (item) => item.id === subjectId
+        );
+
+    if (!subject) {
+        return;
+    }
+
+    currentStudySubjectId =
+    subjectId;
+
+
+    const modal =
+        document.getElementById(
+            "study-subject-modal"
+        );
+
+    const title =
+        document.getElementById(
+            "study-subject-title"
+        );
+
+
+    title.textContent =
+        subject.name;
+
+
+    if (!Array.isArray(subject.notes)) {
+        subject.notes = [];
+        saveSubjects();
+    }
+
+
+    renderStudyNotes(subject);
+
+    renderStudyTopics(subject);
+
+
+    modal.classList.remove("hidden");
+
+}
+
+function renderStudyNotes(subject) {
+
+    const notesContainer =
+        document.getElementById(
+            "study-notes-container"
+        );
+
+    if (!subject.notes.length) {
+
+        notesContainer.innerHTML = `
+            <div class="empty-study-notes">
+
+                <span>
+                    📝
+                </span>
+
+                <h3>
+                    Nenhuma anotação ainda
+                </h3>
+
+                <p>
+                    Crie sua primeira anotação.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    notesContainer.innerHTML =
+        subject.notes.map(
+            (note) => `
+
+                <div
+                    class="study-note-card"
+                    data-note-id="${note.id}"
+                >
+
+                    <div class="study-note-card-content">
+
+                        <h4>
+                            ${note.title}
+                        </h4>
+
+                        <p>
+                            ${note.content}
+                        </p>
+
+                    </div>
+
+                    <button
+                        class="study-note-remove"
+                        data-note-id="${note.id}"
+                    >
+                        🗑️
+                    </button>
+
+                </div>
+
+            `
+        ).join("");
+
+
+    notesContainer
+        .querySelectorAll(".study-note-remove")
+        .forEach(
+            (button) => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const noteId =
+                            Number(
+                                button.dataset.noteId
+                            );
+
+                        subject.notes =
+                            subject.notes.filter(
+                                (note) =>
+                                    note.id !== noteId
+                            );
+
+                        saveSubjects();
+
+                        renderStudyNotes(subject);
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+function renderFilteredStudyNotes(notes) {
+
+    const notesContainer =
+        document.getElementById(
+            "study-notes-container"
+        );
+
+    if (!notes.length) {
+
+        notesContainer.innerHTML = `
+            <div class="empty-study-notes">
+
+                <span>
+                    🔍
+                </span>
+
+                <h3>
+                    Nenhuma anotação encontrada
+                </h3>
+
+                <p>
+                    Tente pesquisar outro termo.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+    notesContainer.innerHTML =
+        notes.map(
+            (note) => `
+
+                <div
+                    class="study-note-card"
+                    data-note-id="${note.id}"
+                >
+
+                    <div class="study-note-card-content">
+
+                        <h4>
+                            ${note.title}
+                        </h4>
+
+                        <p>
+                            ${note.content}
+                        </p>
+
+                    </div>
+
+                    <button
+                        class="study-note-remove"
+                        data-note-id="${note.id}"
+                    >
+                        🗑️
+                    </button>
+
+                </div>
+
+            `
+        ).join("");
+
+
+    notesContainer
+        .querySelectorAll(
+            ".study-note-remove"
+        )
+        .forEach(
+            (button) => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const noteId =
+                            Number(
+                                button.dataset.noteId
+                            );
+
+                        const subject =
+                            subjects.find(
+                                (item) =>
+                                    item.id ===
+                                    currentStudySubjectId
+                            );
+
+                        if (!subject) {
+                            return;
+                        }
+
+                        subject.notes =
+                            subject.notes.filter(
+                                (note) =>
+                                    note.id !== noteId
+                            );
+
+                        saveSubjects();
+
+                        renderStudyNotes(
+                            subject
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+const addStudyNoteButton =
+    document.getElementById(
+        "add-study-note-button"
+    );
+
+const studyNoteForm =
+    document.getElementById(
+        "study-note-form"
+    );
+
+const studyNoteTitle =
+    document.getElementById(
+        "study-note-title"
+    );
+
+const studyNoteContent =
+    document.getElementById(
+        "study-note-content"
+    );
+
+const saveStudyNoteButton =
+    document.getElementById(
+        "save-study-note"
+    );
+
+const cancelStudyNoteButton =
+    document.getElementById(
+        "cancel-study-note"
+    );
+
+const studyNotesSearchInput =
+    document.getElementById(
+        "study-notes-search-input"
+    );
+
+
+addStudyNoteButton.addEventListener(
+    "click",
+    () => {
+
+        studyNoteForm.classList.remove(
+            "hidden"
+        );
+
+        studyNoteTitle.focus();
+
+    }
+);
+
+
+cancelStudyNoteButton.addEventListener(
+    "click",
+    () => {
+
+        studyNoteForm.classList.add(
+            "hidden"
+        );
+
+        studyNoteTitle.value = "";
+        studyNoteContent.value = "";
+
+    }
+);
+
+
+saveStudyNoteButton.addEventListener(
+    "click",
+    () => {
+
+        const title =
+            studyNoteTitle.value.trim();
+
+        const content =
+            studyNoteContent.value.trim();
+
+
+        if (!title || !content) {
+            return;
+        }
+
+
+const subjectId =
+    currentStudySubjectId;
+
+
+        const subject =
+            subjects.find(
+                (item) =>
+                    item.id === subjectId
+            );
+
+
+        if (!subject) {
+            return;
+        }
+
+
+        if (!Array.isArray(subject.notes)) {
+            subject.notes = [];
+        }
+
+
+        subject.notes.push({
+
+            id: Date.now(),
+
+            title: title,
+
+            content: content
+
+        });
+
+
+        saveSubjects();
+
+        renderStudyNotes(subject);
+
+
+        studyNoteTitle.value = "";
+
+        studyNoteContent.value = "";
+
+        studyNoteForm.classList.add(
+            "hidden"
+        );
+
+    }
+);
+
+studyNotesSearchInput.addEventListener(
+    "input",
+    () => {
+
+        const search =
+            studyNotesSearchInput.value
+                .trim()
+                .toLowerCase();
+
+        const subject =
+            subjects.find(
+                (item) =>
+                    item.id ===
+                    currentStudySubjectId
+            );
+
+        if (!subject) {
+            return;
+        }
+
+        const filteredNotes =
+            subject.notes.filter(
+                (note) =>
+                    note.title
+                        .toLowerCase()
+                        .includes(search) ||
+                    note.content
+                        .toLowerCase()
+                        .includes(search)
+            );
+
+        renderFilteredStudyNotes(
+            filteredNotes
+        );
+
+    }
+);
+
+const studySubjectModal =
+    document.getElementById(
+        "study-subject-modal"
+    );
+
+const studySubjectModalClose =
+    document.getElementById(
+        "study-subject-modal-close"
+    );
+
+const studyTabs =
+    document.querySelectorAll(".study-tab");
+
+const studyTabContents =
+    document.querySelectorAll(".study-tab-content");
+
+
+studyTabs.forEach(
+    (tab) => {
+
+        tab.addEventListener(
+            "click",
+            () => {
+
+                studyTabs.forEach(
+                    (button) => {
+                        button.classList.remove(
+                            "active"
+                        );
+                    }
+                );
+
+
+                studyTabContents.forEach(
+                    (content) => {
+
+                        content.classList.add(
+                            "hidden"
+                        );
+
+                        content.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                tab.classList.add("active");
+
+
+                const tabName =
+                    tab.dataset.studyTab;
+
+                const selectedContent =
+                    document.getElementById(
+                        `study-tab-${tabName}`
+                    );
+
+
+                if (selectedContent) {
+
+                    selectedContent.classList.remove(
+                        "hidden"
+                    );
+
+                    selectedContent.classList.add(
+                        "active"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+studySubjectModalClose.addEventListener(
+    "click",
+    () => {
+
+        studySubjectModal.classList.add(
+            "hidden"
+        );
+
+    }
+);
+
+
+studySubjectModal.addEventListener(
+    "click",
+    (event) => {
+
+        if (
+            event.target ===
+            studySubjectModal
+        ) {
+
+            studySubjectModal.classList.add(
+                "hidden"
+            );
+
+        }
+
+    }
+);
+
+const addStudyFileButton =
+    document.getElementById(
+        "add-study-file-button"
+    );
+
+const studyFileInput =
+    document.getElementById(
+        "study-file-input"
+    );
+
+
+addStudyFileButton.addEventListener(
+    "click",
+    () => {
+
+        studyFileInput.click();
+
+    }
+);
+
+// =========================
+// CONTEÚDOS DE ESTUDOS
+// =========================
+
+const addStudyTopicButton =
+    document.getElementById(
+        "add-study-topic-button"
+    );
+
+const studyTopicForm =
+    document.getElementById(
+        "study-topic-form"
+    );
+
+const studyTopicTitle =
+    document.getElementById(
+        "study-topic-title"
+    );
+
+const saveStudyTopicButton =
+    document.getElementById(
+        "save-study-topic"
+    );
+
+const cancelStudyTopicButton =
+    document.getElementById(
+        "cancel-study-topic"
+    );
+
+const topicsContainer =
+    document.getElementById(
+        "study-topics-container"
+    );
+
+
+addStudyTopicButton.addEventListener(
+    "click",
+    () => {
+
+        studyTopicForm.classList.remove(
+            "hidden"
+        );
+
+        studyTopicTitle.focus();
+
+    }
+);
+
+
+cancelStudyTopicButton.addEventListener(
+    "click",
+    () => {
+
+        studyTopicForm.classList.add(
+            "hidden"
+        );
+
+        studyTopicTitle.value = "";
+
+    }
+);
+
+
+saveStudyTopicButton.addEventListener(
+    "click",
+    () => {
+
+        const title =
+            studyTopicTitle.value.trim();
+
+        if (!title) {
+            return;
+        }
+
+
+        const subject =
+            subjects.find(
+                (item) =>
+                    item.id ===
+                    currentStudySubjectId
+            );
+
+        if (!subject) {
+            return;
+        }
+
+
+        if (!Array.isArray(subject.topics)) {
+            subject.topics = [];
+        }
+
+
+        subject.topics.push({
+
+            id: Date.now(),
+
+            title: title,
+
+            completed: false
+
+        });
+
+
+        saveSubjects();
+
+        renderStudyTopics(subject);
+
+
+        studyTopicTitle.value = "";
+
+        studyTopicForm.classList.add(
+            "hidden"
+        );
+
+    }
+);
+
+
+function renderStudyTopics(subject) {
+
+    if (!Array.isArray(subject.topics)) {
+        subject.topics = [];
+    }
+
+    const totalTopics =
+    subject.topics.length;
+
+const completedTopics =
+    subject.topics.filter(
+        (topic) => topic.completed
+    ).length;
+
+const progress =
+    totalTopics === 0
+        ? 0
+        : Math.round(
+            (completedTopics / totalTopics) * 100
+        );
+
+
+const progressPercent =
+    document.getElementById(
+        "study-progress-percent"
+    );
+
+const progressFill =
+    document.getElementById(
+        "study-progress-fill"
+    );
+
+const progressText =
+    document.getElementById(
+        "study-progress-text"
+    );
+
+
+progressPercent.textContent =
+    `${progress}%`;
+
+progressFill.style.width =
+    `${progress}%`;
+
+progressText.textContent =
+    `${completedTopics} de ${totalTopics} conteúdos concluídos`;
+
+
+    if (subject.topics.length === 0) {
+
+        topicsContainer.innerHTML = `
+            <div class="empty-study-topics">
+
+                <span>
+                    ✅
+                </span>
+
+                <h3>
+                    Nenhum conteúdo ainda
+                </h3>
+
+                <p>
+                    Adicione conteúdos para acompanhar seu progresso.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    topicsContainer.innerHTML =
+        subject.topics.map(
+            (topic) => `
+
+                <div
+                    class="study-topic-card"
+                    data-topic-id="${topic.id}"
+                >
+
+                    <label>
+
+                        <input
+                            type="checkbox"
+                            class="study-topic-checkbox"
+                            ${topic.completed ? "checked" : ""}
+                        >
+
+                        <span>
+                            ${topic.title}
+                        </span>
+
+                    </label>
+
+
+                    <button
+                        class="study-topic-remove"
+                        data-topic-id="${topic.id}"
+                    >
+                        🗑️
+                    </button>
+
+                </div>
+
+            `
+        ).join("");
+
+
+    topicsContainer
+        .querySelectorAll(
+            ".study-topic-checkbox"
+        )
+        .forEach(
+            (checkbox) => {
+
+                checkbox.addEventListener(
+                    "change",
+                    () => {
+
+                        const card =
+                            checkbox.closest(
+                                ".study-topic-card"
+                            );
+
+                        const topicId =
+                            Number(
+                                card.dataset.topicId
+                            );
+
+                        const topic =
+                            subject.topics.find(
+                                (item) =>
+                                    item.id ===
+                                    topicId
+                            );
+
+                        if (!topic) {
+                            return;
+                        }
+
+
+                        topic.completed =
+                            checkbox.checked;
+
+                        saveSubjects();
+
+                        renderStudyTopics(subject);
+
+                    }
+                );
+
+            }
+        );
+
+
+    topicsContainer
+        .querySelectorAll(
+            ".study-topic-remove"
+        )
+        .forEach(
+            (button) => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const topicId =
+                            Number(
+                                button.dataset.topicId
+                            );
+
+                        subject.topics =
+                            subject.topics.filter(
+                                (topic) =>
+                                    topic.id !==
+                                    topicId
+                            );
+
+                        saveSubjects();
+
+                        renderStudyTopics(
+                            subject
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}

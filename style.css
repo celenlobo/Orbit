@@ -3164,3 +3164,605 @@ body {
     color: #e6aab3;
 }
 
+/* =========================
+   ANOTAÇÕES DE ESTUDOS
+   ========================= */
+
+.study-notes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.study-notes-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 15px;
+}
+
+.study-notes-search {
+    margin-bottom: 16px;
+}
+
+.study-notes-search input {
+    width: 100%;
+    box-sizing: border-box;
+    height: 40px;
+    padding: 0 13px;
+
+    background: #18181c;
+    border: 1px solid #2a2a31;
+    border-radius: 8px;
+
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+}
+
+.study-notes-search input::placeholder {
+    color: #666670;
+}
+
+.study-notes-search input:focus {
+    border-color: #8b5cf6;
+}
+
+.study-notes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.study-note-card {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+
+    padding: 14px 16px;
+
+    background: #18181c;
+    border: 1px solid #2a2a31;
+    border-radius: 10px;
+}
+
+.study-note-card-content {
+    min-width: 0;
+}
+
+.study-note-card h4 {
+    margin: 0 0 6px;
+
+    color: #fff;
+    font-size: 14px;
+}
+
+.study-note-card p {
+    margin: 0;
+
+    color: #92929c;
+    font-size: 13px;
+    line-height: 1.5;
+
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.study-note-remove {
+    flex-shrink: 0;
+
+    width: 32px;
+    height: 32px;
+
+    background: transparent;
+    border: 1px solid #3a2a2f;
+    border-radius: 7px;
+
+    color: #b98a92;
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.study-note-remove:hover {
+    background: #2a1c20;
+    border-color: #6b3540;
+    color: #e6aab3;
+}
+
+.study-note-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    margin-bottom: 16px;
+}
+
+.study-note-form input,
+.study-note-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+
+    background: #18181c;
+    border: 1px solid #2a2a31;
+    border-radius: 8px;
+
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+}
+
+.study-note-form input {
+    height: 40px;
+    padding: 0 13px;
+}
+
+.study-note-form textarea {
+    min-height: 140px;
+    padding: 12px 13px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.study-note-form input:focus,
+.study-note-form textarea:focus {
+    border-color: #8b5cf6;
+}
+
+.study-note-form-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* =========================
+   ESTUDOS
+   ========================= */
+
+.subjects-container {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(220px, 1fr)
+    );
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.subject-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 18px;
+
+    background: #18181c;
+    border: 1px solid #29292f;
+    border-radius: 12px;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.subject-card:hover {
+    transform: translateY(-2px);
+    border-color: #3b3b44;
+    background: #1c1c21;
+}
+
+.subject-card-icon {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #222229;
+    border-radius: 10px;
+
+    font-size: 21px;
+}
+
+.subject-card-info {
+    min-width: 0;
+}
+
+.subject-card-info h3 {
+    margin: 0 0 5px;
+
+    color: #fff;
+    font-size: 15px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.subject-card-info p {
+    margin: 0;
+
+    color: #777781;
+    font-size: 12px;
+}
+
+
+/* FORMULÁRIO DE MATÉRIA */
+
+.subject-form {
+    display: flex;
+    gap: 10px;
+
+    margin-top: 20px;
+    margin-bottom: 8px;
+}
+
+.subject-form input {
+    flex: 1;
+
+    height: 42px;
+    padding: 0 13px;
+
+    background: #18181c;
+    border: 1px solid #29292f;
+    border-radius: 8px;
+
+    color: #fff;
+    outline: none;
+}
+
+.subject-form input:focus {
+    border-color: #55555f;
+}
+
+.subject-form input::placeholder {
+    color: #666670;
+}
+
+
+/* MODAL DA MATÉRIA */
+
+.study-subject-modal {
+    position: fixed;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: rgba(0, 0, 0, 0.7);
+
+    z-index: 1000;
+}
+
+.study-subject-modal-content {
+    width: min(760px, 100%);
+    max-height: 85vh;
+
+    overflow-y: auto;
+
+    padding: 24px;
+
+    background: #121216;
+    border: 1px solid #29292f;
+    border-radius: 16px;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.study-subject-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 22px;
+}
+
+.study-subject-modal-header h2 {
+    margin: 0 0 6px;
+
+    color: #fff;
+    font-size: 22px;
+}
+
+.study-subject-modal-header p {
+    margin: 0;
+
+    color: #777781;
+    font-size: 13px;
+}
+
+.study-subject-modal-close {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #29292f;
+    border-radius: 8px;
+
+    background: transparent;
+    color: #9999a3;
+
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.study-subject-modal-close:hover {
+    background: #1d1d22;
+    color: #fff;
+}
+
+
+/* PROGRESSO */
+
+.study-progress {
+    padding: 16px;
+
+    margin-bottom: 20px;
+
+    background: #18181c;
+    border: 1px solid #29292f;
+    border-radius: 11px;
+}
+
+.study-progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 9px;
+}
+
+.study-progress-header span {
+    color: #9999a3;
+    font-size: 12px;
+}
+
+.study-progress-header strong {
+    color: #fff;
+    font-size: 13px;
+}
+
+.study-progress-bar {
+    width: 100%;
+    height: 6px;
+
+    overflow: hidden;
+
+    background: #29292f;
+    border-radius: 999px;
+}
+
+.study-progress-fill {
+    width: 0;
+    height: 100%;
+
+    background: #fff;
+    border-radius: 999px;
+
+    transition: width 0.3s ease;
+}
+
+.study-progress p {
+    margin: 9px 0 0;
+
+    color: #666670;
+    font-size: 11px;
+}
+
+
+/* ABAS */
+
+.study-tabs {
+    display: flex;
+    gap: 4px;
+
+    padding: 4px;
+
+    margin-bottom: 20px;
+
+    background: #18181c;
+    border: 1px solid #29292f;
+    border-radius: 9px;
+}
+
+.study-tab {
+    flex: 1;
+
+    padding: 9px 12px;
+
+    border: 0;
+    border-radius: 7px;
+
+    background: transparent;
+    color: #777781;
+
+    font-size: 12px;
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.study-tab:hover {
+    color: #fff;
+}
+
+.study-tab.active {
+    background: #29292f;
+    color: #fff;
+}
+
+
+/* CONTEÚDO DAS ABAS */
+
+.study-tab-content {
+    min-height: 180px;
+}
+
+
+/* CONTEÚDOS */
+
+.study-topics-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 14px;
+}
+
+.study-topics-header h3 {
+    margin: 0;
+
+    color: #fff;
+    font-size: 15px;
+}
+
+.study-topic-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    margin-bottom: 14px;
+}
+
+.study-topic-form input {
+    height: 40px;
+    padding: 0 13px;
+
+    background: #18181c;
+    border: 1px solid #29292f;
+    border-radius: 8px;
+
+    color: #fff;
+    outline: none;
+}
+
+.study-topic-form input:focus {
+    border-color: #55555f;
+}
+
+.study-topic-form-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.study-topics-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.study-topic-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 12px 14px;
+
+    background: #18181c;
+    border: 1px solid #29292f;
+    border-radius: 9px;
+}
+
+.study-topic-card label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    min-width: 0;
+
+    color: #d0d0d6;
+    font-size: 13px;
+
+    cursor: pointer;
+}
+
+.study-topic-checkbox {
+    width: 16px;
+    height: 16px;
+
+    cursor: pointer;
+}
+
+.study-topic-remove {
+    width: 30px;
+    height: 30px;
+
+    border: 1px solid #30282b;
+    border-radius: 7px;
+
+    background: transparent;
+    color: #8d7479;
+
+    cursor: pointer;
+}
+
+.study-topic-remove:hover {
+    background: #251b1e;
+    color: #d39ca5;
+}
+
+
+/* VAZIOS */
+
+.empty-subjects,
+.empty-study-notes,
+.empty-study-topics {
+    padding: 40px 20px;
+
+    text-align: center;
+
+    color: #777781;
+}
+
+.empty-subjects span,
+.empty-study-notes span,
+.empty-study-topics span {
+    display: block;
+
+    margin-bottom: 10px;
+
+    font-size: 28px;
+}
+
+.empty-subjects h3,
+.empty-study-notes h3,
+.empty-study-topics h3 {
+    margin: 0 0 6px;
+
+    color: #d0d0d6;
+    font-size: 14px;
+}
+
+.empty-subjects p,
+.empty-study-notes p,
+.empty-study-topics p {
+    margin: 0;
+
+    font-size: 12px;
+}
+
