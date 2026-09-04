@@ -1046,31 +1046,107 @@ const seriesLibraryFilters =
 
 let currentSeriesLibraryFilter = "all";
 
+let savedSeriesCache = [];
+
+
+// =========================
+// CARREGAR BIBLIOTECA
+// =========================
+
+async function loadSeriesLibrary() {
+
+    try {
+
+        const response =
+            await fetch("/api/media/series");
+
+        if (!response.ok) {
+            throw new Error(
+                "Não foi possível carregar a biblioteca"
+            );
+        }
+
+        const result =
+            await response.json();
+
+        savedSeriesCache =
+            (result.media || []).map((series) => ({
+
+                id: Number(series.tmdb_id),
+
+                name: series.title,
+
+                poster_path:
+                    series.poster_path,
+
+                first_air_date:
+                    series.release_date,
+
+                vote_average:
+                    Number(series.vote_average) || 0,
+
+                status:
+                    series.status,
+
+                favorite:
+                    series.favorite
+
+            }));
+
+        renderSeriesLibrary();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar biblioteca de séries:",
+            error
+        );
+
+        seriesLibraryContainer.innerHTML = `
+            <div class="empty-movie-library">
+
+                <h3>
+                    Não foi possível carregar
+                </h3>
+
+                <p>
+                    Tente novamente mais tarde.
+                </p>
+
+            </div>
+        `;
+
+    }
+
+}
+
+
+// =========================
+// RENDERIZAR BIBLIOTECA
+// =========================
 
 function renderSeriesLibrary() {
 
-    const savedSeries =
-        JSON.parse(
-            localStorage.getItem("orbitSeries")
-        ) || [];
-
     let filteredSeries =
-        savedSeries;
+        savedSeriesCache;
 
-
-    if (currentSeriesLibraryFilter === "favorite") {
+    if (
+        currentSeriesLibraryFilter ===
+        "favorite"
+    ) {
 
         filteredSeries =
-            savedSeries.filter(
+            savedSeriesCache.filter(
                 (series) => series.favorite
             );
 
     } else if (
-        currentSeriesLibraryFilter !== "all"
+        currentSeriesLibraryFilter !==
+        "all"
     ) {
 
         filteredSeries =
-            savedSeries.filter(
+            savedSeriesCache.filter(
                 (series) =>
                     series.status ===
                     currentSeriesLibraryFilter
@@ -1096,6 +1172,7 @@ function renderSeriesLibrary() {
         `;
 
         return;
+
     }
 
 
@@ -1169,6 +1246,10 @@ function renderSeriesLibrary() {
 }
 
 
+// =========================
+// FILTROS
+// =========================
+
 seriesLibraryFilters.forEach(
     (filterButton) => {
 
@@ -1203,8 +1284,300 @@ seriesLibraryFilters.forEach(
 );
 
 
-renderSeriesLibrary();
+// =========================
+// BUSCAR SÉRIE SALVA
+// =========================
 
+function getSavedSeries(seriesId) {
+
+    return savedSeriesCache.find(
+        (series) =>
+            series.id === Number(seriesId)
+    );
+
+}
+
+
+// =========================
+// SALVAR SÉRIE
+// =========================
+
+async function saveSeries(
+    series,
+    status = "want",
+    favorite = false
+) {
+
+    const seriesId =
+        Number(series.id);
+
+    const existingSeries =
+        getSavedSeries(seriesId);
+
+    const previousStatus =
+        existingSeries
+            ? existingSeries.status
+            : null;
+
+    const previousFavorite =
+        existingSeries
+            ? existingSeries.favorite
+            : null;
+
+
+    if (existingSeries) {
+
+        existingSeries.status =
+            status;
+
+        existingSeries.favorite =
+            favorite;
+
+    } else {
+
+        savedSeriesCache.push({
+
+            id: seriesId,
+
+            name: series.name,
+
+            poster_path:
+                series.poster_path,
+
+            first_air_date:
+                series.first_air_date,
+
+            vote_average:
+                Number(series.vote_average) || 0,
+
+            status: status,
+
+            favorite: favorite
+
+        });
+
+    }
+
+
+    renderSeriesLibrary();
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/media",
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        tmdbId:
+                            seriesId,
+
+                        type:
+                            "series",
+
+                        title:
+                            series.name,
+
+                        posterPath:
+                            series.poster_path,
+
+                        releaseDate:
+                            series.first_air_date,
+
+                        voteAverage:
+                            Number(
+                                series.vote_average
+                            ) || 0,
+
+                        status:
+                            status,
+
+                        favorite:
+                            favorite
+
+                    })
+
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Não foi possível salvar a série"
+            );
+
+        }
+
+
+        const result =
+            await response.json();
+
+
+        const savedIndex =
+            savedSeriesCache.findIndex(
+                (item) =>
+                    item.id === seriesId
+            );
+
+
+        if (savedIndex !== -1) {
+
+            savedSeriesCache[savedIndex] = {
+
+                id:
+                    Number(
+                        result.media.tmdb_id
+                    ),
+
+                name:
+                    result.media.title,
+
+                poster_path:
+                    result.media.poster_path,
+
+                first_air_date:
+                    result.media.release_date,
+
+                vote_average:
+                    Number(
+                        result.media.vote_average
+                    ) || 0,
+
+                status:
+                    result.media.status,
+
+                favorite:
+                    result.media.favorite
+
+            };
+
+        }
+
+
+        renderSeriesLibrary();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao salvar série:",
+            error
+        );
+
+
+        if (existingSeries) {
+
+            existingSeries.status =
+                previousStatus;
+
+            existingSeries.favorite =
+                previousFavorite;
+
+        } else {
+
+            savedSeriesCache =
+                savedSeriesCache.filter(
+                    (item) =>
+                        item.id !== seriesId
+                );
+
+        }
+
+
+        renderSeriesLibrary();
+
+        alert(
+            "Não foi possível salvar a série."
+        );
+
+    }
+
+}
+
+
+// =========================
+// REMOVER SÉRIE
+// =========================
+
+async function removeSeries(seriesId) {
+
+    const numericSeriesId =
+        Number(seriesId);
+
+    const previousCache =
+        [...savedSeriesCache];
+
+
+    savedSeriesCache =
+        savedSeriesCache.filter(
+            (series) =>
+                series.id !== numericSeriesId
+        );
+
+
+    renderSeriesLibrary();
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/media/series/${numericSeriesId}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Não foi possível remover a série"
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao remover série:",
+            error
+        );
+
+
+        savedSeriesCache =
+            previousCache;
+
+        renderSeriesLibrary();
+
+        alert(
+            "Não foi possível remover a série."
+        );
+
+    }
+
+}
+
+
+// =========================
+// INICIALIZAR BIBLIOTECA
+// =========================
+
+loadSeriesLibrary();
+
+
+// =========================
+// FECHAR MODAL
+// =========================
 
 function closeSeriesModal() {
 
