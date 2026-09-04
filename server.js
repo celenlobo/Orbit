@@ -622,6 +622,243 @@ app.post("/api/user/steam-id", async (req, res) => {
 
 });
 
+// =========================
+// BIBLIOTECA DE FILMES E SÉRIES
+// =========================
+
+app.get("/api/media/:type", async (req, res) => {
+
+    try {
+
+        const type = req.params.type;
+
+        if (!["movie", "series"].includes(type)) {
+            return res.status(400).json({
+                success: false,
+                message: "Tipo de mídia inválido"
+            });
+        }
+
+        const { data, error } =
+            await supabase
+                .from("media_library")
+                .select("*")
+                .eq("type", type)
+                .order("created_at", {
+                    ascending: false
+                });
+
+        if (error) {
+            console.error(
+                "Erro ao buscar biblioteca:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Não foi possível carregar a biblioteca"
+            });
+        }
+
+        res.json({
+            success: true,
+            media: data
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao buscar biblioteca:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Erro interno no servidor"
+        });
+
+    }
+
+});
+
+
+app.post("/api/media", async (req, res) => {
+
+    try {
+
+        const {
+            tmdbId,
+            type,
+            title,
+            posterPath,
+            releaseDate,
+            voteAverage,
+            status,
+            favorite
+        } = req.body;
+
+        if (
+            !tmdbId ||
+            !["movie", "series"].includes(type) ||
+            !title
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Dados da mídia inválidos"
+            });
+        }
+
+        const { data: existing, error: searchError } =
+            await supabase
+                .from("media_library")
+                .select("id")
+                .eq("tmdb_id", tmdbId)
+                .eq("type", type)
+                .maybeSingle();
+
+        if (searchError) {
+            console.error(
+                "Erro ao verificar mídia:",
+                searchError
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Não foi possível salvar a mídia"
+            });
+        }
+
+        let data;
+        let error;
+
+        const mediaData = {
+            tmdb_id: tmdbId,
+            type: type,
+            title: title,
+            poster_path: posterPath || null,
+            release_date: releaseDate || null,
+            vote_average: voteAverage ?? null,
+            status: status || "want",
+            favorite: Boolean(favorite)
+        };
+
+        if (existing) {
+
+            const result =
+                await supabase
+                    .from("media_library")
+                    .update(mediaData)
+                    .eq("id", existing.id)
+                    .select()
+                    .single();
+
+            data = result.data;
+            error = result.error;
+
+        } else {
+
+            const result =
+                await supabase
+                    .from("media_library")
+                    .insert(mediaData)
+                    .select()
+                    .single();
+
+            data = result.data;
+            error = result.error;
+
+        }
+
+        if (error) {
+            console.error(
+                "Erro ao salvar mídia:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Não foi possível salvar a mídia"
+            });
+        }
+
+        res.json({
+            success: true,
+            media: data
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao salvar mídia:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Erro interno no servidor"
+        });
+
+    }
+
+});
+
+
+app.delete("/api/media/:type/:tmdbId", async (req, res) => {
+
+    try {
+
+        const type = req.params.type;
+        const tmdbId = Number(req.params.tmdbId);
+
+        if (
+            !["movie", "series"].includes(type) ||
+            !tmdbId
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Dados da mídia inválidos"
+            });
+        }
+
+        const { error } =
+            await supabase
+                .from("media_library")
+                .delete()
+                .eq("tmdb_id", tmdbId)
+                .eq("type", type);
+
+        if (error) {
+            console.error(
+                "Erro ao remover mídia:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Não foi possível remover a mídia"
+            });
+        }
+
+        res.json({
+            success: true
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao remover mídia:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Erro interno no servidor"
+        });
+
+    }
+
+});
+
 app.listen(PORT, () => {
     console.log(`ORBIT rodando em http://localhost:${PORT}`);
 });

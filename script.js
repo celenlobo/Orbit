@@ -1477,7 +1477,7 @@ function renderMovieDetails(movie) {
 
 }
 
-        // =========================
+// =========================
 // BIBLIOTECA DE FILMES
 // =========================
 
@@ -1489,28 +1489,90 @@ const movieLibraryFilters =
 
 let currentMovieLibraryFilter = "all";
 
+let savedMoviesCache = [];
+
+
+// =========================
+// CARREGAR BIBLIOTECA
+// =========================
+
+async function loadMovieLibrary() {
+
+    try {
+
+        const response =
+            await fetch("/api/media/movie");
+
+        if (!response.ok) {
+            throw new Error(
+                "Não foi possível carregar a biblioteca"
+            );
+        }
+
+        const result =
+            await response.json();
+
+        savedMoviesCache =
+            (result.media || []).map((movie) => ({
+                id: Number(movie.tmdb_id),
+                title: movie.title,
+                poster_path: movie.poster_path,
+                release_date: movie.release_date,
+                vote_average: Number(movie.vote_average) || 0,
+                status: movie.status,
+                favorite: movie.favorite
+            }));
+
+        renderMovieLibrary();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar biblioteca de filmes:",
+            error
+        );
+
+        movieLibraryContainer.innerHTML = `
+            <div class="empty-movie-library">
+
+                <h3>
+                    Não foi possível carregar
+                </h3>
+
+                <p>
+                    Tente novamente mais tarde.
+                </p>
+
+            </div>
+        `;
+
+    }
+
+}
+
+
+// =========================
+// RENDERIZAR BIBLIOTECA
+// =========================
 
 function renderMovieLibrary() {
 
-    const savedMovies =
-        JSON.parse(
-            localStorage.getItem("orbitMovies")
-        ) || [];
-
     let filteredMovies =
-        savedMovies;
+        savedMoviesCache;
 
     if (currentMovieLibraryFilter === "favorite") {
 
         filteredMovies =
-            savedMovies.filter(
+            savedMoviesCache.filter(
                 (movie) => movie.favorite
             );
 
-    } else if (currentMovieLibraryFilter !== "all") {
+    } else if (
+        currentMovieLibraryFilter !== "all"
+    ) {
 
         filteredMovies =
-            savedMovies.filter(
+            savedMoviesCache.filter(
                 (movie) =>
                     movie.status ===
                     currentMovieLibraryFilter
@@ -1586,7 +1648,8 @@ function renderMovieLibrary() {
             }
         ).join("");
 
-            movieLibraryContainer
+
+    movieLibraryContainer
         .querySelectorAll(".movie-card")
         .forEach((card) => {
 
@@ -1606,6 +1669,10 @@ function renderMovieLibrary() {
 
 }
 
+
+// =========================
+// FILTROS
+// =========================
 
 movieLibraryFilters.forEach(
     (filterButton) => {
@@ -1634,84 +1701,239 @@ movieLibraryFilters.forEach(
 );
 
 
-renderMovieLibrary();
-
-
-
-function saveMovie(movie, status = "want", favorite = false) {
-
-    const savedMovies =
-        JSON.parse(
-            localStorage.getItem("orbitMovies")
-        ) || [];
-
-    const existingMovie =
-        savedMovies.find(
-            (item) => item.id === movie.id
-        );
-
-    if (existingMovie) {
-
-        existingMovie.status = status;
-        existingMovie.favorite = favorite;
-
-    } else {
-
-        savedMovies.push({
-            id: movie.id,
-            title: movie.title,
-            poster_path: movie.poster_path,
-            release_date: movie.release_date,
-            vote_average: movie.vote_average,
-            status: status,
-            favorite: favorite
-        });
-
-    }
-
-    localStorage.setItem(
-        "orbitMovies",
-        JSON.stringify(savedMovies)
-    );
-
-}
+// =========================
+// BUSCAR FILME SALVO
+// =========================
 
 function getSavedMovie(movieId) {
 
-    const savedMovies =
-        JSON.parse(
-            localStorage.getItem("orbitMovies")
-        ) || [];
-
-    return savedMovies.find(
-        (movie) => movie.id === Number(movieId)
+    return savedMoviesCache.find(
+        (movie) =>
+            movie.id === Number(movieId)
     );
 
 }
 
-function removeMovie(movieId) {
 
-    const savedMovies =
-        JSON.parse(
-            localStorage.getItem("orbitMovies")
-        ) || [];
+// =========================
+// SALVAR FILME
+// =========================
 
-    const updatedMovies =
-        savedMovies.filter(
-            (movie) =>
-                movie.id !== Number(movieId)
+async function saveMovie(
+    movie,
+    status = "want",
+    favorite = false
+) {
+
+    const movieId =
+        Number(movie.id);
+
+    const movieData = {
+        id: movieId,
+        title: movie.title,
+        poster_path: movie.poster_path,
+        release_date: movie.release_date,
+        vote_average: Number(movie.vote_average) || 0,
+        status: status,
+        favorite: favorite
+    };
+
+
+    const existingMovie =
+        getSavedMovie(movieId);
+
+
+    // Atualiza a interface imediatamente
+    if (existingMovie) {
+
+        existingMovie.status =
+            status;
+
+        existingMovie.favorite =
+            favorite;
+
+    } else {
+
+        savedMoviesCache.push(
+            movieData
         );
 
-    localStorage.setItem(
-        "orbitMovies",
-        JSON.stringify(updatedMovies)
-    );
+    }
 
     renderMovieLibrary();
 
+
+    try {
+
+        const response =
+            await fetch("/api/media", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    tmdbId: movieId,
+                    type: "movie",
+                    title: movie.title,
+                    posterPath:
+                        movie.poster_path,
+                    releaseDate:
+                        movie.release_date,
+                    voteAverage:
+                        Number(movie.vote_average) || 0,
+                    status: status,
+                    favorite: favorite
+                })
+
+            });
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Não foi possível salvar o filme"
+            );
+
+        }
+
+
+        const result =
+            await response.json();
+
+
+        // Atualiza o cache com o registro real do Supabase
+        const savedIndex =
+            savedMoviesCache.findIndex(
+                (item) =>
+                    item.id === movieId
+            );
+
+
+        if (savedIndex !== -1) {
+
+            savedMoviesCache[savedIndex] = {
+                id: Number(result.media.tmdb_id),
+                title: result.media.title,
+                poster_path:
+                    result.media.poster_path,
+                release_date:
+                    result.media.release_date,
+                vote_average:
+                    Number(result.media.vote_average) || 0,
+                status:
+                    result.media.status,
+                favorite:
+                    result.media.favorite
+            };
+
+        }
+
+        renderMovieLibrary();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao salvar filme:",
+            error
+        );
+
+        // Desfaz a alteração otimista
+        savedMoviesCache =
+            savedMoviesCache.filter(
+                (item) =>
+                    item.id !== movieId
+            );
+
+        if (existingMovie) {
+
+            savedMoviesCache.push(
+                existingMovie
+            );
+
+        }
+
+        renderMovieLibrary();
+
+        alert(
+            "Não foi possível salvar o filme."
+        );
+
+    }
+
 }
 
 
+// =========================
+// REMOVER FILME
+// =========================
+
+async function removeMovie(movieId) {
+
+    const numericMovieId =
+        Number(movieId);
+
+    const previousCache =
+        [...savedMoviesCache];
+
+
+    savedMoviesCache =
+        savedMoviesCache.filter(
+            (movie) =>
+                movie.id !== numericMovieId
+        );
+
+    renderMovieLibrary();
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/media/movie/${numericMovieId}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Não foi possível remover o filme"
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao remover filme:",
+            error
+        );
+
+        savedMoviesCache =
+            previousCache;
+
+        renderMovieLibrary();
+
+        alert(
+            "Não foi possível remover o filme."
+        );
+
+    }
+
+}
+
+
+// =========================
+// INICIALIZAR BIBLIOTECA
+// =========================
+
+loadMovieLibrary();
 function closeMovieModal() {
 
     movieModal.classList.add("hidden");
