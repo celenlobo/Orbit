@@ -9,6 +9,8 @@ const multer = require("multer");
 const app = express();
 const PORT = 3000;
 
+app.use(express.json());
+
 const upload =
     multer({
         storage: multer.memoryStorage()
@@ -469,6 +471,155 @@ app.get("/api/status", (req, res) => {
         success: true,
         message: "ORBIT backend funcionando"
     });
+});
+
+// =========================
+// STEAM ID DO USUÁRIO
+// =========================
+
+app.get("/api/user/steam-id", async (req, res) => {
+
+    try {
+
+        const { data, error } =
+            await supabase
+                .from("user_settings")
+                .select("steam_id")
+                .limit(1)
+                .maybeSingle();
+
+        if (error) {
+            console.error(
+                "Erro ao buscar Steam ID:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Não foi possível buscar o Steam ID"
+            });
+        }
+
+        res.json({
+            success: true,
+            steamId: data?.steam_id || null
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao buscar Steam ID:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Erro interno no servidor"
+        });
+
+    }
+
+});
+
+
+app.post("/api/user/steam-id", async (req, res) => {
+
+    try {
+
+        const steamId =
+            req.body?.steamId?.trim();
+
+        if (!steamId) {
+            return res.status(400).json({
+                success: false,
+                message: "Steam ID não informado"
+            });
+        }
+
+        const { data: existing, error: searchError } =
+            await supabase
+                .from("user_settings")
+                .select("id")
+                .limit(1)
+                .maybeSingle();
+
+        if (searchError) {
+            console.error(
+                "Erro ao verificar Steam ID:",
+                searchError
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Não foi possível salvar o Steam ID"
+            });
+        }
+
+        let data;
+        let error;
+
+        if (existing) {
+
+            const result =
+                await supabase
+                    .from("user_settings")
+                    .update({
+                        steam_id: steamId
+                    })
+                    .eq("id", existing.id)
+                    .select()
+                    .single();
+
+            data = result.data;
+            error = result.error;
+
+        } else {
+
+            const result =
+                await supabase
+                    .from("user_settings")
+                    .insert({
+                        steam_id: steamId
+                    })
+                    .select()
+                    .single();
+
+            data = result.data;
+            error = result.error;
+
+        }
+
+        if (error) {
+            console.error(
+                "Erro ao salvar Steam ID:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Não foi possível salvar o Steam ID"
+            });
+        }
+
+        res.json({
+            success: true,
+            steamId: data.steam_id
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao salvar Steam ID:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Erro interno no servidor"
+        });
+
+    }
+
 });
 
 app.listen(PORT, () => {

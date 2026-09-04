@@ -1719,6 +1719,8 @@ function closeMovieModal() {
 }
 
 
+
+
 /* =====================================================
    AGENDA
 ===================================================== */
@@ -4163,6 +4165,12 @@ const gamesContainer =
 
 let games = [];
 
+loadSavedSteamId();
+
+
+// =========================
+// CONEXÃO COM STEAM
+// =========================
 
 const steamIdInput =
     document.getElementById("steam-id-input");
@@ -4170,26 +4178,130 @@ const steamIdInput =
 const connectSteamButton =
     document.getElementById("connect-steam-button");
 
-connectSteamButton.addEventListener("click", () => {
+let currentSteamId = null;
 
-    const steamId =
-        steamIdInput.value.trim();
 
-            console.log("Botão Steam clicado");
-            console.log("SteamID digitado:", steamId);
+connectSteamButton.addEventListener(
+    "click",
+    async () => {
 
-    if (!steamId) {
-        alert("Informe seu SteamID64.");
-        return;
+        const steamId =
+            steamIdInput.value.trim();
+
+        if (!steamId) {
+            alert("Informe seu SteamID64.");
+            return;
+        }
+
+        try {
+
+            connectSteamButton.disabled = true;
+            connectSteamButton.textContent = "Salvando...";
+
+            const response =
+                await fetch(
+                    "/api/user/steam-id",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            steamId: steamId
+                        })
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message ||
+                    "Não foi possível salvar o Steam ID"
+                );
+            }
+
+            currentSteamId =
+                result.steamId;
+
+            steamIdInput.value =
+                currentSteamId;
+
+            await loadSteamGames(
+                currentSteamId
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Erro ao salvar Steam ID:",
+                error
+            );
+
+            alert(
+                error.message ||
+                "Não foi possível conectar a Steam."
+            );
+
+        } finally {
+
+            connectSteamButton.disabled = false;
+            connectSteamButton.textContent = "Conectar Steam";
+
+        }
+
+    }
+);
+
+
+// =========================
+// CARREGAR STEAM ID SALVO
+// =========================
+
+async function loadSavedSteamId() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/user/steam-id"
+            );
+
+        const result =
+            await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message ||
+                "Não foi possível buscar o Steam ID"
+            );
+        }
+
+        if (!result.steamId) {
+            return;
+        }
+
+        currentSteamId =
+            result.steamId;
+
+        steamIdInput.value =
+            currentSteamId;
+
+        await loadSteamGames(
+            currentSteamId
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar Steam ID salvo:",
+            error
+        );
+
     }
 
-    localStorage.setItem(
-        "orbitSteamId",
-        steamId
-    );
-
-    loadSteamGames(steamId);
-});
+}
 
 
 
@@ -4410,7 +4522,7 @@ function renderGames() {
 
         const achievements =
             await loadGameAchievements(
-                localStorage.getItem("orbitSteamId"),
+               currentSteamId,
                 game.appid
             );
 
