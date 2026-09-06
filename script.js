@@ -6750,3 +6750,844 @@ progressText.textContent =
         );
 
 }
+
+/* =====================================================
+   FINANÇAS
+===================================================== */
+
+const financeAddButton =
+    document.getElementById("finance-add-button");
+
+const financeModal =
+    document.getElementById("finance-modal");
+
+const financeModalClose =
+    document.getElementById("finance-modal-close");
+
+const financeSaveButton =
+    document.getElementById("finance-save-button");
+
+const financeDescription =
+    document.getElementById("finance-description");
+
+const financeAmount =
+    document.getElementById("finance-amount");
+
+const financeCategory =
+    document.getElementById("finance-category");
+
+const financeDate =
+    document.getElementById("finance-date");
+
+const financeTransactions =
+    document.getElementById("finance-transactions");
+
+const financeCategories =
+    document.getElementById("finance-categories");
+
+const financeBalance =
+    document.getElementById("finance-balance");
+
+const financeIncome =
+    document.getElementById("finance-income");
+
+const financeExpenses =
+    document.getElementById("finance-expenses");
+
+const financeResult =
+    document.getElementById("finance-result");
+
+const financeTypeButtons =
+    document.querySelectorAll(".finance-type-button");
+
+let currentFinanceType = "expense";
+
+let financeData = [];
+
+
+/* =========================
+   ABRIR / FECHAR MODAL
+========================= */
+
+financeAddButton.addEventListener(
+    "click",
+    () => {
+
+        financeModal.classList.remove("hidden");
+
+        financeDescription.focus();
+
+        const today =
+            new Date().toISOString().split("T")[0];
+
+        financeDate.value = today;
+
+    }
+);
+
+
+financeModalClose.addEventListener(
+    "click",
+    closeFinanceModal
+);
+
+
+financeModal.addEventListener(
+    "click",
+    (event) => {
+
+        if (event.target === financeModal) {
+            closeFinanceModal();
+        }
+
+    }
+);
+
+
+function closeFinanceModal() {
+
+    financeModal.classList.add("hidden");
+
+    financeDescription.value = "";
+
+    financeAmount.value = "";
+
+    financeCategory.value = "alimentacao";
+
+    financeDate.value = "";
+
+    currentFinanceType = "expense";
+
+    financeTypeButtons.forEach(
+        (button) => {
+
+            button.classList.remove("active");
+
+            if (
+                button.dataset.financeType ===
+                "expense"
+            ) {
+
+                button.classList.add("active");
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================
+   TIPO
+========================= */
+
+financeTypeButtons.forEach(
+    (button) => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                financeTypeButtons.forEach(
+                    (item) => {
+
+                        item.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+                button.classList.add("active");
+
+                currentFinanceType =
+                    button.dataset.financeType;
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================
+   SALVAR
+========================= */
+
+financeSaveButton.addEventListener(
+    "click",
+    saveFinanceTransaction
+);
+
+
+async function saveFinanceTransaction() {
+
+    const description =
+        financeDescription.value.trim();
+
+    const amount =
+        Number(financeAmount.value);
+
+    const category =
+        financeCategory.value;
+
+    const transactionDate =
+        financeDate.value;
+
+
+    if (!description) {
+
+        alert(
+            "Digite uma descrição."
+        );
+
+        financeDescription.focus();
+
+        return;
+
+    }
+
+
+    if (!amount || amount <= 0) {
+
+        alert(
+            "Digite um valor válido."
+        );
+
+        financeAmount.focus();
+
+        return;
+
+    }
+
+
+    if (!transactionDate) {
+
+        alert(
+            "Selecione uma data."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        financeSaveButton.disabled = true;
+
+        financeSaveButton.textContent =
+            "Salvando...";
+
+
+        const response =
+            await fetch(
+                "/api/finance",
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        type:
+                            currentFinanceType,
+
+                        description:
+                            description,
+
+                        amount:
+                            amount,
+
+                        category:
+                            category,
+
+                        transactionDate:
+                            transactionDate
+
+                    })
+
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!response.ok || !result.success) {
+
+            throw new Error(
+                result.message ||
+                "Não foi possível salvar a movimentação"
+            );
+
+        }
+
+
+        closeFinanceModal();
+
+        await loadFinance();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao salvar movimentação:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Não foi possível salvar a movimentação."
+        );
+
+    } finally {
+
+        financeSaveButton.disabled = false;
+
+        financeSaveButton.textContent =
+            "Salvar movimentação";
+
+    }
+
+}
+
+
+/* =========================
+   CARREGAR
+========================= */
+
+async function loadFinance() {
+
+    try {
+
+        const response =
+            await fetch("/api/finance");
+
+
+        const result =
+            await response.json();
+
+
+        if (!response.ok || !result.success) {
+
+            throw new Error(
+                result.message ||
+                "Não foi possível carregar as finanças"
+            );
+
+        }
+
+
+        financeData =
+            result.transactions || [];
+
+
+        renderFinance();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar finanças:",
+            error
+        );
+
+        financeTransactions.innerHTML = `
+            <div class="finance-empty">
+
+                <h3>
+                    Não foi possível carregar
+                </h3>
+
+                <p>
+                    Tente novamente mais tarde.
+                </p>
+
+            </div>
+        `;
+
+    }
+
+}
+
+
+/* =========================
+   RENDERIZAR
+========================= */
+
+function renderFinance() {
+
+    updateFinanceSummary();
+
+    renderFinanceTransactions();
+
+    renderFinanceCategories();
+
+}
+
+
+/* =========================
+   RESUMO
+========================= */
+
+function updateFinanceSummary() {
+
+    let income = 0;
+
+    let expenses = 0;
+
+
+    financeData.forEach(
+        (transaction) => {
+
+            const amount =
+                Number(transaction.amount) || 0;
+
+
+            if (
+                transaction.type ===
+                "income"
+            ) {
+
+                income += amount;
+
+            } else {
+
+                expenses += amount;
+
+            }
+
+        }
+    );
+
+
+    const balance =
+        income - expenses;
+
+
+    financeBalance.textContent =
+        formatFinanceCurrency(balance);
+
+    financeIncome.textContent =
+        formatFinanceCurrency(income);
+
+    financeExpenses.textContent =
+        formatFinanceCurrency(expenses);
+
+    financeResult.textContent =
+        formatFinanceCurrency(balance);
+
+}
+
+
+/* =========================
+   MOVIMENTAÇÕES
+========================= */
+
+function renderFinanceTransactions() {
+
+    if (financeData.length === 0) {
+
+        financeTransactions.innerHTML = `
+            <div class="finance-empty">
+
+                <h3>
+                    Nenhuma movimentação
+                </h3>
+
+                <p>
+                    Adicione sua primeira receita ou despesa.
+                </p>
+
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    financeTransactions.innerHTML =
+        financeData.map(
+            (transaction) => {
+
+                const isIncome =
+                    transaction.type ===
+                    "income";
+
+
+                const sign =
+                    isIncome
+                        ? "+"
+                        : "-";
+
+
+                const icon =
+                    isIncome
+                        ? "↗"
+                        : "↘";
+
+
+                const date =
+                    formatFinanceDate(
+                        transaction.transaction_date
+                    );
+
+
+                return `
+                    <div
+                        class="finance-transaction"
+                    >
+
+                        <div
+                            class="finance-transaction-info"
+                        >
+
+                            <div
+                                class="finance-transaction-icon"
+                            >
+                                ${icon}
+                            </div>
+
+                            <div
+                                class="finance-transaction-text"
+                            >
+
+                                <strong>
+                                    ${escapeHTML(
+                                        transaction.description
+                                    )}
+                                </strong>
+
+                                <span>
+                                    ${getFinanceCategoryName(
+                                        transaction.category
+                                    )}
+                                    ·
+                                    ${date}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="finance-transaction-value ${
+                                isIncome
+                                    ? "income"
+                                    : "expense"
+                            }"
+                        >
+                            ${sign}
+                            ${formatFinanceCurrency(
+                                transaction.amount
+                            )}
+
+                            <button
+                                class="finance-delete-button"
+                                data-finance-id="${transaction.id}"
+                                title="Excluir movimentação"
+                            >
+                                ×
+                            </button>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }
+        ).join("");
+
+
+    financeTransactions
+        .querySelectorAll(
+            ".finance-delete-button"
+        )
+        .forEach(
+            (button) => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        deleteFinanceTransaction(
+                            button.dataset.financeId
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================
+   CATEGORIAS
+========================= */
+
+function renderFinanceCategories() {
+
+    const expenses =
+        financeData.filter(
+            (transaction) =>
+                transaction.type ===
+                "expense"
+        );
+
+
+    if (expenses.length === 0) {
+
+        financeCategories.innerHTML = `
+            <div class="finance-empty">
+
+                <h3>
+                    Ainda não há dados
+                </h3>
+
+                <p>
+                    Suas categorias aparecerão aqui.
+                </p>
+
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    const categoryTotals = {};
+
+
+    expenses.forEach(
+        (transaction) => {
+
+            const category =
+                transaction.category;
+
+            const amount =
+                Number(transaction.amount) || 0;
+
+
+            categoryTotals[category] =
+                (categoryTotals[category] || 0) +
+                amount;
+
+        }
+    );
+
+
+    const totalExpenses =
+        expenses.reduce(
+            (total, transaction) =>
+                total +
+                (Number(transaction.amount) || 0),
+            0
+        );
+
+
+    const categories =
+        Object.entries(categoryTotals)
+            .sort(
+                (a, b) =>
+                    b[1] - a[1]
+            );
+
+
+    financeCategories.innerHTML =
+        categories.map(
+            ([category, amount]) => {
+
+                const percentage =
+                    totalExpenses > 0
+                        ? (
+                            amount /
+                            totalExpenses
+                        ) * 100
+                        : 0;
+
+
+                return `
+                    <div
+                        class="finance-category"
+                    >
+
+                        <div
+                            class="finance-category-header"
+                        >
+
+                            <span>
+                                ${getFinanceCategoryName(
+                                    category
+                                )}
+                            </span>
+
+                            <strong>
+                                ${formatFinanceCurrency(
+                                    amount
+                                )}
+                            </strong>
+
+                        </div>
+
+                        <div
+                            class="finance-category-bar"
+                        >
+
+                            <div
+                                class="finance-category-fill"
+                                style="width: ${percentage}%"
+                            ></div>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }
+        ).join("");
+
+}
+
+
+/* =========================
+   EXCLUIR
+========================= */
+
+async function deleteFinanceTransaction(id) {
+
+    const confirmed =
+        confirm(
+            "Excluir esta movimentação?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/finance/${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!response.ok || !result.success) {
+
+            throw new Error(
+                result.message ||
+                "Não foi possível remover a movimentação"
+            );
+
+        }
+
+
+        await loadFinance();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao excluir movimentação:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Não foi possível excluir a movimentação."
+        );
+
+    }
+
+}
+
+
+/* =========================
+   UTILITÁRIOS
+========================= */
+
+function formatFinanceCurrency(value) {
+
+    return Number(value || 0).toLocaleString(
+        "pt-BR",
+        {
+            style: "currency",
+            currency: "BRL"
+        }
+    );
+
+}
+
+
+function formatFinanceDate(date) {
+
+    if (!date) {
+        return "Sem data";
+    }
+
+
+    return new Date(
+        `${date}T12:00:00`
+    ).toLocaleDateString(
+        "pt-BR"
+    );
+
+}
+
+
+function getFinanceCategoryName(category) {
+
+    const names = {
+
+        alimentacao:
+            "Alimentação",
+
+        transporte:
+            "Transporte",
+
+        casa:
+            "Casa",
+
+        lazer:
+            "Lazer",
+
+        estudos:
+            "Estudos",
+
+        saude:
+            "Saúde",
+
+        outros:
+            "Outros"
+
+    };
+
+
+    return names[category] ||
+        category;
+
+}
+
+
+/* =========================
+   INICIALIZAR FINANÇAS
+========================= */
+
+loadFinance();

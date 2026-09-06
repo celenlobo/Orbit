@@ -859,6 +859,202 @@ app.delete("/api/media/:type/:tmdbId", async (req, res) => {
 
 });
 
+// =========================
+// FINANÇAS
+// =========================
+
+app.get("/api/finance", async (req, res) => {
+
+    try {
+
+        const { data, error } =
+            await supabase
+                .from("finance_transactions")
+                .select("*")
+                .order("transaction_date", {
+                    ascending: false
+                })
+                .order("created_at", {
+                    ascending: false
+                });
+
+        if (error) {
+
+            console.error(
+                "Erro ao buscar movimentações:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "Não foi possível carregar as movimentações"
+            });
+
+        }
+
+        res.json({
+            success: true,
+            transactions: data
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao buscar movimentações:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message:
+                "Erro interno no servidor"
+        });
+
+    }
+
+});
+
+
+app.post("/api/finance", async (req, res) => {
+
+    try {
+
+        const {
+            type,
+            description,
+            amount,
+            category,
+            transactionDate
+        } = req.body;
+
+        if (
+            !["income", "expense"].includes(type) ||
+            !description?.trim() ||
+            amount === undefined ||
+            Number(amount) <= 0 ||
+            !category
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Dados da movimentação inválidos"
+            });
+
+        }
+
+        const { data, error } =
+            await supabase
+                .from("finance_transactions")
+                .insert({
+                    type,
+                    description: description.trim(),
+                    amount: Number(amount),
+                    category,
+                    transaction_date:
+                        transactionDate || undefined
+                })
+                .select()
+                .single();
+
+        if (error) {
+
+            console.error(
+                "Erro ao salvar movimentação:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "Não foi possível salvar a movimentação"
+            });
+
+        }
+
+        res.json({
+            success: true,
+            transaction: data
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao salvar movimentação:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message:
+                "Erro interno no servidor"
+        });
+
+    }
+
+});
+
+
+app.delete("/api/finance/:id", async (req, res) => {
+
+    try {
+
+        const id =
+            Number(req.params.id);
+
+        if (!id) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "ID da movimentação inválido"
+            });
+
+        }
+
+        const { error } =
+            await supabase
+                .from("finance_transactions")
+                .delete()
+                .eq("id", id);
+
+        if (error) {
+
+            console.error(
+                "Erro ao remover movimentação:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "Não foi possível remover a movimentação"
+            });
+
+        }
+
+        res.json({
+            success: true
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao remover movimentação:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message:
+                "Erro interno no servidor"
+        });
+
+    }
+
+});
+
 app.listen(PORT, () => {
     console.log(`ORBIT rodando em http://localhost:${PORT}`);
 });
