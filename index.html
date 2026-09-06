@@ -1856,20 +1856,322 @@
              FINANÇAS
         ========================== -->
 
-        <section
-            class="page hidden"
-            id="finance"
-        >
+<section
+    class="page hidden"
+    id="finance"
+>
 
-            <h2>
-                Finanças
-            </h2>
+    <div class="page-header">
+
+        <div>
+            <h1>Finanças</h1>
 
             <p>
-                Acompanhe suas finanças.
+                Organize sua vida financeira.
             </p>
+        </div>
 
-        </section>
+        <button
+            class="primary-button"
+            id="finance-add-button"
+        >
+            + Nova movimentação
+        </button>
+
+    </div>
+
+
+    <!-- =========================
+             RESUMO
+        ========================== -->
+
+    <div class="finance-summary">
+
+        <div class="finance-card">
+
+            <span>
+                Saldo
+            </span>
+
+            <strong id="finance-balance">
+                R$ 0,00
+            </strong>
+
+        </div>
+
+
+        <div class="finance-card">
+
+            <span>
+                Entradas
+            </span>
+
+            <strong id="finance-income">
+                R$ 0,00
+            </strong>
+
+        </div>
+
+
+        <div class="finance-card">
+
+            <span>
+                Saídas
+            </span>
+
+            <strong id="finance-expenses">
+                R$ 0,00
+            </strong>
+
+        </div>
+
+
+        <div class="finance-card">
+
+            <span>
+                Resultado
+            </span>
+
+            <strong id="finance-result">
+                R$ 0,00
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+             CONTEÚDO
+        ========================== -->
+
+    <div class="finance-content">
+
+
+        <!-- MOVIMENTAÇÕES -->
+
+        <div class="finance-section">
+
+            <div class="finance-section-header">
+
+                <div>
+
+                    <h2>
+                        Movimentações
+                    </h2>
+
+                    <p>
+                        Suas entradas e saídas.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="finance-transactions"
+                id="finance-transactions"
+            >
+
+                <div class="finance-empty">
+
+                    <h3>
+                        Nenhuma movimentação
+                    </h3>
+
+                    <p>
+                        Adicione sua primeira receita ou despesa.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CATEGORIAS -->
+
+        <div class="finance-section">
+
+            <div class="finance-section-header">
+
+                <div>
+
+                    <h2>
+                        Gastos por categoria
+                    </h2>
+
+                    <p>
+                        Veja onde seu dinheiro está indo.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="finance-categories"
+                id="finance-categories"
+            >
+
+                <div class="finance-empty">
+
+                    <h3>
+                        Ainda não há dados
+                    </h3>
+
+                    <p>
+                        Suas categorias aparecerão aqui.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =========================
+             MODAL
+        ========================== -->
+
+    <div
+        class="finance-modal hidden"
+        id="finance-modal"
+    >
+
+        <div class="finance-modal-content">
+
+            <button
+                class="finance-modal-close"
+                id="finance-modal-close"
+            >
+                ×
+            </button>
+
+
+            <h2>
+                Nova movimentação
+            </h2>
+
+
+            <div class="finance-form">
+
+                <div class="finance-type-buttons">
+
+                    <button
+                        type="button"
+                        class="finance-type-button active"
+                        data-finance-type="expense"
+                    >
+                        Despesa
+                    </button>
+
+                    <button
+                        type="button"
+                        class="finance-type-button"
+                        data-finance-type="income"
+                    >
+                        Receita
+                    </button>
+
+                </div>
+
+
+                <label>
+                    Descrição
+
+                    <input
+                        type="text"
+                        id="finance-description"
+                        placeholder="Ex: Mercado"
+                    >
+                </label>
+
+
+                <label>
+                    Valor
+
+                    <input
+                        type="number"
+                        id="finance-amount"
+                        placeholder="0,00"
+                        step="0.01"
+                        min="0"
+                    >
+                </label>
+
+
+                <label>
+                    Categoria
+
+                    <select
+                        id="finance-category"
+                    >
+
+                        <option value="alimentacao">
+                            Alimentação
+                        </option>
+
+                        <option value="transporte">
+                            Transporte
+                        </option>
+
+                        <option value="casa">
+                            Casa
+                        </option>
+
+                        <option value="lazer">
+                            Lazer
+                        </option>
+
+                        <option value="estudos">
+                            Estudos
+                        </option>
+
+                        <option value="saude">
+                            Saúde
+                        </option>
+
+                        <option value="outros">
+                            Outros
+                        </option>
+
+                    </select>
+
+                </label>
+
+
+                <label>
+                    Data
+
+                    <input
+                        type="date"
+                        id="finance-date"
+                    >
+                </label>
+
+
+                <button
+                    class="primary-button"
+                    id="finance-save-button"
+                >
+                    Salvar movimentação
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
 
 
 
