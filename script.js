@@ -6804,6 +6804,8 @@ let currentFinanceType = "expense";
 
 let financeData = [];
 
+let editingFinanceId = null;
+
 
 /* =========================
    ABRIR / FECHAR MODAL
@@ -6847,6 +6849,8 @@ financeModal.addEventListener(
 function closeFinanceModal() {
 
     financeModal.classList.add("hidden");
+
+    editingFinanceId = null;
 
     financeDescription.value = "";
 
@@ -6917,9 +6921,22 @@ financeTypeButtons.forEach(
 
 financeSaveButton.addEventListener(
     "click",
-    saveFinanceTransaction
+    handleFinanceSave
 );
 
+async function handleFinanceSave() {
+
+    if (editingFinanceId) {
+
+        await updateFinanceTransaction();
+
+        return;
+
+    }
+
+    await saveFinanceTransaction();
+
+}
 
 async function saveFinanceTransaction() {
 
@@ -7044,6 +7061,142 @@ async function saveFinanceTransaction() {
         alert(
             error.message ||
             "Não foi possível salvar a movimentação."
+        );
+
+    } finally {
+
+        financeSaveButton.disabled = false;
+
+        financeSaveButton.textContent =
+            "Salvar movimentação";
+
+    }
+
+}
+
+async function updateFinanceTransaction() {
+
+    const description =
+        financeDescription.value.trim();
+
+    const amount =
+        Number(financeAmount.value);
+
+    const category =
+        financeCategory.value;
+
+    const transactionDate =
+        financeDate.value;
+
+
+    if (!description) {
+
+        alert(
+            "Digite uma descrição."
+        );
+
+        financeDescription.focus();
+
+        return;
+
+    }
+
+
+    if (!amount || amount <= 0) {
+
+        alert(
+            "Digite um valor válido."
+        );
+
+        financeAmount.focus();
+
+        return;
+
+    }
+
+
+    if (!transactionDate) {
+
+        alert(
+            "Selecione uma data."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        financeSaveButton.disabled = true;
+
+        financeSaveButton.textContent =
+            "Salvando...";
+
+
+        const response =
+            await fetch(
+                `/api/finance/${editingFinanceId}`,
+                {
+
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        type:
+                            currentFinanceType,
+
+                        description:
+                            description,
+
+                        amount:
+                            amount,
+
+                        category:
+                            category,
+
+                        transactionDate:
+                            transactionDate
+
+                    })
+
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!response.ok || !result.success) {
+
+            throw new Error(
+                result.message ||
+                "Não foi possível atualizar a movimentação"
+            );
+
+        }
+
+
+        closeFinanceModal();
+
+        await loadFinance();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao atualizar movimentação:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Não foi possível atualizar a movimentação."
         );
 
     } finally {
@@ -7289,6 +7442,14 @@ function renderFinanceTransactions() {
                             )}
 
                             <button
+                                class="finance-edit-button"
+                                data-finance-id="${transaction.id}"
+                                title="Editar movimentação"
+                            >
+                                ✎
+                            </button>
+
+                            <button
                                 class="finance-delete-button"
                                 data-finance-id="${transaction.id}"
                                 title="Excluir movimentação"
@@ -7305,6 +7466,27 @@ function renderFinanceTransactions() {
         ).join("");
 
 
+    financeTransactions
+    .querySelectorAll(
+        ".finance-edit-button"
+    )
+    .forEach(
+        (button) => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    editFinanceTransaction(
+                        button.dataset.financeId
+                    );
+
+                }
+            );
+
+        }
+    );
+    
     financeTransactions
         .querySelectorAll(
             ".finance-delete-button"
@@ -7325,6 +7507,71 @@ function renderFinanceTransactions() {
 
             }
         );
+
+}
+
+/* =========================
+   EDITAR
+========================= */
+
+function editFinanceTransaction(id) {
+
+    const transaction =
+        financeData.find(
+            (item) =>
+                String(item.id) === String(id)
+        );
+
+
+    if (!transaction) {
+        return;
+    }
+
+
+    editingFinanceId =
+        transaction.id;
+
+
+    currentFinanceType =
+        transaction.type;
+
+
+    financeDescription.value =
+        transaction.description;
+
+
+    financeAmount.value =
+        transaction.amount;
+
+
+    financeCategory.value =
+        transaction.category;
+
+
+    financeDate.value =
+        transaction.transaction_date;
+
+
+    financeTypeButtons.forEach(
+        (button) => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.financeType ===
+                    currentFinanceType
+            );
+
+        }
+    );
+
+
+    financeSaveButton.textContent =
+        "Salvar alterações";
+
+
+    financeModal.classList.remove(
+        "hidden"
+    );
 
 }
 

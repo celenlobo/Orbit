@@ -1055,6 +1055,97 @@ app.delete("/api/finance/:id", async (req, res) => {
 
 });
 
+app.put("/api/finance/:id", async (req, res) => {
+
+    try {
+
+        const id =
+            Number(req.params.id);
+
+        const {
+            type,
+            description,
+            amount,
+            category,
+            transactionDate
+        } = req.body;
+
+
+        if (
+            !id ||
+            !["income", "expense"].includes(type) ||
+            !description?.trim() ||
+            amount === undefined ||
+            Number(amount) <= 0 ||
+            !category ||
+            !transactionDate
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Dados da movimentação inválidos"
+            });
+
+        }
+
+
+        const { data, error } =
+            await supabase
+                .from("finance_transactions")
+                .update({
+                    type,
+                    description:
+                        description.trim(),
+                    amount:
+                        Number(amount),
+                    category,
+                    transaction_date:
+                        transactionDate
+                })
+                .eq("id", id)
+                .select()
+                .single();
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao atualizar movimentação:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "Não foi possível atualizar a movimentação"
+            });
+
+        }
+
+
+        res.json({
+            success: true,
+            transaction: data
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao atualizar movimentação:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message:
+                "Erro interno no servidor"
+        });
+
+    }
+
+});
+
 app.listen(PORT, () => {
     console.log(`ORBIT rodando em http://localhost:${PORT}`);
 });

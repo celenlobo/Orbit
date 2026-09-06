@@ -5024,3 +5024,49 @@ body {
     color: var(--danger);
 }
 
+/* =========================
+   FINANÇAS — AÇÕES
+========================= */
+
+.finance-transaction-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.finance-edit-button,
+.finance-delete-button {
+    width: 28px;
+    height: 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border: 1px solid var(--border);
+    border-radius: 7px;
+
+    background: transparent;
+    color: var(--text-muted);
+
+    font-size: 15px;
+    line-height: 1;
+
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.finance-edit-button:hover {
+    background: var(--surface-3);
+    border-color: #3f3f46;
+    color: var(--accent);
+}
+
+.finance-delete-button:hover {
+    background: var(--surface-3);
+    border-color: #3f3f46;
+    color: var(--danger);
+}
+
