@@ -2176,7 +2176,7 @@
 
 
         <!-- =========================
-             ANIMES
+            ANIMES
         ========================== -->
 
         <section
@@ -2184,13 +2184,138 @@
             id="anime"
         >
 
-            <h2>
-                Animes
-            </h2>
+            <div class="page-header">
 
-            <p>
-                Sua biblioteca de animes.
-            </p>
+                <div>
+                    <h1>
+                        Animes
+                    </h1>
+
+                    <p>
+                        Sua biblioteca de animes.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- PESQUISA -->
+
+            <div class="anime-toolbar">
+
+                <div class="anime-search">
+
+                    <input
+                        type="text"
+                        id="anime-search-input"
+                        placeholder="Pesquisar animes..."
+                    >
+
+                    <button
+                        class="primary-button"
+                        id="anime-search-button"
+                    >
+                        Pesquisar
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- RESULTADOS DA PESQUISA -->
+
+            <div
+                class="anime-container"
+                id="anime-container"
+            >
+            </div>
+
+
+            <!-- BIBLIOTECA -->
+
+            <div class="anime-library">
+
+                <div class="anime-library-header">
+
+                    <h2>
+                        Minha biblioteca
+                    </h2>
+
+                    <div class="anime-library-filters">
+
+                        <button
+                            class="anime-library-filter active"
+                            data-anime-library-filter="all"
+                        >
+                            Todos
+                        </button>
+
+                        <button
+                            class="anime-library-filter"
+                            data-anime-library-filter="favorite"
+                        >
+                            Favoritos
+                        </button>
+
+                        <button
+                            class="anime-library-filter"
+                            data-anime-library-filter="want"
+                        >
+                            Quero assistir
+                        </button>
+
+                        <button
+                            class="anime-library-filter"
+                            data-anime-library-filter="watching"
+                        >
+                            Assistindo
+                        </button>
+
+                        <button
+                            class="anime-library-filter"
+                            data-anime-library-filter="completed"
+                        >
+                            Concluídos
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="anime-container"
+                    id="anime-library-container"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- MODAL -->
+
+            <div
+                class="anime-modal hidden"
+                id="anime-modal"
+            >
+
+                <div class="anime-modal-content">
+
+                    <button
+                        class="anime-modal-close"
+                        id="anime-modal-close"
+                    >
+                        ×
+                    </button>
+
+                    <div
+                        id="anime-modal-body"
+                    ></div>
+
+                </div>
+
+            </div>
 
         </section>
 

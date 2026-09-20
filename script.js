@@ -659,6 +659,266 @@ function renderSeries(series) {
 }
 
 // =========================
+// BIBLIOTECA DE SÉRIES
+// =========================
+
+const seriesLibraryContainer =
+    document.getElementById("series-library-container");
+
+const seriesLibraryFilters =
+    document.querySelectorAll(".series-library-filter");
+
+let currentSeriesLibraryFilter = "all";
+
+let savedSeriesCache = [];
+
+
+// =========================
+// CARREGAR BIBLIOTECA
+// =========================
+
+async function loadSeriesLibrary() {
+    try {
+        const response =
+            await fetch("/api/media/series");
+
+        if (!response.ok) {
+            throw new Error(
+                "Não foi possível carregar a biblioteca"
+            );
+        }
+
+        const result =
+            await response.json();
+
+        savedSeriesCache =
+            (result.media || []).map((series) => ({
+                id: Number(series.tmdb_id),
+                name: series.title,
+                poster_path: series.poster_path,
+                first_air_date: series.release_date,
+                vote_average:
+                    Number(series.vote_average) || 0,
+                status: series.status,
+                favorite:
+                    Boolean(series.favorite),
+
+                season_number:
+                    series.season_number !== null &&
+                    series.season_number !== undefined
+                        ? Number(series.season_number)
+                        : null,
+
+                episode_number:
+                    series.episode_number !== null &&
+                    series.episode_number !== undefined
+                        ? Number(series.episode_number)
+                        : null
+            }));
+
+        renderSeriesLibrary();
+
+    } catch (error) {
+        console.error(
+            "Erro ao carregar biblioteca de séries:",
+            error
+        );
+
+        if (seriesLibraryContainer) {
+            seriesLibraryContainer.innerHTML = `
+                <div class="empty-movie-library">
+                    <h3>
+                        Não foi possível carregar
+                    </h3>
+
+                    <p>
+                        Tente novamente mais tarde.
+                    </p>
+                </div>
+            `;
+        }
+    }
+}
+
+
+// =========================
+// RENDERIZAR BIBLIOTECA
+// =========================
+
+function renderSeriesLibrary() {
+
+    if (!seriesLibraryContainer) {
+        return;
+    }
+
+    let filteredSeries =
+        [...savedSeriesCache];
+
+    if (currentSeriesLibraryFilter === "favorite") {
+
+        filteredSeries =
+            filteredSeries.filter(
+                (series) =>
+                    Boolean(series.favorite)
+            );
+
+    } else if (
+        currentSeriesLibraryFilter !== "all"
+    ) {
+
+        filteredSeries =
+            filteredSeries.filter(
+                (series) =>
+                    series.status ===
+                    currentSeriesLibraryFilter
+            );
+    }
+
+
+    if (filteredSeries.length === 0) {
+
+        seriesLibraryContainer.innerHTML = `
+            <div class="empty-movie-library">
+                <h3>
+                    Nenhuma série encontrada
+                </h3>
+
+                <p>
+                    Sua biblioteca de séries está vazia.
+                </p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    seriesLibraryContainer.innerHTML =
+        filteredSeries
+            .map((series) => {
+
+                const poster =
+                    series.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${series.poster_path}`
+                        : "https://via.placeholder.com/500x750?text=Sem+imagem";
+
+                const year =
+                    series.first_air_date
+                        ? series.first_air_date.slice(0, 4)
+                        : "Ano desconhecido";
+
+                const progress =
+                    series.season_number &&
+                    series.episode_number
+                        ? `
+                            <div class="anime-progress">
+                                T${series.season_number}
+                                • E${series.episode_number}
+                            </div>
+                        `
+                        : "";
+
+                return `
+                    <div
+                        class="series-card"
+                        data-series-id="${series.id}"
+                    >
+
+                        <img
+                            src="${poster}"
+                            alt="${series.name}"
+                        >
+
+                        <div class="movie-card-info">
+
+                            <h3>
+                                ${series.name}
+                            </h3>
+
+                            <p>
+                                ${year}
+                            </p>
+
+                            <span>
+                                ⭐ ${Number(
+                                    series.vote_average || 0
+                                ).toFixed(1)}
+                            </span>
+
+                            <span>
+                                ⭐ ${Number(
+                                    series.vote_average || 0
+                                ).toFixed(1)}
+                            </span>
+
+                            ${progress}
+
+                        </div>
+
+                    </div>
+
+                </div>
+             `;
+         })
+    .join("");
+}
+
+
+// =========================
+// FILTROS DA BIBLIOTECA
+// =========================
+
+seriesLibraryFilters.forEach(
+    (filter) => {
+
+        filter.addEventListener(
+            "click",
+            () => {
+
+                currentSeriesLibraryFilter =
+                    filter.dataset.filter ||
+                    "all";
+
+                seriesLibraryFilters.forEach(
+                    (item) => {
+                        item.classList.toggle(
+                            "active",
+                            item === filter
+                        );
+                    }
+                );
+
+                renderSeriesLibrary();
+            }
+        );
+    }
+);
+
+// =========================
+// ABRIR SÉRIE DA BIBLIOTECA
+// =========================
+
+seriesLibraryContainer.addEventListener(
+    "click",
+    (event) => {
+
+        const card =
+            event.target.closest(
+                "[data-series-id]"
+            );
+
+        if (!card) {
+            return;
+        }
+
+        const seriesId =
+            card.dataset.seriesId;
+
+        openSeriesDetails(seriesId);
+    }
+);
+
+// =========================
 // DETALHES DA SÉRIE
 // =========================
 
@@ -710,6 +970,10 @@ seriesModal.addEventListener(
 );
 
 
+// ============================================================
+// SÉRIES — MODAL + PROGRESSO
+// ============================================================
+
 async function openSeriesDetails(seriesId) {
 
     seriesModalBody.innerHTML =
@@ -735,6 +999,11 @@ async function openSeriesDetails(seriesId) {
 
         renderSeriesDetails(result.data);
 
+        await addSeriesEpisodeProgress(
+            result.data,
+            result.data
+        );
+
     } catch (error) {
 
         console.error(
@@ -744,9 +1013,7 @@ async function openSeriesDetails(seriesId) {
 
         seriesModalBody.innerHTML =
             "<p>Não foi possível carregar os detalhes.</p>";
-
     }
-
 }
 
 
@@ -762,40 +1029,114 @@ function renderSeriesDetails(series) {
             ? series.first_air_date.slice(0, 4)
             : "Ano desconhecido";
 
+    const rating =
+        Number(series.vote_average) || 0;
+
+    const savedSeries =
+        getSavedSeries(series.id);
+
+    const status =
+        savedSeries?.status || "want";
+
+    const favorite =
+        Boolean(savedSeries?.favorite);
+
+
     seriesModalBody.innerHTML = `
-        <div class="movie-details">
 
-            <img
-                src="${poster}"
-                alt="${series.name}"
-            >
+        <div class="anime-details">
 
-            <div class="movie-details-info">
+            <div class="anime-details-poster">
+
+                ${
+                    poster
+                        ? `
+                            <img
+                                src="${poster}"
+                                alt="${series.name}"
+                            >
+                        `
+                        : ""
+                }
+
+            </div>
+
+
+            <div class="anime-details-info">
 
                 <h2>
                     ${series.name}
                 </h2>
 
-                <p>
-                    ${year}
-                </p>
 
-                <p>
-                    ⭐ ${series.vote_average.toFixed(1)}
-                </p>
+                <div class="anime-details-meta">
 
-                <p>
-                    ${series.overview || "Sinopse não disponível."}
-                </p>
+                    <span>
+                        ${year}
+                    </span>
 
-                <div class="series-actions">
+                    <span>
+                        ⭐ ${rating.toFixed(1)}
+                    </span>
+
+                    ${
+                        series.number_of_seasons
+                            ? `
+                                <span>
+                                    ${series.number_of_seasons}
+                                    ${
+                                        series.number_of_seasons === 1
+                                            ? " temporada"
+                                            : " temporadas"
+                                    }
+                                </span>
+                            `
+                            : ""
+                    }
+
+                    ${
+                        series.number_of_episodes
+                            ? `
+                                <span>
+                                    ${series.number_of_episodes}
+                                    ${
+                                        series.number_of_episodes === 1
+                                            ? " episódio"
+                                            : " episódios"
+                                    }
+                                </span>
+                            `
+                            : ""
+                    }
+
+                </div>
+
+
+                <div class="anime-details-overview">
+
+                    <p>
+                        ${
+                            series.overview ||
+                            "Sinopse não disponível."
+                        }
+                    </p>
+
+                </div>
+
+
+                <div class="anime-actions series-actions">
 
                     <button
-                        class="series-favorite-button"
+                        class="anime-favorite-button series-favorite-button"
                         id="series-favorite-button"
                     >
-                        ♡ Favoritar
+                        ${
+                            favorite
+                                ? "❤️ Favoritado"
+                                : "♡ Favoritar"
+                        }
                     </button>
+
 
                     <select id="series-status">
 
@@ -813,8 +1154,9 @@ function renderSeriesDetails(series) {
 
                     </select>
 
+
                     <button
-                        class="series-remove-button"
+                        class="anime-remove-button series-remove-button"
                         id="series-remove-button"
                     >
                         🗑️ Remover
@@ -822,44 +1164,11 @@ function renderSeriesDetails(series) {
 
                 </div>
 
-                <div class="series-seasons">
-
-    <h3>
-        Temporadas
-    </h3>
-
-    <div class="series-seasons-list">
-
-        ${series.seasons
-            .filter(
-                (season) =>
-                    season.season_number > 0
-            )
-            .map(
-                (season) => `
-                    <div class="series-season">
-
-                        <span>
-                            Temporada ${season.season_number}
-                        </span>
-
-                        <strong>
-                            ${season.episode_count} episódios
-                        </strong>
-
-                    </div>
-                `
-            )
-            .join("")}
-
-    </div>
-
-</div>
-
             </div>
 
         </div>
     `;
+
 
     const favoriteButton =
         document.getElementById(
@@ -874,414 +1183,248 @@ function renderSeriesDetails(series) {
     const removeButton =
         document.getElementById(
             "series-remove-button"
-    );
-
-    const savedSeries =
-        getSavedSeries(series.id);
+        );
 
 
-    if (savedSeries) {
+    statusSelect.value =
+        status;
 
-        statusSelect.value =
-            savedSeries.status;
 
-        favoriteButton.textContent =
-            savedSeries.favorite
-                ? "❤️ Favoritado"
-                : "♡ Favoritar";
-
-    }
-
+    // ========================================================
+    // FAVORITO
+    // ========================================================
 
     favoriteButton.addEventListener(
         "click",
-        () => {
+        async () => {
 
-            const currentSeries =
+            const current =
                 getSavedSeries(series.id);
 
-            const favorite =
-                currentSeries
-                    ? !currentSeries.favorite
+            const newFavorite =
+                current
+                    ? !Boolean(current.favorite)
                     : true;
 
-            const status =
-                currentSeries
-                    ? currentSeries.status
-                    : statusSelect.value;
+            const currentStatus =
+                current?.status ||
+                statusSelect.value ||
+                "want";
 
-            saveSeries(
-                series,
-                status,
-                favorite
-            );
+            try {
 
-            favoriteButton.textContent =
-                favorite
-                    ? "❤️ Favoritado"
-                    : "♡ Favoritar";
+                await saveSeries(
+                    series,
+                    currentStatus,
+                    newFavorite,
+                    current?.season_number ?? null,
+                    current?.episode_number ?? null
+                );
+
+                favoriteButton.textContent =
+                    newFavorite
+                        ? "❤️ Favoritado"
+                        : "♡ Favoritar";
+
+            } catch (error) {
+
+                console.error(
+                    "Erro ao atualizar favorito:",
+                    error
+                );
+
+            }
 
         }
     );
 
+
+    // ========================================================
+    // STATUS
+    // ========================================================
 
     statusSelect.addEventListener(
         "change",
-        () => {
+        async () => {
 
-            const currentSeries =
+            const current =
                 getSavedSeries(series.id);
 
-            const favorite =
-                currentSeries
-                    ? currentSeries.favorite
-                    : false;
+            try {
 
-            saveSeries(
-                series,
-                statusSelect.value,
-                favorite
-            );
+                await saveSeries(
+                    series,
+                    statusSelect.value,
+                    Boolean(current?.favorite),
+                    current?.season_number ?? null,
+                    current?.episode_number ?? null
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Erro ao atualizar status:",
+                    error
+                );
+
+            }
 
         }
     );
 
+
+    // ========================================================
+    // REMOVER
+    // ========================================================
+
     removeButton.addEventListener(
-    "click",
-    () => {
+        "click",
+        async () => {
 
-        removeSeries(series.id);
+            try {
 
-        closeSeriesModal();
+                await removeSeries(
+                    series.id
+                );
 
-    }
-);
+                closeSeriesModal();
 
+            } catch (error) {
+
+                console.error(
+                    "Erro ao remover série:",
+                    error
+                );
+
+            }
+
+        }
+    );
 }
 
-function saveSeries(series, status = "want", favorite = false) {
 
-    const savedSeries =
-        JSON.parse(
-            localStorage.getItem("orbitSeries")
-        ) || [];
+// ============================================================
+// SALVAR SÉRIE
+// ============================================================
 
-    const existingSeries =
-        savedSeries.find(
-            (item) => item.id === series.id
-        );
+async function saveSeries(
+    series,
+    status = "want",
+    favorite = false,
+    seasonNumber = null,
+    episodeNumber = null
+) {
+    const seriesId = Number(series.id);
 
+    const existingSeries = getSavedSeries(seriesId);
+
+    // Preserva o progresso existente
+    if (seasonNumber === null && existingSeries) {
+        seasonNumber = existingSeries.season_number ?? null;
+    }
+
+    if (episodeNumber === null && existingSeries) {
+        episodeNumber = existingSeries.episode_number ?? null;
+    }
+
+    const previousCache = [...savedSeriesCache];
+
+    // Atualiza o cache
     if (existingSeries) {
-
         existingSeries.status = status;
         existingSeries.favorite = favorite;
-
+        existingSeries.season_number = seasonNumber;
+        existingSeries.episode_number = episodeNumber;
     } else {
-
-        savedSeries.push({
-            id: series.id,
+        savedSeriesCache.push({
+            id: seriesId,
             name: series.name,
             poster_path: series.poster_path,
             first_air_date: series.first_air_date,
-            vote_average: series.vote_average,
+            vote_average: Number(series.vote_average) || 0,
             status: status,
-            favorite: favorite
+            favorite: favorite,
+            season_number: seasonNumber,
+            episode_number: episodeNumber
         });
-
     }
-
-    localStorage.setItem(
-        "orbitSeries",
-        JSON.stringify(savedSeries)
-    );
-
-}
-
-
-function getSavedSeries(seriesId) {
-
-    const savedSeries =
-        JSON.parse(
-            localStorage.getItem("orbitSeries")
-        ) || [];
-
-    return savedSeries.find(
-        (series) =>
-            series.id === Number(seriesId)
-    );
-
-}
-
-function removeSeries(seriesId) {
-
-    const savedSeries =
-        JSON.parse(
-            localStorage.getItem("orbitSeries")
-        ) || [];
-
-    const updatedSeries =
-        savedSeries.filter(
-            (series) =>
-                series.id !== Number(seriesId)
-        );
-
-    localStorage.setItem(
-        "orbitSeries",
-        JSON.stringify(updatedSeries)
-    );
 
     renderSeriesLibrary();
 
-}
-
-// =========================
-// BIBLIOTECA DE SÉRIES
-// =========================
-
-const seriesLibraryContainer =
-    document.getElementById("series-library-container");
-
-const seriesLibraryFilters =
-    document.querySelectorAll(".series-library-filter");
-
-let currentSeriesLibraryFilter = "all";
-
-let savedSeriesCache = [];
-
-
-// =========================
-// CARREGAR BIBLIOTECA
-// =========================
-
-async function loadSeriesLibrary() {
-
     try {
+        const response = await fetch("/api/media", {
+            method: "POST",
 
-        const response =
-            await fetch("/api/media/series");
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                tmdbId: seriesId,
+                type: "series",
+                title: series.name,
+                posterPath: series.poster_path,
+                releaseDate: series.first_air_date,
+                voteAverage: Number(series.vote_average) || 0,
+                status: status,
+                favorite: favorite,
+                seasonNumber: seasonNumber,
+                episodeNumber: episodeNumber
+            })
+        });
 
         if (!response.ok) {
-            throw new Error(
-                "Não foi possível carregar a biblioteca"
-            );
+            throw new Error("Não foi possível salvar a série");
         }
 
-        const result =
-            await response.json();
+        const result = await response.json();
 
-        savedSeriesCache =
-            (result.media || []).map((series) => ({
+        const savedIndex = savedSeriesCache.findIndex(
+            (item) => item.id === seriesId
+        );
 
-                id: Number(series.tmdb_id),
-
-                name: series.title,
-
-                poster_path:
-                    series.poster_path,
-
-                first_air_date:
-                    series.release_date,
-
+        if (savedIndex !== -1) {
+            savedSeriesCache[savedIndex] = {
+                id: Number(result.media.tmdb_id),
+                name: result.media.title,
+                poster_path: result.media.poster_path,
+                first_air_date: result.media.release_date,
                 vote_average:
-                    Number(series.vote_average) || 0,
+                    Number(result.media.vote_average) || 0,
+                status: result.media.status,
+                favorite: Boolean(result.media.favorite),
 
-                status:
-                    series.status,
+                season_number:
+                    result.media.season_number !== null &&
+                    result.media.season_number !== undefined
+                        ? Number(result.media.season_number)
+                        : null,
 
-                favorite:
-                    series.favorite
-
-            }));
+                episode_number:
+                    result.media.episode_number !== null &&
+                    result.media.episode_number !== undefined
+                        ? Number(result.media.episode_number)
+                        : null
+            };
+        }
 
         renderSeriesLibrary();
 
     } catch (error) {
-
         console.error(
-            "Erro ao carregar biblioteca de séries:",
+            "Erro ao salvar série:",
             error
         );
 
-        seriesLibraryContainer.innerHTML = `
-            <div class="empty-movie-library">
+        savedSeriesCache = previousCache;
 
-                <h3>
-                    Não foi possível carregar
-                </h3>
+        renderSeriesLibrary();
 
-                <p>
-                    Tente novamente mais tarde.
-                </p>
+        alert("Não foi possível salvar a série.");
 
-            </div>
-        `;
-
+        throw error;
     }
-
 }
-
-
-// =========================
-// RENDERIZAR BIBLIOTECA
-// =========================
-
-function renderSeriesLibrary() {
-
-    let filteredSeries =
-        savedSeriesCache;
-
-    if (
-        currentSeriesLibraryFilter ===
-        "favorite"
-    ) {
-
-        filteredSeries =
-            savedSeriesCache.filter(
-                (series) => series.favorite
-            );
-
-    } else if (
-        currentSeriesLibraryFilter !==
-        "all"
-    ) {
-
-        filteredSeries =
-            savedSeriesCache.filter(
-                (series) =>
-                    series.status ===
-                    currentSeriesLibraryFilter
-            );
-
-    }
-
-
-    if (filteredSeries.length === 0) {
-
-        seriesLibraryContainer.innerHTML = `
-            <div class="empty-movie-library">
-
-                <h3>
-                    Nenhuma série aqui
-                </h3>
-
-                <p>
-                    Suas séries salvas aparecerão aqui.
-                </p>
-
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    seriesLibraryContainer.innerHTML =
-        filteredSeries.map(
-            (series) => {
-
-                const poster =
-                    series.poster_path
-                        ? `https://image.tmdb.org/t/p/w500${series.poster_path}`
-                        : "https://via.placeholder.com/500x750?text=Sem+imagem";
-
-                const year =
-                    series.first_air_date
-                        ? series.first_air_date.slice(0, 4)
-                        : "Ano desconhecido";
-
-
-                return `
-                    <div
-                        class="series-card"
-                        data-series-id="${series.id}"
-                    >
-
-                        <img
-                            src="${poster}"
-                            alt="${series.name}"
-                        >
-
-                        <div class="movie-card-info">
-
-                            <h3>
-                                ${series.name}
-                            </h3>
-
-                            <p>
-                                ${year}
-                            </p>
-
-                            <span>
-                                ⭐ ${series.vote_average.toFixed(1)}
-                            </span>
-
-                        </div>
-
-                    </div>
-                `;
-
-            }
-        ).join("");
-
-
-    seriesLibraryContainer
-        .querySelectorAll(".series-card")
-        .forEach((card) => {
-
-            card.addEventListener(
-                "click",
-                () => {
-
-                    const seriesId =
-                        card.dataset.seriesId;
-
-                    openSeriesDetails(seriesId);
-
-                }
-            );
-
-        });
-
-}
-
-
-// =========================
-// FILTROS
-// =========================
-
-seriesLibraryFilters.forEach(
-    (filterButton) => {
-
-        filterButton.addEventListener(
-            "click",
-            () => {
-
-                seriesLibraryFilters.forEach(
-                    (button) => {
-
-                        button.classList.remove(
-                            "active"
-                        );
-
-                    }
-                );
-
-                filterButton.classList.add(
-                    "active"
-                );
-
-                currentSeriesLibraryFilter =
-                    filterButton.dataset
-                        .seriesLibraryFilter;
-
-                renderSeriesLibrary();
-
-            }
-        );
-
-    }
-);
 
 
 // =========================
@@ -1294,212 +1437,6 @@ function getSavedSeries(seriesId) {
         (series) =>
             series.id === Number(seriesId)
     );
-
-}
-
-
-// =========================
-// SALVAR SÉRIE
-// =========================
-
-async function saveSeries(
-    series,
-    status = "want",
-    favorite = false
-) {
-
-    const seriesId =
-        Number(series.id);
-
-    const existingSeries =
-        getSavedSeries(seriesId);
-
-    const previousStatus =
-        existingSeries
-            ? existingSeries.status
-            : null;
-
-    const previousFavorite =
-        existingSeries
-            ? existingSeries.favorite
-            : null;
-
-
-    if (existingSeries) {
-
-        existingSeries.status =
-            status;
-
-        existingSeries.favorite =
-            favorite;
-
-    } else {
-
-        savedSeriesCache.push({
-
-            id: seriesId,
-
-            name: series.name,
-
-            poster_path:
-                series.poster_path,
-
-            first_air_date:
-                series.first_air_date,
-
-            vote_average:
-                Number(series.vote_average) || 0,
-
-            status: status,
-
-            favorite: favorite
-
-        });
-
-    }
-
-
-    renderSeriesLibrary();
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/media",
-                {
-
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        tmdbId:
-                            seriesId,
-
-                        type:
-                            "series",
-
-                        title:
-                            series.name,
-
-                        posterPath:
-                            series.poster_path,
-
-                        releaseDate:
-                            series.first_air_date,
-
-                        voteAverage:
-                            Number(
-                                series.vote_average
-                            ) || 0,
-
-                        status:
-                            status,
-
-                        favorite:
-                            favorite
-
-                    })
-
-                }
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "Não foi possível salvar a série"
-            );
-
-        }
-
-
-        const result =
-            await response.json();
-
-
-        const savedIndex =
-            savedSeriesCache.findIndex(
-                (item) =>
-                    item.id === seriesId
-            );
-
-
-        if (savedIndex !== -1) {
-
-            savedSeriesCache[savedIndex] = {
-
-                id:
-                    Number(
-                        result.media.tmdb_id
-                    ),
-
-                name:
-                    result.media.title,
-
-                poster_path:
-                    result.media.poster_path,
-
-                first_air_date:
-                    result.media.release_date,
-
-                vote_average:
-                    Number(
-                        result.media.vote_average
-                    ) || 0,
-
-                status:
-                    result.media.status,
-
-                favorite:
-                    result.media.favorite
-
-            };
-
-        }
-
-
-        renderSeriesLibrary();
-
-    } catch (error) {
-
-        console.error(
-            "Erro ao salvar série:",
-            error
-        );
-
-
-        if (existingSeries) {
-
-            existingSeries.status =
-                previousStatus;
-
-            existingSeries.favorite =
-                previousFavorite;
-
-        } else {
-
-            savedSeriesCache =
-                savedSeriesCache.filter(
-                    (item) =>
-                        item.id !== seriesId
-                );
-
-        }
-
-
-        renderSeriesLibrary();
-
-        alert(
-            "Não foi possível salvar a série."
-        );
-
-    }
 
 }
 
@@ -7838,3 +7775,1593 @@ function getFinanceCategoryName(category) {
 ========================= */
 
 loadFinance();
+
+// =========================
+// ANIMES — PESQUISA
+// =========================
+
+const animeSearchInput =
+    document.getElementById("anime-search-input");
+
+const animeSearchButton =
+    document.getElementById("anime-search-button");
+
+const animeContainer =
+    document.getElementById("anime-container");
+
+
+let animeSearchResults = [];
+
+
+async function searchAnime() {
+
+    const query =
+        animeSearchInput.value.trim();
+
+    if (!query) {
+        animeContainer.innerHTML = "";
+        return;
+    }
+
+    animeContainer.innerHTML = `
+        <p>
+            Pesquisando...
+        </p>
+    `;
+
+    try {
+
+        /*
+         * IMPORTANTE:
+         * NÃO alterar esta rota.
+         *
+         * Ela é a mesma utilizada
+         * pela pesquisa normal de séries.
+         */
+        const response =
+            await fetch(
+                `/api/tmdb/series/search?query=${encodeURIComponent(query)}`
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Erro ao pesquisar animes"
+            );
+        }
+
+        const result =
+            await response.json();
+
+        const results =
+            result.data?.results || [];
+
+        /*
+         * O TMDB não possui uma categoria
+         * exclusiva para anime.
+         *
+         * Por isso filtramos as séries japonesas
+         * ou marcadas como animação.
+         */
+        animeSearchResults =
+            results.filter(
+                (item) =>
+                    item.origin_country?.includes("JP") ||
+                    item.genre_ids?.includes(16)
+            );
+
+        renderAnimeSearchResults();
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao pesquisar animes:",
+            error
+        );
+
+        animeContainer.innerHTML = `
+            <p>
+                Não foi possível pesquisar animes.
+            </p>
+        `;
+    }
+}
+
+
+function renderAnimeSearchResults() {
+
+    if (animeSearchResults.length === 0) {
+
+        animeContainer.innerHTML = `
+            <p>
+                Nenhum anime encontrado.
+            </p>
+        `;
+
+        return;
+    }
+
+
+    animeContainer.innerHTML =
+        animeSearchResults
+            .map(
+                (anime) => {
+
+                    const poster =
+                        anime.poster_path
+                            ? `https://image.tmdb.org/t/p/w500${anime.poster_path}`
+                            : "https://via.placeholder.com/500x750?text=Sem+imagem";
+
+
+                    const year =
+                        anime.first_air_date
+                            ? anime.first_air_date.slice(0, 4)
+                            : "Ano desconhecido";
+
+
+                    const rating =
+                        Number(
+                            anime.vote_average
+                        ) || 0;
+
+
+                    return `
+                        <div
+                            class="anime-card"
+                            data-anime-id="${anime.id}"
+                        >
+
+                            <img
+                                src="${poster}"
+                                alt="${anime.name}"
+                            >
+
+                            <div
+                                class="anime-card-info"
+                            >
+
+                                <h3>
+                                    ${anime.name}
+                                </h3>
+
+                                <p>
+                                    ${year}
+                                </p>
+
+                                <span>
+                                    ⭐ ${rating.toFixed(1)}
+                                </span>
+
+                            </div>
+
+                        </div>
+                    `;
+                }
+            )
+            .join("");
+
+
+    animeContainer
+        .querySelectorAll(".anime-card")
+        .forEach(
+            (card) => {
+
+                card.addEventListener(
+                    "click",
+                    () => {
+
+                        const animeId =
+                            card.dataset.animeId;
+
+                        openAnimeDetails(
+                            animeId
+                        );
+
+                    }
+                );
+
+            }
+        );
+}
+
+
+animeSearchButton.addEventListener(
+    "click",
+    searchAnime
+);
+
+
+animeSearchInput.addEventListener(
+    "keydown",
+    (event) => {
+
+        if (event.key === "Enter") {
+            searchAnime();
+        }
+
+    }
+);
+
+// =========================
+// DETALHES DO ANIME
+// =========================
+
+const animeModal =
+    document.getElementById("anime-modal");
+
+const animeModalBody =
+    document.getElementById("anime-modal-body");
+
+const animeModalClose =
+    document.getElementById("anime-modal-close");
+
+
+function closeAnimeModal() {
+
+    animeModal.classList.add("hidden");
+
+}
+
+
+// =========================
+// ABRIR DETALHES
+// =========================
+
+async function openAnimeDetails(animeId) {
+
+    animeModalBody.innerHTML = `
+        <p>Carregando detalhes...</p>
+    `;
+
+    animeModal.classList.remove("hidden");
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/tmdb/series/${animeId}`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Não foi possível carregar os detalhes."
+            );
+
+        }
+
+
+        const result =
+            await response.json();
+
+
+        renderAnimeDetails(
+            result.data
+        );
+
+        await addAnimeEpisodeProgress(
+            result.data,
+            result.data
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar detalhes do anime:",
+            error
+        );
+
+
+        animeModalBody.innerHTML = `
+            <div class="empty-movie-library">
+
+                <h3>
+                    Não foi possível carregar
+                </h3>
+
+                <p>
+                    Tente novamente mais tarde.
+                </p>
+
+            </div>
+        `;
+
+    }
+
+}
+
+
+// =========================
+// RENDERIZAR DETALHES
+// =========================
+
+function renderAnimeDetails(anime) {
+
+    const year =
+        anime.first_air_date
+            ? anime.first_air_date.substring(0, 4)
+            : "—";
+
+
+    const genres =
+        (anime.genres || [])
+            .map(
+                genre => genre.name
+            )
+            .join(", ");
+
+
+    const savedAnime =
+        animeLibraryCache.find(
+            item =>
+                Number(item.id) ===
+                Number(anime.id)
+        );
+
+
+    const favorite =
+        savedAnime
+            ? savedAnime.favorite
+            : false;
+
+
+    const status =
+        savedAnime
+            ? savedAnime.status
+            : "want";
+
+
+    animeModalBody.innerHTML = `
+
+        <div class="anime-details">
+
+            <div class="anime-details-poster">
+
+                ${
+                    anime.poster_path
+                        ? `
+                            <img
+                                src="https://image.tmdb.org/t/p/w500${anime.poster_path}"
+                                alt="${anime.name}"
+                            >
+                        `
+                        : `
+                            <div class="anime-no-poster">
+                                Sem imagem
+                            </div>
+                        `
+                }
+
+            </div>
+
+
+            <div class="anime-details-info">
+
+                <h2>
+                    ${anime.name}
+                </h2>
+
+
+                <div class="anime-details-meta">
+
+                    <span>
+                        ${year}
+                    </span>
+
+                    <span>
+                        ⭐ ${Number(anime.vote_average || 0).toFixed(1)}
+                    </span>
+
+                    ${
+                        genres
+                            ? `
+                                <span>
+                                    ${genres}
+                                </span>
+                            `
+                            : ""
+                    }
+
+                </div>
+
+
+                <p class="anime-details-overview">
+
+                    ${
+                        anime.overview ||
+                        "Nenhuma descrição disponível."
+                    }
+
+                </p>
+
+
+                <div class="anime-actions">
+
+                    <button
+                        class="anime-favorite-button"
+                        id="anime-favorite-button"
+                    >
+                        ${
+                            favorite
+                                ? "❤️ Favoritado"
+                                : "♡ Favoritar"
+                        }
+                    </button>
+
+
+                    <select
+                        id="anime-status"
+                    >
+
+                        <option
+                            value="want"
+                            ${status === "want" ? "selected" : ""}
+                        >
+                            Quero assistir
+                        </option>
+
+                        <option
+                            value="watching"
+                            ${status === "watching" ? "selected" : ""}
+                        >
+                            Assistindo
+                        </option>
+
+                        <option
+                            value="completed"
+                            ${status === "completed" ? "selected" : ""}
+                        >
+                            Concluído
+                        </option>
+
+                    </select>
+
+
+                    ${
+                        savedAnime
+                            ? `
+                                <button
+                                    class="anime-remove-button"
+                                    id="anime-remove-button"
+                                >
+                                    🗑 Remover
+                                </button>
+                            `
+                            : ""
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    // =========================
+    // FAVORITO
+    // =========================
+
+    const favoriteButton =
+        document.getElementById(
+            "anime-favorite-button"
+        );
+
+
+    favoriteButton.addEventListener(
+        "click",
+        async () => {
+
+            const current =
+                getSavedAnime(anime.id);
+
+
+            const newFavorite =
+                current
+                    ? !current.favorite
+                    : true;
+
+
+            await saveAnime(
+                anime,
+                current
+                    ? current.status
+                    : "want",
+                newFavorite
+            );
+
+
+            favoriteButton.textContent =
+                newFavorite
+                    ? "❤️ Favoritado"
+                    : "♡ Favoritar";
+
+        }
+    );
+
+
+    // =========================
+    // STATUS
+    // =========================
+
+    const statusSelect =
+        document.getElementById(
+            "anime-status"
+        );
+
+
+    statusSelect.addEventListener(
+        "change",
+        async () => {
+
+            const current =
+                getSavedAnime(anime.id);
+
+
+            await saveAnime(
+                anime,
+                statusSelect.value,
+                current
+                    ? current.favorite
+                    : false
+            );
+
+        }
+    );
+
+
+    // =========================
+    // REMOVER
+    // =========================
+
+    const removeButton =
+        document.getElementById(
+            "anime-remove-button"
+        );
+
+
+    if (removeButton) {
+
+        removeButton.addEventListener(
+            "click",
+            async () => {
+
+                await removeAnime(
+                    anime.id
+                );
+
+                closeAnimeModal();
+
+            }
+        );
+
+    }
+
+}
+
+
+// =========================
+// FECHAR MODAL
+// =========================
+
+if (animeModalClose) {
+
+    animeModalClose.addEventListener(
+        "click",
+        closeAnimeModal
+    );
+
+}
+
+
+if (animeModal) {
+
+    animeModal.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target ===
+                animeModal
+            ) {
+
+                closeAnimeModal();
+
+            }
+
+        }
+    );
+
+}
+
+// =========================
+// BIBLIOTECA DE ANIMES
+// =========================
+
+const animeLibraryContainer =
+    document.getElementById("anime-library-container");
+
+const animeLibraryFilters =
+    document.querySelectorAll(
+        "[data-anime-library-filter]"
+    );
+
+let currentAnimeLibraryFilter = "all";
+
+let animeLibraryCache = [];
+
+
+// =========================
+// CARREGAR BIBLIOTECA
+// =========================
+
+async function loadAnimeLibrary() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/media/anime"
+            );
+
+
+        if (!response.ok) {
+            throw new Error(
+                "Não foi possível carregar a biblioteca."
+            );
+        }
+
+
+        const result =
+            await response.json();
+
+
+        animeLibraryCache =
+            (result.media || []).map(
+                anime => ({
+
+                    id: Number(anime.tmdb_id),
+
+                    name: anime.title,
+
+                    poster_path:
+                        anime.poster_path,
+
+                    first_air_date:
+                        anime.release_date,
+
+                    vote_average:
+                        Number(
+                            anime.vote_average
+                        ) || 0,
+
+                    status:
+                        anime.status || "want",
+
+                    favorite:
+                        Boolean(
+                            anime.favorite
+                        ),
+
+                    season_number:
+                        anime.season_number
+                            ? Number(
+                                anime.season_number
+                            )
+                            : null,
+
+                    episode_number:
+                        anime.episode_number
+                            ? Number(
+                                anime.episode_number
+                            )
+                            : null
+
+                })
+            );
+
+
+        renderAnimeLibrary();
+
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao carregar biblioteca de animes:",
+            error
+        );
+
+
+        animeLibraryContainer.innerHTML = `
+
+            <div class="empty-movie-library">
+
+                <h3>
+                    Não foi possível carregar
+                </h3>
+
+                <p>
+                    Tente novamente mais tarde.
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+// =========================
+// RENDERIZAR BIBLIOTECA
+// =========================
+
+function renderAnimeLibrary() {
+
+    if (!animeLibraryContainer) {
+        return;
+    }
+
+
+    let animes =
+        [...animeLibraryCache];
+
+
+    // FILTRO
+
+    if (
+        currentAnimeLibraryFilter ===
+        "favorite"
+    ) {
+
+        animes =
+            animes.filter(
+                anime =>
+                    anime.favorite
+            );
+
+    }
+
+
+    if (
+        currentAnimeLibraryFilter !==
+            "all" &&
+        currentAnimeLibraryFilter !==
+            "favorite"
+    ) {
+
+        animes =
+            animes.filter(
+                anime =>
+                    anime.status ===
+                    currentAnimeLibraryFilter
+            );
+
+    }
+
+
+    // VAZIO
+
+    if (!animes.length) {
+
+        animeLibraryContainer.innerHTML = `
+
+            <div class="empty-movie-library">
+
+                <h3>
+                    Nenhum anime encontrado
+                </h3>
+
+                <p>
+                    Sua biblioteca ainda está vazia.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    // CARDS
+
+    animeLibraryContainer.innerHTML =
+        animes.map(
+            anime => {
+
+                const year =
+                    anime.first_air_date
+                        ? anime.first_air_date.substring(
+                            0,
+                            4
+                        )
+                        : "—";
+
+
+                const progress =
+                    anime.season_number &&
+                    anime.episode_number
+                        ? `
+                            <div class="anime-progress">
+                                T${anime.season_number}
+                                • E${anime.episode_number}
+                            </div>
+                        `
+                        : "";
+
+
+                return `
+
+                    <div
+                        class="anime-card"
+                        data-anime-id="${anime.id}"
+                    >
+
+                        ${
+                            anime.poster_path
+                                ? `
+                                    <img
+                                        src="https://image.tmdb.org/t/p/w500${anime.poster_path}"
+                                        alt="${anime.name}"
+                                    >
+                                `
+                                : `
+                                    <div class="anime-no-poster">
+                                        Sem imagem
+                                    </div>
+                                `
+                        }
+
+
+                        <div class="anime-card-info">
+
+                            <h3>
+                                ${anime.name}
+                            </h3>
+
+                            <p>
+                                ${year}
+                            </p>
+
+                            <span>
+                                ⭐ ${anime.vote_average.toFixed(1)}
+                            </span>
+
+                            ${
+                                anime.favorite
+                                    ? `<span>❤️</span>`
+                                    : ""
+                            }
+
+                            ${progress}
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+        ).join("");
+
+
+    // CLIQUE NOS CARDS
+
+    animeLibraryContainer
+        .querySelectorAll(".anime-card")
+        .forEach(card => {
+
+            card.addEventListener(
+                "click",
+                () => {
+
+                    openAnimeDetails(
+                        card.dataset.animeId
+                    );
+
+                }
+            );
+
+        });
+
+}
+
+
+// =========================
+// FILTROS
+// =========================
+
+animeLibraryFilters.forEach(
+    button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                animeLibraryFilters
+                    .forEach(
+                        item =>
+                            item.classList.remove(
+                                "active"
+                            )
+                    );
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                currentAnimeLibraryFilter =
+                    button.dataset
+                        .animeLibraryFilter;
+
+
+                renderAnimeLibrary();
+
+            }
+        );
+
+    }
+);
+
+
+// =========================
+// PEGAR ANIME SALVO
+// =========================
+
+function getSavedAnime(animeId) {
+
+    return animeLibraryCache.find(
+        anime =>
+            Number(anime.id) ===
+            Number(animeId)
+    );
+
+}
+
+
+// =========================
+// SALVAR ANIME
+// =========================
+
+async function saveAnime(
+    anime,
+    status = "want",
+    favorite = false,
+    seasonNumber = null,
+    episodeNumber = null
+) {
+
+    const existingAnime =
+        getSavedAnime(
+            anime.id
+        );
+
+
+    // Preserva progresso existente
+
+    if (
+        seasonNumber === null &&
+        existingAnime
+    ) {
+
+        seasonNumber =
+            existingAnime.season_number;
+
+    }
+
+
+    if (
+        episodeNumber === null &&
+        existingAnime
+    ) {
+
+        episodeNumber =
+            existingAnime.episode_number;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/media",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            type: "anime",
+
+                            tmdbId:
+                                Number(
+                                    anime.id
+                                ),
+
+                            title:
+                                anime.name,
+
+                            posterPath:
+                                anime.poster_path ||
+                                null,
+
+                            releaseDate:
+                                anime.first_air_date ||
+                                null,
+
+                            voteAverage:
+                                Number(
+                                    anime.vote_average
+                                ) || 0,
+
+                            status,
+
+                            favorite,
+
+                            seasonNumber,
+
+                            episodeNumber
+
+                        })
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Não foi possível salvar o anime."
+            );
+
+        }
+
+
+        // Atualiza biblioteca
+
+        await loadAnimeLibrary();
+
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao salvar anime:",
+            error
+        );
+
+
+        alert(
+            "Não foi possível salvar o anime."
+        );
+
+    }
+
+}
+
+
+// =========================
+// REMOVER ANIME
+// =========================
+
+async function removeAnime(animeId) {
+
+    const confirmed =
+        confirm(
+            "Remover este anime da biblioteca?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    const previousCache =
+        [...animeLibraryCache];
+
+
+    animeLibraryCache =
+        animeLibraryCache.filter(
+            anime =>
+                Number(anime.id) !==
+                Number(animeId)
+        );
+
+
+    renderAnimeLibrary();
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/media/anime/${Number(animeId)}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Não foi possível remover o anime."
+            );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao remover anime:",
+            error
+        );
+
+
+        animeLibraryCache =
+            previousCache;
+
+
+        renderAnimeLibrary();
+
+
+        alert(
+            "Não foi possível remover o anime."
+        );
+
+    }
+
+}
+
+
+// =========================
+// INICIALIZAR BIBLIOTECA
+// =========================
+
+loadAnimeLibrary();
+
+// ============================================================
+// PROGRESSO — TEMPORADA E EPISÓDIO
+// ============================================================
+
+function createEpisodeProgress(media, type, details, saved) {
+    const seasons = (details?.seasons || []).filter(
+        (season) => season.season_number > 0
+    );
+
+    if (!seasons.length) {
+        return "";
+    }
+
+    const savedSeason = Number(saved?.season_number) || 1;
+    const savedEpisode = Number(saved?.episode_number) || 1;
+
+    const selectedSeason =
+        seasons.find(
+            (season) => season.season_number === savedSeason
+        ) || seasons[0];
+
+    const maxEpisodes =
+        Number(selectedSeason?.episode_count) || 1;
+
+    const safeEpisode = Math.min(
+        Math.max(savedEpisode, 1),
+        maxEpisodes
+    );
+
+    return `
+        <div class="media-progress" data-progress-type="${type}" data-progress-id="${media.id}">
+
+            <div class="media-progress-title">
+                Progresso
+            </div>
+
+            <div class="media-progress-controls">
+
+                <div class="media-progress-field">
+                    <label>Temporada</label>
+
+                    <select class="media-season-select">
+                        ${seasons
+                            .map(
+                                (season) => `
+                                    <option
+                                        value="${season.season_number}"
+                                        ${season.season_number === selectedSeason.season_number ? "selected" : ""}
+                                    >
+                                        ${season.season_number}
+                                    </option>
+                                `
+                            )
+                            .join("")}
+                    </select>
+                </div>
+
+                <div class="media-progress-field">
+                    <label>Episódio</label>
+
+                    <div class="media-episode-control">
+                        <button
+                            type="button"
+                            class="media-episode-minus"
+                        >
+                            −
+                        </button>
+
+                        <input
+                            type="number"
+                            class="media-episode-input"
+                            min="1"
+                            max="${maxEpisodes}"
+                            value="${safeEpisode}"
+                        />
+
+                        <button
+                            type="button"
+                            class="media-episode-plus"
+                        >
+                            +
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="media-progress-limit">
+                ${maxEpisodes} episódios nesta temporada
+            </div>
+
+            <button
+                type="button"
+                class="media-progress-save"
+            >
+                Salvar progresso
+            </button>
+
+        </div>
+    `;
+}
+
+
+function setupEpisodeProgress(container, media, type, details) {
+    if (!container) return;
+
+    const progress = container.querySelector(".media-progress");
+
+    if (!progress) return;
+
+    const seasonSelect =
+        progress.querySelector(".media-season-select");
+
+    const episodeInput =
+        progress.querySelector(".media-episode-input");
+
+    const minusButton =
+        progress.querySelector(".media-episode-minus");
+
+    const plusButton =
+        progress.querySelector(".media-episode-plus");
+
+    const saveButton =
+        progress.querySelector(".media-progress-save");
+
+    function getSeasonDetails() {
+        const seasonNumber =
+            Number(seasonSelect.value);
+
+        return (
+            details?.seasons?.find(
+                (season) =>
+                    Number(season.season_number) ===
+                    seasonNumber
+            ) || null
+        );
+    }
+
+    function updateEpisodeLimit() {
+        const season = getSeasonDetails();
+
+        const maxEpisodes =
+            Number(season?.episode_count) || 1;
+
+        episodeInput.max = maxEpisodes;
+
+        let episode =
+            Number(episodeInput.value) || 1;
+
+        if (episode < 1) episode = 1;
+
+        if (episode > maxEpisodes) {
+            episode = maxEpisodes;
+        }
+
+        episodeInput.value = episode;
+
+        const limit =
+            progress.querySelector(
+                ".media-progress-limit"
+            );
+
+        if (limit) {
+            limit.textContent =
+                `${maxEpisodes} episódios nesta temporada`;
+        }
+    }
+
+    seasonSelect.addEventListener(
+        "change",
+        () => {
+            episodeInput.value = 1;
+            updateEpisodeLimit();
+        }
+    );
+
+    minusButton.addEventListener(
+        "click",
+        () => {
+            let episode =
+                Number(episodeInput.value) || 1;
+
+            episode = Math.max(
+                1,
+                episode - 1
+            );
+
+            episodeInput.value = episode;
+        }
+    );
+
+    plusButton.addEventListener(
+        "click",
+        () => {
+            const season =
+                getSeasonDetails();
+
+            const maxEpisodes =
+                Number(season?.episode_count) || 1;
+
+            let episode =
+                Number(episodeInput.value) || 1;
+
+            episode = Math.min(
+                maxEpisodes,
+                episode + 1
+            );
+
+            episodeInput.value = episode;
+        }
+    );
+
+    episodeInput.addEventListener(
+        "change",
+        () => {
+            updateEpisodeLimit();
+        }
+    );
+
+    saveButton.addEventListener(
+        "click",
+        async () => {
+
+            const seasonNumber =
+                Number(seasonSelect.value);
+
+            const season =
+                getSeasonDetails();
+
+            const maxEpisodes =
+                Number(season?.episode_count) || 1;
+
+            let episodeNumber =
+                Number(episodeInput.value) || 1;
+
+            episodeNumber = Math.min(
+                Math.max(episodeNumber, 1),
+                maxEpisodes
+            );
+
+            episodeInput.value =
+                episodeNumber;
+
+            saveButton.disabled = true;
+            saveButton.textContent =
+                "Salvando...";
+
+            try {
+
+                const existing =
+                    type === "anime"
+                        ? getSavedAnime(media.id)
+                        : getSavedSeries(media.id);
+
+                if (type === "anime") {
+
+                    await saveAnime(
+                        media,
+                        existing?.status || "want",
+                        Boolean(existing?.favorite),
+                        seasonNumber,
+                        episodeNumber
+                    );
+
+                } else {
+
+                    await saveSeries(
+                        media,
+                        existing?.status || "want",
+                        Boolean(existing?.favorite),
+                        seasonNumber,
+                        episodeNumber
+                    );
+                }
+
+                saveButton.textContent =
+                    "Salvo ✓";
+
+                if (type === "anime") {
+                    await loadAnimeLibrary();
+                } else {
+                    await loadSeriesLibrary();
+                }
+
+                setTimeout(() => {
+                    saveButton.textContent =
+                        "Salvar progresso";
+                    saveButton.disabled = false;
+                }, 1200);
+
+            } catch (error) {
+
+                console.error(
+                    "Erro ao salvar progresso:",
+                    error
+                );
+
+                saveButton.textContent =
+                    "Erro ao salvar";
+
+                saveButton.disabled = false;
+            }
+        }
+    );
+
+    updateEpisodeLimit();
+}
+
+
+// ============================================================
+// CARREGAR PROGRESSO NO MODAL DE SÉRIES
+// ============================================================
+
+async function addSeriesEpisodeProgress(
+    series,
+    details
+) {
+    const saved =
+        getSavedSeries(series.id);
+
+    if (!saved) return;
+
+    const container =
+        document.getElementById(
+            "series-modal-body"
+        );
+
+    if (!container) return;
+
+    if (
+        container.querySelector(
+            ".media-progress"
+        )
+    ) {
+        return;
+    }
+
+    const progressHTML =
+        createEpisodeProgress(
+            series,
+            "series",
+            details,
+            saved
+        );
+
+    const actions =
+        container.querySelector(
+            ".series-actions"
+        );
+
+    if (actions) {
+        actions.insertAdjacentHTML(
+            "afterend",
+            progressHTML
+        );
+    } else {
+        container.insertAdjacentHTML(
+            "beforeend",
+            progressHTML
+        );
+    }
+
+    setupEpisodeProgress(
+        container,
+        series,
+        "series",
+        details
+    );
+}
+
+
+// ============================================================
+// CARREGAR PROGRESSO NO MODAL DE ANIMES
+// ============================================================
+
+async function addAnimeEpisodeProgress(
+    anime,
+    details
+) {
+    const saved =
+        getSavedAnime(anime.id);
+
+    if (!saved) return;
+
+    const container =
+        document.getElementById(
+            "anime-modal-body"
+        );
+
+    if (!container) return;
+
+    if (
+        container.querySelector(
+            ".media-progress"
+        )
+    ) {
+        return;
+    }
+
+    const progressHTML =
+        createEpisodeProgress(
+            anime,
+            "anime",
+            details,
+            saved
+        );
+
+    const actions =
+        container.querySelector(
+            ".anime-actions"
+        );
+
+    if (actions) {
+        actions.insertAdjacentHTML(
+            "afterend",
+            progressHTML
+        );
+    } else {
+        container.insertAdjacentHTML(
+            "beforeend",
+            progressHTML
+        );
+    }
+
+    setupEpisodeProgress(
+        container,
+        anime,
+        "anime",
+        details
+    );
+}
