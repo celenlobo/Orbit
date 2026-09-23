@@ -6347,3 +6347,41 @@ body {
     background-color: #18181c !important;
     color: #ffffff !important;
 }
+
+.subject-card {
+    position: relative;
+}
+
+.subject-remove {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #30282b;
+    border-radius: 7px;
+
+    background: transparent;
+    color: #8d7479;
+
+    font-size: 12px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.subject-remove:hover {
+    background: #251b1e;
+    border-color: #493238;
+    color: #d39ca5;
+}

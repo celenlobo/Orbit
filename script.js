@@ -876,7 +876,7 @@ seriesLibraryFilters.forEach(
             () => {
 
                 currentSeriesLibraryFilter =
-                    filter.dataset.filter ||
+                    filter.dataset.seriesLibraryFilter ||
                     "all";
 
                 seriesLibraryFilters.forEach(
@@ -1318,7 +1318,6 @@ async function saveSeries(
 
     const existingSeries = getSavedSeries(seriesId);
 
-    // Preserva o progresso existente
     if (seasonNumber === null && existingSeries) {
         seasonNumber = existingSeries.season_number ?? null;
     }
@@ -1329,29 +1328,34 @@ async function saveSeries(
 
     const previousCache = [...savedSeriesCache];
 
-    // Atualiza o cache
+    // Atualiza o cache imediatamente
     if (existingSeries) {
+
         existingSeries.status = status;
-        existingSeries.favorite = favorite;
+        existingSeries.favorite = Boolean(favorite);
         existingSeries.season_number = seasonNumber;
         existingSeries.episode_number = episodeNumber;
+
     } else {
+
         savedSeriesCache.push({
             id: seriesId,
             name: series.name,
-            poster_path: series.poster_path,
-            first_air_date: series.first_air_date,
+            poster_path: series.poster_path || null,
+            first_air_date: series.first_air_date || null,
             vote_average: Number(series.vote_average) || 0,
             status: status,
-            favorite: favorite,
+            favorite: Boolean(favorite),
             season_number: seasonNumber,
             episode_number: episodeNumber
         });
+
     }
 
     renderSeriesLibrary();
 
     try {
+
         const response = await fetch("/api/media", {
             method: "POST",
 
@@ -1363,54 +1367,74 @@ async function saveSeries(
                 tmdbId: seriesId,
                 type: "series",
                 title: series.name,
-                posterPath: series.poster_path,
-                releaseDate: series.first_air_date,
+                posterPath: series.poster_path || null,
+                releaseDate: series.first_air_date || null,
                 voteAverage: Number(series.vote_average) || 0,
                 status: status,
-                favorite: favorite,
+                favorite: Boolean(favorite),
                 seasonNumber: seasonNumber,
                 episodeNumber: episodeNumber
             })
         });
 
-        if (!response.ok) {
-            throw new Error("Não foi possível salvar a série");
-        }
-
         const result = await response.json();
 
-        const savedIndex = savedSeriesCache.findIndex(
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message ||
+                "Não foi possível salvar a série"
+            );
+        }
+
+        // Garante que o cache fique com apenas
+        // uma entrada para essa série
+        savedSeriesCache = savedSeriesCache.filter(
+            (item, index, array) =>
+                item.id !== seriesId ||
+                index === array.findIndex(
+                    (entry) => entry.id === seriesId
+                )
+        );
+
+        const savedMedia = result.media;
+
+        const updatedSeries = {
+            id: Number(savedMedia.tmdb_id),
+            name: savedMedia.title,
+            poster_path: savedMedia.poster_path,
+            first_air_date: savedMedia.release_date,
+            vote_average:
+                Number(savedMedia.vote_average) || 0,
+            status: savedMedia.status,
+            favorite: Boolean(savedMedia.favorite),
+
+            season_number:
+                savedMedia.season_number !== null &&
+                savedMedia.season_number !== undefined
+                    ? Number(savedMedia.season_number)
+                    : null,
+
+            episode_number:
+                savedMedia.episode_number !== null &&
+                savedMedia.episode_number !== undefined
+                    ? Number(savedMedia.episode_number)
+                    : null
+        };
+
+        const index = savedSeriesCache.findIndex(
             (item) => item.id === seriesId
         );
 
-        if (savedIndex !== -1) {
-            savedSeriesCache[savedIndex] = {
-                id: Number(result.media.tmdb_id),
-                name: result.media.title,
-                poster_path: result.media.poster_path,
-                first_air_date: result.media.release_date,
-                vote_average:
-                    Number(result.media.vote_average) || 0,
-                status: result.media.status,
-                favorite: Boolean(result.media.favorite),
-
-                season_number:
-                    result.media.season_number !== null &&
-                    result.media.season_number !== undefined
-                        ? Number(result.media.season_number)
-                        : null,
-
-                episode_number:
-                    result.media.episode_number !== null &&
-                    result.media.episode_number !== undefined
-                        ? Number(result.media.episode_number)
-                        : null
-            };
+        if (index !== -1) {
+            savedSeriesCache[index] = updatedSeries;
+        } else {
+            savedSeriesCache.push(updatedSeries);
         }
 
         renderSeriesLibrary();
 
     } catch (error) {
+
         console.error(
             "Erro ao salvar série:",
             error
@@ -1420,7 +1444,9 @@ async function saveSeries(
 
         renderSeriesLibrary();
 
-        alert("Não foi possível salvar a série.");
+        alert(
+            "Não foi possível salvar a série."
+        );
 
         throw error;
     }
@@ -5266,6 +5292,14 @@ function renderSubjects() {
 
                     </div>
 
+                    <button
+                        class="subject-remove"
+                        data-subject-id="${subject.id}"
+                        title="Remover matéria"
+                    >
+                        🗑️
+                    </button>
+
                 </div>
 
             `
@@ -5280,6 +5314,39 @@ subjectsContainer.addEventListener(
     "click",
     (event) => {
 
+        const removeButton =
+            event.target.closest(".subject-remove");
+
+        if (removeButton) {
+
+            event.stopPropagation();
+
+            const subjectId =
+                Number(removeButton.dataset.subjectId);
+
+            const confirmed =
+                confirm(
+                    "Tem certeza que deseja remover esta matéria?"
+                );
+
+            if (!confirmed) {
+                return;
+            }
+
+            subjects =
+                subjects.filter(
+                    (subject) =>
+                        subject.id !== subjectId
+                );
+
+            saveSubjects();
+
+            renderSubjects();
+
+            return;
+        }
+
+
         const card =
             event.target.closest(".subject-card");
 
@@ -5287,8 +5354,10 @@ subjectsContainer.addEventListener(
             return;
         }
 
+
         const subjectId =
             Number(card.dataset.subjectId);
+
 
         openStudySubject(subjectId);
 
@@ -8294,23 +8363,67 @@ function renderAnimeDetails(anime) {
 
 
     statusSelect.addEventListener(
-        "change",
-        async () => {
+    "change",
+    async () => {
+
+        const newStatus =
+            statusSelect.value;
+
+        try {
+
+            const response =
+                await fetch(
+                    `/api/media/anime/${Number(anime.id)}/status`,
+                    {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body: JSON.stringify({
+                            status: newStatus
+                        })
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.message ||
+                    "Não foi possível atualizar o status."
+                );
+            }
 
             const current =
                 getSavedAnime(anime.id);
 
+            if (current) {
+                current.status =
+                    newStatus;
+            }
 
-            await saveAnime(
-                anime,
-                statusSelect.value,
-                current
-                    ? current.favorite
-                    : false
+            renderAnimeLibrary();
+
+        } catch (error) {
+
+            console.error(
+                "Erro ao atualizar status do anime:",
+                error
+            );
+
+            alert(
+                "Não foi possível atualizar o status."
             );
 
         }
-    );
+
+    }
+);
 
 
     // =========================
