@@ -4303,6 +4303,276 @@ function renderDashboardProjects() {
 
 }
 
+function renderDashboardAgenda() {
+
+    const dashboardAgenda =
+        document.getElementById(
+            "dashboard-agenda"
+        );
+
+    if (!dashboardAgenda) {
+        return;
+    }
+
+
+    const today = new Date();
+
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    const upcomingEvents =
+        events
+            .filter(
+                (event) => {
+
+                    const eventDate =
+                        new Date(
+                            `${event.date}T00:00:00`
+                        );
+
+                    return (
+                        eventOccursOnDate(
+                            event,
+                            eventDate
+                        ) &&
+                        eventDate >= today
+                    );
+
+                }
+            )
+            .sort(
+                (a, b) => {
+
+                    const dateA =
+                        new Date(
+                            `${a.date}T${a.start || "00:00"}`
+                        );
+
+                    const dateB =
+                        new Date(
+                            `${b.date}T${b.start || "00:00"}`
+                        );
+
+                    return dateA - dateB;
+
+                }
+            )
+            .slice(0, 5);
+
+
+    if (upcomingEvents.length === 0) {
+
+        dashboardAgenda.innerHTML = `
+
+            <div class="empty-dashboard-agenda">
+
+                <span>◷</span>
+
+                <p>
+                    Nenhum compromisso próximo.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    dashboardAgenda.innerHTML = "";
+
+
+    upcomingEvents.forEach(
+        (event) => {
+
+            const item =
+                document.createElement("div");
+
+
+            item.classList.add(
+                "dashboard-agenda-item"
+            );
+
+
+            const eventDate =
+                new Date(
+                    `${event.date}T00:00:00`
+                );
+
+
+            const todayDate =
+                new Date();
+
+            todayDate.setHours(
+                0,
+                0,
+                0,
+                0
+            );
+
+
+            const tomorrowDate =
+                new Date(todayDate);
+
+            tomorrowDate.setDate(
+                tomorrowDate.getDate() + 1
+            );
+
+
+            let dateLabel;
+
+
+            if (
+                eventDate.getTime() ===
+                todayDate.getTime()
+            ) {
+
+                dateLabel = "Hoje";
+
+            } else if (
+                eventDate.getTime() ===
+                tomorrowDate.getTime()
+            ) {
+
+                dateLabel = "Amanhã";
+
+            } else {
+
+                dateLabel =
+                    eventDate.toLocaleDateString(
+                        "pt-BR",
+                        {
+                            day: "2-digit",
+                            month: "2-digit"
+                        }
+                    );
+
+            }
+
+
+            item.innerHTML = `
+
+                <span class="dashboard-agenda-time">
+                    ${escapeHTML(
+                        event.start || "--:--"
+                    )}
+                </span>
+
+
+                <div class="dashboard-agenda-content">
+
+                    <span class="dashboard-agenda-title">
+                        ${escapeHTML(
+                            event.title
+                        )}
+                    </span>
+
+
+                    <span class="dashboard-agenda-date">
+                        ${dateLabel}
+                    </span>
+
+                    ${
+                        event.notes
+                            ? `
+                                <p class="dashboard-agenda-notes">
+                                    ${escapeHTML(
+                                        event.notes
+                                    )}
+                                </p>
+                              `
+                            : ""
+                    }
+
+                </div>
+
+            `;
+
+
+            dashboardAgenda.appendChild(
+                item
+            );
+
+        }
+    );
+
+}
+
+const dashboardAgendaLink =
+    document.getElementById(
+        "dashboard-agenda-link"
+    );
+
+
+if (dashboardAgendaLink) {
+
+    dashboardAgendaLink.addEventListener(
+        "click",
+        (event) => {
+
+            event.preventDefault();
+
+
+            pages.forEach(
+                (page) => {
+
+                    page.classList.add(
+                        "hidden"
+                    );
+
+                }
+            );
+
+
+            const calendarPage =
+                document.getElementById(
+                    "calendar"
+                );
+
+
+            if (calendarPage) {
+
+                calendarPage.classList.remove(
+                    "hidden"
+                );
+
+            }
+
+
+            navItems.forEach(
+                (item) => {
+
+                    item.classList.remove(
+                        "active"
+                    );
+
+
+                    if (
+                        item.dataset.page ===
+                        "calendar"
+                    ) {
+
+                        item.classList.add(
+                            "active"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+}
+
 
 if (dashboardProjectsLink) {
 
@@ -4945,6 +5215,8 @@ updateProjectStats();
 renderDashboardProjects();
 
 requestNotificationPermission();
+
+renderDashboardAgenda();
 
 
 events.forEach(
