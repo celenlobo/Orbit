@@ -157,6 +157,8 @@ function addTask() {
 
     renderTasks();
 
+    updateDashboardTasks();
+
     taskTitle.value = "";
 
     taskPriority.value = "normal";
@@ -317,6 +319,8 @@ function renderTasks() {
 
                 renderTasks();
 
+                updateDashboardTasks();
+
             }
         );
 
@@ -340,6 +344,8 @@ function renderTasks() {
                 saveTasks();
 
                 renderTasks();
+
+                updateDashboardTasks();
 
             }
         );
@@ -374,6 +380,54 @@ function updateTaskStats() {
 
     completedTasks.textContent = completed;
 
+}
+
+function updateDashboardTasks() {
+
+    const dashboardFocusTitle =
+        document.getElementById(
+            "dashboard-focus-title"
+        );
+
+    const dashboardFocusDescription =
+        document.getElementById(
+            "dashboard-focus-description"
+        );
+
+    if (
+        !dashboardFocusTitle ||
+        !dashboardFocusDescription
+    ) {
+        return;
+    }
+
+    const pendingTask = tasks.find(
+        (task) => !task.completed
+    );
+
+    if (!pendingTask) {
+
+        dashboardFocusTitle.textContent =
+            "Nenhuma tarefa pendente";
+
+        dashboardFocusDescription.textContent =
+            "Você está em dia.";
+
+        return;
+    }
+
+    dashboardFocusTitle.textContent =
+        pendingTask.title;
+
+    const priorityText = {
+        high: "Prioridade alta",
+        normal: "Prioridade normal",
+        low: "Prioridade baixa"
+    };
+
+    dashboardFocusDescription.textContent =
+        priorityText[pendingTask.priority] ||
+        "Tarefa pendente";
 }
 
 // =========================
@@ -717,6 +771,8 @@ async function loadSeriesLibrary() {
             }));
 
         renderSeriesLibrary();
+
+        updateDashboardEntertainment();
 
     } catch (error) {
         console.error(
@@ -1861,6 +1917,8 @@ async function loadMovieLibrary() {
 
         renderMovieLibrary();
 
+        updateDashboardEntertainment();
+
     } catch (error) {
 
         console.error(
@@ -3000,6 +3058,242 @@ function requestNotificationPermission() {
 
 }
 
+/* =====================================================
+   DASHBOARD — DADOS REAIS
+===================================================== */
+
+const dashboardFinanceBalance =
+    document.getElementById(
+        "dashboard-finance-balance"
+    );
+
+const dashboardStudyCount =
+    document.getElementById(
+        "dashboard-study-count"
+    );
+
+const dashboardEntertainmentCount =
+    document.getElementById(
+        "dashboard-entertainment-count"
+    );
+
+const dashboardFocusTitle =
+    document.getElementById(
+        "dashboard-focus-title"
+    );
+
+const dashboardFocusDescription =
+    document.getElementById(
+        "dashboard-focus-description"
+    );
+
+const dashboardFocusButton =
+    document.getElementById(
+        "dashboard-focus-button"
+    );
+
+
+function updateDashboardTasks() {
+
+    if (
+        !dashboardFocusTitle ||
+        !dashboardFocusDescription
+    ) {
+        return;
+    }
+
+
+    const pendingTask =
+        tasks.find(
+            (task) =>
+                !task.completed
+        );
+
+
+    if (!pendingTask) {
+
+        dashboardFocusTitle.textContent =
+            "Nenhuma tarefa pendente";
+
+        dashboardFocusDescription.textContent =
+            "Você está em dia.";
+
+        if (dashboardFocusButton) {
+            dashboardFocusButton.textContent =
+                "Ver tarefas →";
+        }
+
+        return;
+
+    }
+
+
+    dashboardFocusTitle.textContent =
+        pendingTask.title;
+
+
+    const priorityText = {
+
+        high: "Prioridade alta",
+
+        normal: "Prioridade normal",
+
+        low: "Prioridade baixa"
+
+    };
+
+
+    dashboardFocusDescription.textContent =
+        priorityText[
+            pendingTask.priority
+        ] || "Tarefa pendente";
+
+
+    if (dashboardFocusButton) {
+
+        dashboardFocusButton.textContent =
+            "Ver tarefas →";
+
+    }
+
+}
+
+
+function updateDashboardStudies() {
+
+    if (!dashboardStudyCount) {
+        return;
+    }
+
+
+    const total =
+        subjects.length;
+
+
+    dashboardStudyCount.textContent =
+        `${total} matéria${total === 1 ? "" : "s"}`;
+
+}
+
+
+function updateDashboardEntertainment() {
+
+    if (!dashboardEntertainmentCount) {
+        return;
+    }
+
+
+    const total =
+        savedMoviesCache.length +
+        savedSeriesCache.length +
+        animeLibraryCache.length;
+
+
+    dashboardEntertainmentCount.textContent =
+        `${total} salvo${total === 1 ? "" : "s"}`;
+
+}
+
+
+function updateDashboardFinance() {
+
+    if (!dashboardFinanceBalance) {
+        return;
+    }
+
+
+    const income =
+        Number(
+            financeIncome?.textContent
+                ?.replace(/[^\d,-]/g, "")
+                ?.replace(/\./g, "")
+                ?.replace(",", ".")
+        ) || 0;
+
+
+    const expenses =
+        Number(
+            financeExpenses?.textContent
+                ?.replace(/[^\d,-]/g, "")
+                ?.replace(/\./g, "")
+                ?.replace(",", ".")
+        ) || 0;
+
+
+    const balance =
+        income - expenses;
+
+
+    dashboardFinanceBalance.textContent =
+        formatFinanceCurrency(balance);
+
+    const dashboardFinanceBalance =
+        document.getElementById(
+            "dashboard-finance-balance"
+        );
+
+    if (dashboardFinanceBalance) {
+        dashboardFinanceBalance.textContent =
+            formatFinanceCurrency(balance);
+    }
+
+}
+
+
+function updateDashboard() {
+
+    updateDashboardTasks();
+
+    updateDashboardStudies();
+
+    updateDashboardEntertainment();
+
+    updateDashboardFinance();
+
+}
+
+
+if (dashboardFocusButton) {
+
+    dashboardFocusButton.addEventListener(
+        "click",
+        () => {
+
+            pages.forEach(
+                (page) => {
+                    page.classList.add("hidden");
+                }
+            );
+
+            document
+                .getElementById("tasks")
+                .classList.remove("hidden");
+
+            navItems.forEach(
+                (item) => {
+
+                    item.classList.remove(
+                        "active"
+                    );
+
+                    if (
+                        item.dataset.page ===
+                        "tasks"
+                    ) {
+
+                        item.classList.add(
+                            "active"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+}
 
 /* =====================================================
    PROJETOS
@@ -4640,6 +4934,8 @@ function escapeHTML(text) {
 
 renderTasks();
 
+updateDashboardTasks();
+
 updateCalendarHeader();
 
 renderProjects();
@@ -5234,6 +5530,8 @@ function addSubject() {
 
     renderSubjects();
 
+    updateDashboardStudies();
+
     subjectName.value = "";
 
     subjectForm.classList.add("hidden");
@@ -5307,8 +5605,46 @@ function renderSubjects() {
 
 }
 
+function updateDashboardStudies() {
+
+    const dashboardStudyCount =
+        document.getElementById(
+            "dashboard-study-count"
+        );
+
+    if (!dashboardStudyCount) {
+        return;
+    }
+
+    const total = subjects.length;
+
+    dashboardStudyCount.textContent =
+        `${total} matéria${total === 1 ? "" : "s"}`;
+}
 
 renderSubjects();
+
+updateDashboardStudies();
+
+function updateDashboardEntertainment() {
+
+    const dashboardEntertainmentCount =
+        document.getElementById(
+            "dashboard-entertainment-count"
+        );
+
+    if (!dashboardEntertainmentCount) {
+        return;
+    }
+
+    const total =
+        savedMoviesCache.length +
+        savedSeriesCache.length +
+        animeLibraryCache.length;
+
+    dashboardEntertainmentCount.textContent =
+        `${total} salvo${total === 1 ? "" : "s"}`;
+}
 
 subjectsContainer.addEventListener(
     "click",
@@ -7332,6 +7668,11 @@ function updateFinanceSummary() {
     financeBalance.textContent =
         formatFinanceCurrency(balance);
 
+    if (dashboardFinanceBalance) {
+            dashboardFinanceBalance.textContent =
+                formatFinanceCurrency(balance);
+        }
+
     financeIncome.textContent =
         formatFinanceCurrency(income);
 
@@ -8578,6 +8919,8 @@ async function loadAnimeLibrary() {
 
 
         renderAnimeLibrary();
+
+        updateDashboardEntertainment();
 
 
     } catch (error) {
