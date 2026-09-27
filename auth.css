@@ -1,0 +1,201 @@
+.orbit-auth-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(9, 9, 11, 0.98);
+}
+
+.orbit-auth-screen.hidden {
+    display: none;
+}
+
+.orbit-auth-card {
+    width: min(420px, 100%);
+    padding: 30px;
+    background: #111113;
+    border: 1px solid #27272a;
+    border-radius: 20px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.orbit-auth-brand {
+    text-align: center;
+    margin-bottom: 26px;
+}
+
+.orbit-auth-logo {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #c4b5fd;
+}
+
+.orbit-auth-brand p {
+    margin-top: 7px;
+    color: #71717a;
+    font-size: 13px;
+}
+
+.orbit-auth-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    padding: 4px;
+    margin-bottom: 22px;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 11px;
+}
+
+.orbit-auth-tab {
+    border: 0;
+    padding: 10px;
+    border-radius: 8px;
+    background: transparent;
+    color: #71717a;
+    cursor: pointer;
+}
+
+.orbit-auth-tab.active {
+    background: #202024;
+    color: #f4f4f5;
+}
+
+.orbit-auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.orbit-auth-form.hidden {
+    display: none;
+}
+
+.orbit-auth-form label {
+    margin-top: 5px;
+    color: #a1a1aa;
+    font-size: 12px;
+}
+
+.orbit-auth-form input {
+    width: 100%;
+    padding: 12px 13px;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 9px;
+    color: #f4f4f5;
+    outline: none;
+}
+
+.orbit-auth-form input:focus {
+    border-color: #8b5cf6;
+}
+
+.orbit-auth-submit {
+    margin-top: 12px;
+    padding: 12px;
+    border: 0;
+    border-radius: 9px;
+    background: #8b5cf6;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.orbit-auth-submit:hover {
+    background: #7c3aed;
+}
+
+.orbit-auth-submit:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.orbit-auth-link {
+    border: 0;
+    background: transparent;
+    color: #a78bfa;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 8px;
+}
+
+.orbit-auth-message {
+    min-height: 18px;
+    margin-top: 14px;
+    text-align: center;
+    color: #71717a;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.orbit-auth-message.error {
+    color: #f87171;
+}
+
+.orbit-auth-message.success {
+    color: #4ade80;
+}
+
+.settings-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.settings-card h2 {
+    margin-bottom: 6px;
+    font-size: 16px;
+}
+
+.settings-card p {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.orbit-settings-logout {
+    padding: 10px 15px;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 9px;
+    background: rgba(239, 68, 68, 0.08);
+    color: #f87171;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .orbit-auth-card {
+        padding: 24px 20px;
+    }
+
+    .settings-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
+.orbit-auth-secondary {
+    margin-top: 2px;
+    border: 0;
+    background: transparent;
+    color: #a1a1aa;
+    cursor: pointer;
+}
+
+.orbit-auth-message {
+    min-height: 20px;
+    margin-top: 14px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.orbit-auth-message.error { color: #ef4444; }
+.orbit-auth-message.success { color: #22c55e; }

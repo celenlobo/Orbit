@@ -12,6 +12,48 @@
 
 <body>
 
+
+    <!-- AUTENTICAÇÃO -->
+    <div class="orbit-auth-screen" id="orbit-auth-screen">
+        <div class="orbit-auth-card">
+            <div class="orbit-auth-brand">
+                <div class="orbit-auth-logo">ORBIT</div>
+                <p>Entre para acessar seu painel pessoal.</p>
+            </div>
+
+            <div class="orbit-auth-tabs">
+                <button type="button" class="orbit-auth-tab active" data-auth-tab="login">Entrar</button>
+                <button type="button" class="orbit-auth-tab" data-auth-tab="register">Criar conta</button>
+            </div>
+
+            <form class="orbit-auth-form" id="orbit-login-form">
+                <label for="orbit-login-email">E-mail</label>
+                <input id="orbit-login-email" type="email" autocomplete="email" required>
+
+                <label for="orbit-login-password">Senha</label>
+                <input id="orbit-login-password" type="password" autocomplete="current-password" required>
+
+                <button type="submit">Entrar</button>
+                <button type="button" id="orbit-forgot-password" class="orbit-auth-secondary">Esqueci minha senha</button>
+            </form>
+
+            <form class="orbit-auth-form hidden" id="orbit-register-form">
+                <label for="orbit-register-name">Nome</label>
+                <input id="orbit-register-name" type="text" autocomplete="name" required>
+
+                <label for="orbit-register-email">E-mail</label>
+                <input id="orbit-register-email" type="email" autocomplete="email" required>
+
+                <label for="orbit-register-password">Senha</label>
+                <input id="orbit-register-password" type="password" autocomplete="new-password" minlength="6" required>
+
+                <button type="submit">Criar conta</button>
+            </form>
+
+            <div class="orbit-auth-message" id="orbit-auth-message"></div>
+        </div>
+    </div>
+
     <!-- SIDEBAR -->
 
    <aside class="sidebar">
@@ -256,7 +298,7 @@
             <span>Séries</span>
         </a>
 
-        <a href="#" class="mobile-more-item">
+        <a href="#" class="mobile-more-item" data-page="settings">
             <span>Configurações</span>
         </a>
 
@@ -264,7 +306,7 @@
 
     <div class="sidebar-bottom">
 
-        <a href="#" class="nav-item">
+        <a href="#" class="nav-item" data-page="settings">
 
             <svg viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="3"/>
@@ -292,7 +334,7 @@
 
             <div>
 
-                <h1>
+                <h1 id="dashboard-greeting-title">
                     Bom dia, Celen 👋
                 </h1>
 
@@ -314,7 +356,7 @@
 
     <span>Celen</span>
 
-    <button class="icon-button" aria-label="Configurações">
+    <button class="icon-button" id="top-settings-button" data-page="settings" aria-label="Configurações">
         <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21h-2.6v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6v-2.6h.5A1.7 1.7 0 0 0 8 10a1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V5h2.6v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.5V14h-.5a1.7 1.7 0 0 0-1.5 1z"/>
@@ -2770,6 +2812,110 @@
     
 </section>
 
+        <!-- =========================
+             CONFIGURAÇÕES
+        ========================== -->
+
+        <section class="page hidden" id="settings">
+
+            <div class="page-header">
+                <div>
+                    <h1>Configurações</h1>
+                    <p>Gerencie sua conta e as informações do seu perfil.</p>
+                </div>
+            </div>
+
+            <div class="settings-grid">
+
+                <section class="settings-card settings-profile-card">
+                    <div class="settings-card-header">
+                        <div>
+                            <span class="settings-eyebrow">CONTA</span>
+                            <h2>Seu perfil</h2>
+                            <p>Essas informações identificam sua conta no ORBIT.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-profile-preview">
+                        <div class="settings-avatar" id="settings-avatar">C</div>
+                        <div>
+                            <strong id="settings-profile-name">Carregando...</strong>
+                            <span id="settings-profile-email">Carregando...</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-form-grid">
+                        <div class="settings-field">
+                            <label for="settings-name">Nome</label>
+                            <input id="settings-name" type="text" placeholder="Seu nome" autocomplete="name">
+                        </div>
+
+                        <div class="settings-field">
+                            <label for="settings-email">E-mail</label>
+                            <input id="settings-email" type="email" disabled>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button type="button" class="primary-button" id="settings-save-profile">Salvar alterações</button>
+                        <span class="settings-status" id="settings-profile-status"></span>
+                    </div>
+                </section>
+
+                <section class="settings-card">
+                    <div class="settings-card-header">
+                        <div>
+                            <span class="settings-eyebrow">SEGURANÇA</span>
+                            <h2>Alterar senha</h2>
+                            <p>Atualize sua senha de acesso ao ORBIT.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-form-grid">
+                        <div class="settings-field">
+                            <label for="settings-new-password">Nova senha</label>
+                            <input id="settings-new-password" type="password" minlength="6" placeholder="Mínimo de 6 caracteres" autocomplete="new-password">
+                        </div>
+
+                        <div class="settings-field">
+                            <label for="settings-confirm-password">Confirmar nova senha</label>
+                            <input id="settings-confirm-password" type="password" minlength="6" placeholder="Digite novamente" autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button type="button" class="secondary-button" id="settings-update-password">Atualizar senha</button>
+                        <span class="settings-status" id="settings-password-status"></span>
+                    </div>
+                </section>
+
+                <section class="settings-card settings-session-card">
+                    <div class="settings-card-header">
+                        <div>
+                            <span class="settings-eyebrow">SESSÃO</span>
+                            <h2>Sua sessão</h2>
+                            <p>Encerre o acesso ao ORBIT neste dispositivo.</p>
+                        </div>
+                    </div>
+
+                    <button type="button" id="settings-logout-button" class="orbit-settings-logout">Sair da conta</button>
+                </section>
+
+                <section class="settings-card settings-about-card">
+                    <div class="settings-card-header">
+                        <div>
+                            <span class="settings-eyebrow">ORBIT</span>
+                            <h2>Dashboard pessoal</h2>
+                            <p>Seu espaço para organizar tarefas, agenda, projetos, estudos, finanças e entretenimento.</p>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+        </section>
+
+
         <!-- MODAL DE DETALHES DO PROJETO -->
 
 <div class="project-modal hidden" id="project-modal">
@@ -2879,6 +3025,8 @@
     </main>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
     <script src="script.js"></script>
 
 </body>

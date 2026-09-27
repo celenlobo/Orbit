@@ -8,36 +8,49 @@
 ===================================================== */
 
 const navItems = document.querySelectorAll(".nav-item");
+const mobileMoreItems = document.querySelectorAll(".mobile-more-item");
+const pageLinks = document.querySelectorAll("[data-page]");
 const pages = document.querySelectorAll(".page");
 
-navItems.forEach((item) => {
+function navigateToPage(pageId, clickedItem = null) {
+
+    if (!pageId) {
+        return;
+    }
+
+    pages.forEach((page) => {
+        page.classList.add("hidden");
+    });
+
+    const selectedPage = document.getElementById(pageId);
+
+    if (selectedPage) {
+        selectedPage.classList.remove("hidden");
+    }
+
+    navItems.forEach((navItem) => {
+        navItem.classList.toggle("active", navItem.dataset.page === pageId);
+    });
+
+    mobileMoreItems.forEach((item) => {
+        item.classList.toggle("active", item.dataset.page === pageId);
+    });
+
+    if (clickedItem?.classList.contains("nav-more")) {
+        clickedItem.classList.add("active");
+    }
+
+    const mobileMoreMenu = document.getElementById("mobile-more-menu");
+    mobileMoreMenu?.classList.remove("open");
+}
+
+pageLinks.forEach((item) => {
 
     item.addEventListener("click", (event) => {
 
         event.preventDefault();
 
-        const pageId = item.dataset.page;
-
-        if (!pageId) {
-            return;
-        }
-
-        pages.forEach((page) => {
-            page.classList.add("hidden");
-        });
-
-        const selectedPage =
-            document.getElementById(pageId);
-
-        if (selectedPage) {
-            selectedPage.classList.remove("hidden");
-        }
-
-        navItems.forEach((navItem) => {
-            navItem.classList.remove("active");
-        });
-
-        item.classList.add("active");
+        navigateToPage(item.dataset.page, item);
 
     });
 
@@ -79,22 +92,23 @@ const taskFilters =
     document.querySelectorAll(".task-filter");
 
 
-let tasks =
-    JSON.parse(
-        localStorage.getItem("orbitTasks")
-    ) || [];
+let tasks = [];
 
 
 let currentTaskFilter = "all";
 
 
-function saveTasks() {
-
-    localStorage.setItem(
-        "orbitTasks",
-        JSON.stringify(tasks)
-    );
-
+async function saveTasks() {
+    try {
+        const response = await fetch("/api/tasks/sync", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tasks })
+        });
+        if (!response.ok) throw new Error("Falha ao salvar tarefas");
+    } catch (error) {
+        console.error("Erro ao salvar tarefas:", error);
+    }
 }
 
 
@@ -2419,22 +2433,23 @@ const nextDay =
     document.getElementById("next-day");
 
 
-let events =
-    JSON.parse(
-        localStorage.getItem("orbitEvents")
-    ) || [];
+let events = [];
 
 
 let selectedDate = new Date();
 
 
-function saveEvents() {
-
-    localStorage.setItem(
-        "orbitEvents",
-        JSON.stringify(events)
-    );
-
+async function saveEvents() {
+    try {
+        const response = await fetch("/api/events/sync", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ events })
+        });
+        if (!response.ok) throw new Error("Falha ao salvar agenda");
+    } catch (error) {
+        console.error("Erro ao salvar agenda:", error);
+    }
 }
 
 
@@ -3400,12 +3415,7 @@ const dashboardProjectsLink =
     );
 
 
-let projects =
-    JSON.parse(
-        localStorage.getItem(
-            "orbitProjects"
-        )
-    ) || [];
+let projects = [];
 
 
 let currentProjectFilter = "all";
@@ -3413,13 +3423,17 @@ let currentProjectFilter = "all";
 let editingProjectId = null;
 
 
-function saveProjects() {
-
-    localStorage.setItem(
-        "orbitProjects",
-        JSON.stringify(projects)
-    );
-
+async function saveProjects() {
+    try {
+        const response = await fetch("/api/projects/sync", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ projects })
+        });
+        if (!response.ok) throw new Error("Falha ao salvar projetos");
+    } catch (error) {
+        console.error("Erro ao salvar projetos:", error);
+    }
 }
 
 
@@ -4697,23 +4711,20 @@ const projectTasksContainer =
 let currentProjectId = null;
 
 
-let projectTasks =
-    JSON.parse(
-        localStorage.getItem(
-            "orbitProjectTasks"
-        )
-    ) || [];
+let projectTasks = [];
 
 
-function saveProjectTasks() {
-
-    localStorage.setItem(
-        "orbitProjectTasks",
-        JSON.stringify(
-            projectTasks
-        )
-    );
-
+async function saveProjectTasks() {
+    try {
+        const response = await fetch("/api/project-tasks/sync", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ projectTasks })
+        });
+        if (!response.ok) throw new Error("Falha ao salvar tarefas dos projetos");
+    } catch (error) {
+        console.error("Erro ao salvar tarefas dos projetos:", error);
+    }
 }
 
 
@@ -5202,30 +5213,83 @@ function escapeHTML(text) {
    INICIALIZAÇÃO
 ===================================================== */
 
-renderTasks();
+async function loadOrbitUserData() {
+    try {
+        await window.orbitAuthReady;
 
-updateDashboardTasks();
+        const [tasksResponse, eventsResponse, projectsResponse, projectTasksResponse] =
+            await Promise.all([
+                fetch("/api/tasks"),
+                fetch("/api/events"),
+                fetch("/api/projects"),
+                fetch("/api/project-tasks")
+            ]);
 
-updateCalendarHeader();
+        if (![tasksResponse, eventsResponse, projectsResponse, projectTasksResponse].every(response => response.ok)) {
+            throw new Error("Não foi possível carregar os dados da conta");
+        }
 
-renderProjects();
+        const [tasksResult, eventsResult, projectsResult, projectTasksResult] =
+            await Promise.all([
+                tasksResponse.json(),
+                eventsResponse.json(),
+                projectsResponse.json(),
+                projectTasksResponse.json()
+            ]);
 
-updateProjectStats();
+        tasks = tasksResult.tasks || [];
+        events = eventsResult.events || [];
+        projects = projectsResult.projects || [];
+        projectTasks = projectTasksResult.projectTasks || [];
 
-renderDashboardProjects();
+        // Migra dados antigos deste navegador somente se a conta ainda estiver vazia.
+        const localTasks = JSON.parse(localStorage.getItem("orbitTasks") || "null");
+        const localEvents = JSON.parse(localStorage.getItem("orbitEvents") || "null");
+        const localProjects = JSON.parse(localStorage.getItem("orbitProjects") || "null");
+        const localProjectTasks = JSON.parse(localStorage.getItem("orbitProjectTasks") || "null");
 
-requestNotificationPermission();
+        if (tasks.length === 0 && Array.isArray(localTasks) && localTasks.length) {
+            tasks = localTasks;
+            await saveTasks();
+            localStorage.removeItem("orbitTasks");
+        }
 
-renderDashboardAgenda();
+        if (events.length === 0 && Array.isArray(localEvents) && localEvents.length) {
+            events = localEvents;
+            await saveEvents();
+            localStorage.removeItem("orbitEvents");
+        }
 
+        if (projects.length === 0 && Array.isArray(localProjects) && localProjects.length) {
+            projects = localProjects;
+            await saveProjects();
+            localStorage.removeItem("orbitProjects");
+        }
 
-events.forEach(
-    (event) => {
+        if (projectTasks.length === 0 && Array.isArray(localProjectTasks) && localProjectTasks.length) {
+            projectTasks = localProjectTasks;
+            await saveProjectTasks();
+            localStorage.removeItem("orbitProjectTasks");
+        }
 
-        scheduleReminder(event);
+        renderTasks();
+        updateDashboardTasks();
+        updateCalendarHeader();
+        renderProjects();
+        updateProjectStats();
+        renderDashboardProjects();
+        renderDashboardAgenda();
 
+        requestNotificationPermission();
+
+        events.forEach(event => scheduleReminder(event));
+    } catch (error) {
+        console.error("Erro ao carregar dados do ORBIT:", error);
+        alert("Não foi possível carregar os dados da sua conta. Verifique o servidor e tente novamente.");
     }
-);
+}
+
+loadOrbitUserData();
 
 const mobileMoreButton = document.getElementById("mobile-more-button");
 const mobileMoreMenu = document.getElementById("mobile-more-menu");
@@ -5236,36 +5300,11 @@ mobileMoreButton.addEventListener("click", (event) => {
     mobileMoreMenu.classList.toggle("open");
 });
 
-const mobileMoreItems = document.querySelectorAll(".mobile-more-item");
-
 mobileMoreItems.forEach((item) => {
     item.addEventListener("click", (event) => {
         event.preventDefault();
-
-        const pageId = item.dataset.page;
-
-        if (!pageId) {
-            mobileMoreMenu.classList.remove("open");
-            return;
-        }
-
-        pages.forEach((page) => {
-            page.classList.add("hidden");
-        });
-
-        const selectedPage = document.getElementById(pageId);
-
-        if (selectedPage) {
-            selectedPage.classList.remove("hidden");
-        }
-
-        navItems.forEach((navItem) => {
-            navItem.classList.remove("active");
-        });
-
+        navigateToPage(item.dataset.page, item);
         mobileMoreButton.classList.add("active");
-
-        mobileMoreMenu.classList.remove("open");
     });
 });
 

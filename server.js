@@ -21,6 +21,46 @@ const upload =
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
+// =========================
+// AUTENTICAÇÃO SUPABASE
+// =========================
+
+async function requireAuth(req, res, next) {
+    try {
+        const authorization = req.headers.authorization || "";
+        const token = authorization.startsWith("Bearer ")
+            ? authorization.slice(7).trim()
+            : null;
+
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "Não autenticado"
+            });
+        }
+
+        const { data, error } = await supabase.auth.getUser(token);
+
+        if (error || !data?.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Sessão inválida ou expirada"
+            });
+        }
+
+        req.user = data.user;
+        next();
+    } catch (error) {
+        console.error("Erro na autenticação:", error);
+        return res.status(401).json({
+            success: false,
+            message: "Não autenticado"
+        });
+    }
+}
+
+app.use("/api", requireAuth);
+
 app.post(
     "/api/studies/files",
     upload.single("file"),
@@ -65,7 +105,7 @@ app.post(
 
 
             const filePath =
-                `studies/${fileName}`;
+                `users/${req.user.id}/studies/${fileName}`;
 
 
             const { data: uploadedFile, error: uploadError } =
@@ -113,7 +153,10 @@ app.post(
                             filePath,
 
                         file_type:
-                            req.file.mimetype
+                            req.file.mimetype,
+
+                        user_id:
+                            req.user.id
 
                     })
                     .select()
@@ -193,6 +236,7 @@ app.get(
                     .from("study_files")
                     .select("*")
                     .eq("subject_id", subjectId)
+                    .eq("user_id", req.user.id)
                     .order(
                         "created_at",
                         {
@@ -255,6 +299,7 @@ app.get(
                     .from("study_files")
                     .select("file_path")
                     .eq("id", fileId)
+                    .eq("user_id", req.user.id)
                     .single();
 
 
@@ -331,6 +376,7 @@ app.delete(
                     .from("study_files")
                     .select("file_path")
                     .eq("id", fileId)
+                    .eq("user_id", req.user.id)
                     .single();
 
 
@@ -372,7 +418,8 @@ app.delete(
                 await supabase
                     .from("study_files")
                     .delete()
-                    .eq("id", fileId);
+                    .eq("id", fileId)
+                    .eq("user_id", req.user.id);
 
 
             if (deleteError) {
@@ -485,6 +532,7 @@ app.get("/api/user/steam-id", async (req, res) => {
             await supabase
                 .from("user_settings")
                 .select("steam_id")
+                .eq("user_id", req.user.id)
                 .limit(1)
                 .maybeSingle();
 
@@ -540,6 +588,7 @@ app.post("/api/user/steam-id", async (req, res) => {
             await supabase
                 .from("user_settings")
                 .select("id")
+                .eq("user_id", req.user.id)
                 .limit(1)
                 .maybeSingle();
 
@@ -567,6 +616,7 @@ app.post("/api/user/steam-id", async (req, res) => {
                         steam_id: steamId
                     })
                     .eq("id", existing.id)
+                    .eq("user_id", req.user.id)
                     .select()
                     .single();
 
@@ -579,7 +629,8 @@ app.post("/api/user/steam-id", async (req, res) => {
                 await supabase
                     .from("user_settings")
                     .insert({
-                        steam_id: steamId
+                        steam_id: steamId,
+                        user_id: req.user.id
                     })
                     .select()
                     .single();
@@ -648,6 +699,7 @@ app.get("/api/media/:type", async (req, res) => {
                 .from("media_library")
                 .select("*")
                 .eq("type", type)
+                .eq("user_id", req.user.id)
                 .order("created_at", {
                     ascending: false
                 });
@@ -734,6 +786,7 @@ app.post("/api/media", async (req, res) => {
                 .select("*")
                 .eq("tmdb_id", tmdbId)
                 .eq("type", type)
+                .eq("user_id", req.user.id)
                 .maybeSingle();
 
 
@@ -754,6 +807,8 @@ app.post("/api/media", async (req, res) => {
 
 
         const mediaData = {
+
+            user_id: req.user.id,
 
             tmdb_id:
                 Number(tmdbId),
@@ -821,6 +876,7 @@ app.post("/api/media", async (req, res) => {
                     .from("media_library")
                     .update(mediaData)
                     .eq("id", existing.id)
+                    .eq("user_id", req.user.id)
                     .select()
                     .single();
 
@@ -926,6 +982,7 @@ app.patch(
                     })
                     .eq("tmdb_id", tmdbId)
                     .eq("type", type)
+                    .eq("user_id", req.user.id)
                     .select()
                     .single();
 
@@ -1005,7 +1062,8 @@ app.delete(
                     .from("media_library")
                     .delete()
                     .eq("tmdb_id", tmdbId)
-                    .eq("type", type);
+                    .eq("type", type)
+                    .eq("user_id", req.user.id);
 
 
             if (error) {
@@ -1072,7 +1130,8 @@ app.delete("/api/media/:type/:tmdbId", async (req, res) => {
                 .from("media_library")
                 .delete()
                 .eq("tmdb_id", tmdbId)
-                .eq("type", type);
+                .eq("type", type)
+                .eq("user_id", req.user.id);
 
         if (error) {
             console.error(
@@ -1118,6 +1177,7 @@ app.get("/api/finance", async (req, res) => {
             await supabase
                 .from("finance_transactions")
                 .select("*")
+                .eq("user_id", req.user.id)
                 .order("transaction_date", {
                     ascending: false
                 })
@@ -1195,6 +1255,7 @@ app.post("/api/finance", async (req, res) => {
             await supabase
                 .from("finance_transactions")
                 .insert({
+                    user_id: req.user.id,
                     type,
                     description: description.trim(),
                     amount: Number(amount),
@@ -1264,7 +1325,8 @@ app.delete("/api/finance/:id", async (req, res) => {
             await supabase
                 .from("finance_transactions")
                 .delete()
-                .eq("id", id);
+                .eq("id", id)
+                .eq("user_id", req.user.id);
 
         if (error) {
 
@@ -1351,6 +1413,7 @@ app.put("/api/finance/:id", async (req, res) => {
                         transactionDate
                 })
                 .eq("id", id)
+                .eq("user_id", req.user.id)
                 .select()
                 .single();
 
@@ -1391,6 +1454,167 @@ app.put("/api/finance/:id", async (req, res) => {
 
     }
 
+});
+
+
+
+// =========================
+// TAREFAS / AGENDA / PROJETOS — DADOS POR USUÁRIO
+// =========================
+
+async function syncUserTable(req, res, table, rows, normalize) {
+    try {
+        const userId = req.user.id;
+        const normalized = Array.isArray(rows) ? rows.map(normalize) : [];
+
+        const { error: deleteError } = await supabase
+            .from(table)
+            .delete()
+            .eq("user_id", userId);
+
+        if (deleteError) throw deleteError;
+
+        if (normalized.length > 0) {
+            const { error: insertError } = await supabase
+                .from(table)
+                .insert(normalized.map(row => ({ ...row, user_id: userId })));
+
+            if (insertError) throw insertError;
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error(`Erro ao sincronizar ${table}:`, error);
+        res.status(500).json({
+            success: false,
+            message: "Não foi possível salvar os dados"
+        });
+    }
+}
+
+app.get("/api/tasks", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from("tasks")
+            .select("id,title,priority,completed,created_at")
+            .eq("user_id", req.user.id)
+            .order("created_at", { ascending: true });
+        if (error) throw error;
+        res.json({ success: true, tasks: data || [] });
+    } catch (error) {
+        console.error("Erro ao buscar tarefas:", error);
+        res.status(500).json({ success: false, message: "Não foi possível carregar as tarefas" });
+    }
+});
+
+app.put("/api/tasks/sync", async (req, res) => {
+    await syncUserTable(req, res, "tasks", req.body?.tasks, task => ({
+        id: Number(task.id),
+        title: String(task.title || "").trim(),
+        priority: task.priority || "normal",
+        completed: Boolean(task.completed)
+    }));
+});
+
+app.get("/api/events", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from("agenda_events")
+            .select("id,title,date,start_time,end_time,reminder,repeat,weekdays,notes,created_at")
+            .eq("user_id", req.user.id)
+            .order("date", { ascending: true });
+        if (error) throw error;
+        res.json({
+            success: true,
+            events: (data || []).map(event => ({
+                id: Number(event.id),
+                title: event.title,
+                date: event.date,
+                start: event.start_time || "",
+                end: event.end_time || "",
+                reminder: event.reminder || "none",
+                repeat: event.repeat || "none",
+                weekdays: event.weekdays || [],
+                notes: event.notes || ""
+            }))
+        });
+    } catch (error) {
+        console.error("Erro ao buscar eventos:", error);
+        res.status(500).json({ success: false, message: "Não foi possível carregar a agenda" });
+    }
+});
+
+app.put("/api/events/sync", async (req, res) => {
+    await syncUserTable(req, res, "agenda_events", req.body?.events, event => ({
+        id: Number(event.id),
+        title: String(event.title || "").trim(),
+        date: event.date,
+        start_time: event.start || "",
+        end_time: event.end || "",
+        reminder: event.reminder || "none",
+        repeat: event.repeat || "none",
+        weekdays: Array.isArray(event.weekdays) ? event.weekdays : [],
+        notes: event.notes || ""
+    }));
+});
+
+app.get("/api/projects", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from("projects")
+            .select("id,name,status,progress,deadline,description,created_at")
+            .eq("user_id", req.user.id)
+            .order("created_at", { ascending: true });
+        if (error) throw error;
+        res.json({ success: true, projects: data || [] });
+    } catch (error) {
+        console.error("Erro ao buscar projetos:", error);
+        res.status(500).json({ success: false, message: "Não foi possível carregar os projetos" });
+    }
+});
+
+app.put("/api/projects/sync", async (req, res) => {
+    await syncUserTable(req, res, "projects", req.body?.projects, project => ({
+        id: Number(project.id),
+        name: String(project.name || "").trim(),
+        status: project.status || "active",
+        progress: Math.max(0, Math.min(100, Number(project.progress) || 0)),
+        deadline: project.deadline || null,
+        description: project.description || "",
+        created_at: project.createdAt || new Date().toISOString()
+    }));
+});
+
+app.get("/api/project-tasks", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from("project_tasks")
+            .select("id,project_id,title,completed,created_at")
+            .eq("user_id", req.user.id)
+            .order("created_at", { ascending: true });
+        if (error) throw error;
+        res.json({
+            success: true,
+            projectTasks: (data || []).map(task => ({
+                id: Number(task.id),
+                projectId: Number(task.project_id),
+                title: task.title,
+                completed: Boolean(task.completed)
+            }))
+        });
+    } catch (error) {
+        console.error("Erro ao buscar tarefas dos projetos:", error);
+        res.status(500).json({ success: false, message: "Não foi possível carregar as tarefas dos projetos" });
+    }
+});
+
+app.put("/api/project-tasks/sync", async (req, res) => {
+    await syncUserTable(req, res, "project_tasks", req.body?.projectTasks, task => ({
+        id: Number(task.id),
+        project_id: Number(task.projectId),
+        title: String(task.title || "").trim(),
+        completed: Boolean(task.completed)
+    }));
 });
 
 app.listen(PORT, () => {
