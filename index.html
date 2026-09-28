@@ -10,8 +10,8 @@
 
     <title>ORBIT — Dashboard pessoal</title>
 
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="alternate icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.svg?v=1.2.0" type="image/svg+xml">
+    <link rel="alternate icon" href="favicon.ico?v=1.2.0" type="image/x-icon">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.webmanifest">
 
@@ -203,6 +203,21 @@
         </a>
 
 
+        <a href="#" class="nav-item" data-page="fitness">
+
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 7v10"/>
+                <path d="M3 9v6"/>
+                <path d="M18 7v10"/>
+                <path d="M21 9v6"/>
+                <path d="M6 12h12"/>
+            </svg>
+
+            <span>Fitness</span>
+
+        </a>
+
+
         <a href="#" class="nav-item" data-page="finance">
 
             <svg viewBox="0 0 24 24">
@@ -319,6 +334,10 @@
 
         <a href="#" class="mobile-more-item" data-page="series">
             <span>Séries</span>
+        </a>
+
+        <a href="#" class="mobile-more-item" data-page="fitness">
+            <span>Fitness</span>
         </a>
 
         <a href="#" class="mobile-more-item" data-page="settings">
@@ -616,6 +635,33 @@
                             Ver tarefas →
                         </button>
 
+                    </div>
+
+                </section>
+
+                <section class="panel dashboard-fitness-panel" id="dashboard-fitness-panel">
+
+                    <div class="panel-header">
+                        <div>
+                            <h2>Fitness</h2>
+                            <p>Seu treino de hoje e seu próximo movimento.</p>
+                        </div>
+                        <a href="#" id="dashboard-fitness-link">Ver Fitness →</a>
+                    </div>
+
+                    <div class="dashboard-fitness-content" id="dashboard-fitness-content">
+                        <div class="dashboard-fitness-icon" aria-hidden="true">🏋️</div>
+                        <div class="dashboard-fitness-main">
+                            <span class="dashboard-fitness-label" id="dashboard-fitness-day-label">HOJE</span>
+                            <h3 id="dashboard-fitness-workout-name">Sem treino cadastrado</h3>
+                            <p id="dashboard-fitness-workout-meta">Configure sua rotina na aba Fitness.</p>
+                        </div>
+                        <div class="dashboard-fitness-status" id="dashboard-fitness-status">—</div>
+                    </div>
+
+                    <div class="dashboard-fitness-footer" id="dashboard-fitness-footer">
+                        <span id="dashboard-fitness-exercise-count">0 exercícios</span>
+                        <span id="dashboard-fitness-next">Seu dia de hoje</span>
                     </div>
 
                 </section>
@@ -1965,327 +2011,331 @@
 
 
         <!-- =========================
+             FITNESS
+        ========================== -->
+
+        <section class="page hidden" id="fitness">
+            <div class="page-header fitness-page-header">
+                <div>
+                    <span class="fitness-eyebrow">ORBIT • FITNESS</span>
+                    <h1>Fitness</h1>
+                    <p>Organize seus treinos, acompanhe cardio e veja sua evolução.</p>
+                </div>
+                <div class="fitness-month-picker">
+                    <label for="fitness-summary-month">Resumo de</label>
+                    <input type="month" id="fitness-summary-month">
+                </div>
+            </div>
+
+            <nav class="fitness-nav" aria-label="Seções do Fitness">
+                <button type="button" class="fitness-nav-item active" data-fitness-section="fitness-workouts">Treinos</button>
+                <button type="button" class="fitness-nav-item" data-fitness-section="fitness-cardio">Caminhada &amp; Pedal</button>
+                <button type="button" class="fitness-nav-item" data-fitness-section="fitness-bmi">IMC &amp; Peso</button>
+            </nav>
+
+            <section class="fitness-section" id="fitness-workouts" data-fitness-panel>
+                <div class="fitness-section-heading">
+                    <div>
+                        <span class="fitness-eyebrow">ROTINA SEMANAL</span>
+                        <h2>Seu treino da academia</h2>
+                        <p>Monte sua divisão de segunda a domingo e marque cada sessão quando concluir.</p>
+                    </div>
+                </div>
+
+                <div class="fitness-week-tabs" role="tablist" aria-label="Dias da semana">
+                    <button type="button" class="fitness-day-tab active" data-fitness-day="monday"><strong>SEG</strong><span>Segunda</span></button>
+                    <button type="button" class="fitness-day-tab" data-fitness-day="tuesday"><strong>TER</strong><span>Terça</span></button>
+                    <button type="button" class="fitness-day-tab" data-fitness-day="wednesday"><strong>QUA</strong><span>Quarta</span></button>
+                    <button type="button" class="fitness-day-tab" data-fitness-day="thursday"><strong>QUI</strong><span>Quinta</span></button>
+                    <button type="button" class="fitness-day-tab" data-fitness-day="friday"><strong>SEX</strong><span>Sexta</span></button>
+                    <button type="button" class="fitness-day-tab" data-fitness-day="saturday"><strong>SÁB</strong><span>Sábado</span></button>
+                    <button type="button" class="fitness-day-tab" data-fitness-day="sunday"><strong>DOM</strong><span>Domingo</span></button>
+                </div>
+
+                <div class="fitness-workout-editor">
+                    <div class="fitness-card fitness-workout-head">
+                        <div class="fitness-workout-title-fields">
+                            <div class="fitness-field">
+                                <label for="fitness-day-name">Nome do treino</label>
+                                <input id="fitness-day-name" type="text" maxlength="60" placeholder="Ex.: Peito + Tríceps">
+                            </div>
+                            <div class="fitness-field">
+                                <label for="fitness-day-notes">Observações</label>
+                                <input id="fitness-day-notes" type="text" maxlength="160" placeholder="Foco, descanso, técnica...">
+                            </div>
+                        </div>
+                        <label class="fitness-complete-toggle"><input type="checkbox" id="fitness-day-completed"><span>Treino concluído</span></label>
+                    </div>
+
+                    <div class="fitness-card">
+                        <div class="fitness-card-header">
+                            <div>
+                                <span class="fitness-eyebrow">EXERCÍCIOS</span>
+                                <h3 id="fitness-exercises-title">Exercícios de segunda</h3>
+                            </div>
+                            <button type="button" class="primary-button" id="fitness-add-exercise">+ Adicionar exercício</button>
+                        </div>
+                        <div class="fitness-exercise-list" id="fitness-exercise-list"></div>
+                        <div class="fitness-empty" id="fitness-exercise-empty">
+                            <strong>Nenhum exercício cadastrado</strong>
+                            <span>Adicione os exercícios, séries, repetições e cargas do dia.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fitness-summary-grid" id="fitness-workout-summary">
+                    <div class="fitness-summary-card"><span>Sessões concluídas</span><strong id="fitness-summary-workout-sessions">0</strong><small>no mês selecionado</small></div>
+                    <div class="fitness-summary-card"><span>Dias com treino</span><strong id="fitness-summary-workout-days">0</strong><small>planejados na semana</small></div>
+                    <div class="fitness-summary-card"><span>Exercícios</span><strong id="fitness-summary-workout-exercises">0</strong><small>na rotina semanal</small></div>
+                    <div class="fitness-summary-card"><span>Séries</span><strong id="fitness-summary-workout-sets">0</strong><small>na rotina semanal</small></div>
+                </div>
+            </section>
+
+            <section class="fitness-section" id="fitness-cardio" data-fitness-panel>
+                <div class="fitness-section-heading">
+                    <div>
+                        <span class="fitness-eyebrow">CARDIO</span>
+                        <h2>Caminhada &amp; Pedal</h2>
+                        <p>Registre suas atividades ao ar livre e acompanhe o mês.</p>
+                    </div>
+                    <button type="button" class="primary-button" id="fitness-add-cardio">+ Registrar atividade</button>
+                </div>
+
+                <div class="fitness-summary-grid fitness-cardio-summary">
+                    <div class="fitness-summary-card"><span>Atividades</span><strong id="fitness-cardio-count">0</strong><small>no mês selecionado</small></div>
+                    <div class="fitness-summary-card"><span>Distância</span><strong id="fitness-cardio-distance">0 km</strong><small>somada no mês</small></div>
+                    <div class="fitness-summary-card"><span>Tempo</span><strong id="fitness-cardio-duration">0 min</strong><small>em movimento</small></div>
+                    <div class="fitness-summary-card"><span>Calorias</span><strong id="fitness-cardio-calories">0 kcal</strong><small>quando informado</small></div>
+                </div>
+
+                <div class="fitness-card fitness-cardio-form hidden" id="fitness-cardio-form">
+                    <div class="fitness-form-grid">
+                        <div class="fitness-field"><label for="fitness-cardio-type">Atividade</label><select id="fitness-cardio-type"><option value="walk">Caminhada</option><option value="bike">Pedal</option></select></div>
+                        <div class="fitness-field"><label for="fitness-cardio-date">Data</label><input id="fitness-cardio-date" type="date"></div>
+                        <div class="fitness-field"><label for="fitness-cardio-distance">Distância (km)</label><input id="fitness-cardio-distance-input" type="number" min="0" step="0.01" placeholder="0,00"></div>
+                        <div class="fitness-field"><label for="fitness-cardio-duration-input">Duração (min)</label><input id="fitness-cardio-duration-input" type="number" min="0" step="1" placeholder="0"></div>
+                        <div class="fitness-field"><label for="fitness-cardio-calories-input">Calorias (opcional)</label><input id="fitness-cardio-calories-input" type="number" min="0" step="1" placeholder="0"></div>
+                        <div class="fitness-field fitness-field-wide"><label for="fitness-cardio-notes">Observações</label><input id="fitness-cardio-notes" maxlength="160" placeholder="Ritmo, percurso, sensação..."/></div>
+                    </div>
+                    <div class="fitness-actions"><button type="button" class="primary-button" id="fitness-save-cardio">Salvar atividade</button><button type="button" class="secondary-button" id="fitness-cancel-cardio">Cancelar</button><span class="settings-status" id="fitness-cardio-status"></span></div>
+                </div>
+
+                <div class="fitness-card">
+                    <div class="fitness-card-header"><div><span class="fitness-eyebrow">HISTÓRICO</span><h3>Atividades do mês</h3></div></div>
+                    <div class="fitness-activity-list" id="fitness-cardio-list"></div>
+                    <div class="fitness-empty" id="fitness-cardio-empty"><strong>Nenhuma atividade registrada</strong><span>Registre uma caminhada ou pedal para começar seu histórico.</span></div>
+                </div>
+            </section>
+
+            <section class="fitness-section" id="fitness-bmi" data-fitness-panel>
+                <div class="fitness-section-heading">
+                    <div>
+                        <span class="fitness-eyebrow">ACOMPANHAMENTO</span>
+                        <h2>IMC &amp; Peso</h2>
+                        <p>Registre altura e peso para acompanhar sua evolução. O IMC é apenas uma referência geral.</p>
+                    </div>
+                </div>
+
+                <div class="fitness-bmi-grid">
+                    <div class="fitness-card">
+                        <div class="fitness-card-header"><div><span class="fitness-eyebrow">DADOS</span><h3>Medidas atuais</h3></div></div>
+                        <div class="fitness-form-grid">
+                            <div class="fitness-field"><label for="fitness-height">Altura (cm)</label><input id="fitness-height" type="number" min="50" max="250" step="0.1" placeholder="Ex.: 175"></div>
+                            <div class="fitness-field"><label for="fitness-weight">Peso atual (kg)</label><input id="fitness-weight" type="number" min="20" max="400" step="0.1" placeholder="Ex.: 70"></div>
+                            <div class="fitness-field"><label for="fitness-goal-weight">Peso-meta (kg)</label><input id="fitness-goal-weight" type="number" min="20" max="400" step="0.1" placeholder="Opcional"></div>
+                        </div>
+                        <div class="fitness-actions"><button type="button" class="primary-button" id="fitness-save-measures">Salvar medidas</button><button type="button" class="secondary-button" id="fitness-register-weight">Registrar peso do dia</button><span class="settings-status" id="fitness-bmi-status"></span></div>
+                    </div>
+                    <div class="fitness-card fitness-bmi-result-card">
+                        <span class="fitness-eyebrow">IMC ATUAL</span>
+                        <strong class="fitness-bmi-number" id="fitness-bmi-value">—</strong>
+                        <span class="fitness-bmi-label" id="fitness-bmi-label">Informe altura e peso.</span>
+                        <div class="fitness-bmi-bar"><span id="fitness-bmi-marker"></span></div>
+                        <small>O IMC não considera composição corporal e não substitui avaliação profissional.</small>
+                    </div>
+                </div>
+
+                <div class="fitness-card">
+                    <div class="fitness-card-header"><div><span class="fitness-eyebrow">HISTÓRICO</span><h3>Evolução do peso</h3></div></div>
+                    <div class="fitness-weight-history" id="fitness-weight-history"></div>
+                    <div class="fitness-empty" id="fitness-weight-empty"><strong>Nenhum peso registrado</strong><span>Use “Registrar peso do dia” para criar seu histórico mensal.</span></div>
+                </div>
+
+                <div class="fitness-summary-grid">
+                    <div class="fitness-summary-card"><span>Peso inicial</span><strong id="fitness-month-weight-start">—</strong><small>no mês selecionado</small></div>
+                    <div class="fitness-summary-card"><span>Peso final</span><strong id="fitness-month-weight-end">—</strong><small>último registro do mês</small></div>
+                    <div class="fitness-summary-card"><span>Variação</span><strong id="fitness-month-weight-change">—</strong><small>entre primeiro e último</small></div>
+                    <div class="fitness-summary-card"><span>Registros</span><strong id="fitness-month-weight-count">0</strong><small>de peso no mês</small></div>
+                </div>
+            </section>
+        </section>
+
+        <!-- =========================
              FINANÇAS
         ========================== -->
 
-<section
-    class="page hidden"
-    id="finance"
->
-
+<section class="page hidden" id="finance">
     <div class="page-header">
-
         <div>
             <h1>Finanças</h1>
-
-            <p>
-                Organize sua vida financeira.
-            </p>
+            <p>Tenha uma visão clara do seu dinheiro, mês a mês.</p>
         </div>
-
-        <button
-            class="primary-button"
-            id="finance-add-button"
-        >
-            + Nova movimentação
-        </button>
-
+        <button class="primary-button" id="finance-add-button">+ Nova movimentação</button>
     </div>
 
-
-    <!-- =========================
-             RESUMO
-        ========================== -->
+    <div class="finance-toolbar">
+        <div class="finance-period-control">
+            <button type="button" class="finance-period-arrow" id="finance-prev-month" aria-label="Mês anterior">‹</button>
+            <label>
+                <span>Período</span>
+                <input type="month" id="finance-month-filter">
+            </label>
+            <button type="button" class="finance-period-arrow" id="finance-next-month" aria-label="Próximo mês">›</button>
+        </div>
+        <div class="finance-filters">
+            <label class="finance-search-wrap">
+                <span class="sr-only">Buscar movimentação</span>
+                <input type="search" id="finance-search" placeholder="Buscar movimentação...">
+            </label>
+            <select id="finance-type-filter" aria-label="Filtrar por tipo">
+                <option value="all">Todos os tipos</option>
+                <option value="income">Entradas</option>
+                <option value="expense">Saídas</option>
+            </select>
+            <select id="finance-category-filter" aria-label="Filtrar por categoria">
+                <option value="all">Todas as categorias</option>
+            </select>
+        </div>
+    </div>
 
     <div class="finance-summary">
-
-        <div class="finance-card">
-
-            <span>
-                Saldo
-            </span>
-
-            <strong id="finance-balance">
-                R$ 0,00
-            </strong>
-
+        <div class="finance-card finance-card-balance">
+            <span>Saldo geral</span>
+            <strong id="finance-balance">R$ 0,00</strong>
+            <small id="finance-balance-note">Acumulado</small>
         </div>
-
-
         <div class="finance-card">
-
-            <span>
-                Entradas
-            </span>
-
-            <strong id="finance-income">
-                R$ 0,00
-            </strong>
-
+            <span>Entradas no mês</span>
+            <strong id="finance-income">R$ 0,00</strong>
+            <small id="finance-income-count">0 movimentações</small>
         </div>
-
-
         <div class="finance-card">
-
-            <span>
-                Saídas
-            </span>
-
-            <strong id="finance-expenses">
-                R$ 0,00
-            </strong>
-
+            <span>Saídas no mês</span>
+            <strong id="finance-expenses">R$ 0,00</strong>
+            <small id="finance-expense-count">0 movimentações</small>
         </div>
-
-
         <div class="finance-card">
-
-            <span>
-                Resultado
-            </span>
-
-            <strong id="finance-result">
-                R$ 0,00
-            </strong>
-
+            <span>Resultado do mês</span>
+            <strong id="finance-result">R$ 0,00</strong>
+            <small id="finance-result-rate">— de economia</small>
         </div>
-
     </div>
 
+    <div class="finance-dashboard-grid">
+        <section class="finance-section finance-overview-section">
+            <div class="finance-section-header">
+                <div>
+                    <span class="finance-eyebrow">VISÃO DO MÊS</span>
+                    <h2 id="finance-month-title">Resumo financeiro</h2>
+                    <p>Compare entradas, saídas e sua capacidade de guardar dinheiro.</p>
+                </div>
+            </div>
+            <div class="finance-month-overview">
+                <div class="finance-chart" id="finance-month-chart"></div>
+                <div class="finance-overview-stats">
+                    <div><span>Maior gasto</span><strong id="finance-largest-expense">—</strong></div>
+                    <div><span>Categoria principal</span><strong id="finance-top-category">—</strong></div>
+                    <div><span>Ticket médio</span><strong id="finance-average-expense">R$ 0,00</strong></div>
+                    <div><span>Movimentações</span><strong id="finance-month-count">0</strong></div>
+                </div>
+            </div>
+        </section>
 
-    <!-- =========================
-             CONTEÚDO
-        ========================== -->
+        <section class="finance-section finance-budget-section">
+            <div class="finance-section-header">
+                <div>
+                    <span class="finance-eyebrow">PLANEJAMENTO</span>
+                    <h2>Orçamento do mês</h2>
+                    <p>Defina um limite e acompanhe quanto ainda pode gastar.</p>
+                </div>
+            </div>
+            <div class="finance-budget-form">
+                <label>
+                    <span>Limite de gastos</span>
+                    <div class="finance-money-input"><span>R$</span><input id="finance-budget-input" type="number" min="0" step="0.01" placeholder="0,00"></div>
+                </label>
+                <button type="button" class="secondary-button" id="finance-budget-save">Salvar limite</button>
+            </div>
+            <div class="finance-budget-status" id="finance-budget-status">
+                <div class="finance-budget-track"><span id="finance-budget-fill"></span></div>
+                <div class="finance-budget-meta"><span id="finance-budget-used">R$ 0,00 usados</span><strong id="finance-budget-remaining">Sem limite definido</strong></div>
+            </div>
+        </section>
+    </div>
 
     <div class="finance-content">
-
-
-        <!-- MOVIMENTAÇÕES -->
-
-        <div class="finance-section">
-
+        <section class="finance-section finance-transactions-section">
             <div class="finance-section-header">
-
                 <div>
-
-                    <h2>
-                        Movimentações
-                    </h2>
-
-                    <p>
-                        Suas entradas e saídas.
-                    </p>
-
+                    <span class="finance-eyebrow">HISTÓRICO</span>
+                    <h2>Movimentações</h2>
+                    <p id="finance-results-label">Movimentações do período selecionado.</p>
                 </div>
-
+                <button type="button" class="finance-clear-filters" id="finance-clear-filters">Limpar filtros</button>
             </div>
-
-
-            <div
-                class="finance-transactions"
-                id="finance-transactions"
-            >
-
-                <div class="finance-empty">
-
-                    <h3>
-                        Nenhuma movimentação
-                    </h3>
-
-                    <p>
-                        Adicione sua primeira receita ou despesa.
-                    </p>
-
-                </div>
-
+            <div class="finance-transactions" id="finance-transactions">
+                <div class="finance-empty"><h3>Nenhuma movimentação</h3><p>Adicione sua primeira receita ou despesa.</p></div>
             </div>
+        </section>
 
-        </div>
-
-
-        <!-- CATEGORIAS -->
-
-        <div class="finance-section">
-
+        <section class="finance-section">
             <div class="finance-section-header">
-
                 <div>
-
-                    <h2>
-                        Gastos por categoria
-                    </h2>
-
-                    <p>
-                        Veja onde seu dinheiro está indo.
-                    </p>
-
+                    <span class="finance-eyebrow">DISTRIBUIÇÃO</span>
+                    <h2>Gastos por categoria</h2>
+                    <p>Entenda para onde o dinheiro do mês está indo.</p>
                 </div>
-
             </div>
-
-
-            <div
-                class="finance-categories"
-                id="finance-categories"
-            >
-
-                <div class="finance-empty">
-
-                    <h3>
-                        Ainda não há dados
-                    </h3>
-
-                    <p>
-                        Suas categorias aparecerão aqui.
-                    </p>
-
-                </div>
-
+            <div class="finance-categories" id="finance-categories">
+                <div class="finance-empty"><h3>Ainda não há dados</h3><p>Suas categorias aparecerão aqui.</p></div>
             </div>
-
-        </div>
-
-
+        </section>
     </div>
 
+    <section class="finance-section finance-insights-section">
+        <div class="finance-section-header">
+            <div>
+                <span class="finance-eyebrow">LEITURA RÁPIDA</span>
+                <h2>Resumo do mês</h2>
+                <p>Uma leitura simples do seu comportamento financeiro.</p>
+            </div>
+        </div>
+        <div class="finance-insights" id="finance-insights"></div>
+    </section>
 
-    <!-- =========================
-             MODAL
-        ========================== -->
-
-    <div
-        class="finance-modal hidden"
-        id="finance-modal"
-    >
-
+    <div class="finance-modal hidden" id="finance-modal">
         <div class="finance-modal-content">
-
-            <button
-                class="finance-modal-close"
-                id="finance-modal-close"
-            >
-                ×
-            </button>
-
-
-            <h2>
-                Nova movimentação
-            </h2>
-
-
+            <button class="finance-modal-close" id="finance-modal-close" aria-label="Fechar">×</button>
+            <span class="finance-eyebrow">MOVIMENTAÇÃO</span>
+            <h2 id="finance-modal-title">Nova movimentação</h2>
             <div class="finance-form">
-
                 <div class="finance-type-buttons">
-
-                    <button
-                        type="button"
-                        class="finance-type-button active"
-                        data-finance-type="expense"
-                    >
-                        Despesa
-                    </button>
-
-                    <button
-                        type="button"
-                        class="finance-type-button"
-                        data-finance-type="income"
-                    >
-                        Receita
-                    </button>
-
+                    <button type="button" class="finance-type-button active" data-finance-type="expense">Saída</button>
+                    <button type="button" class="finance-type-button" data-finance-type="income">Entrada</button>
                 </div>
-
-
-                <label>
-                    Descrição
-
-                    <input
-                        type="text"
-                        id="finance-description"
-                        placeholder="Ex: Mercado"
-                    >
-                </label>
-
-
-                <label>
-                    Valor
-
-                    <input
-                        type="number"
-                        id="finance-amount"
-                        placeholder="0,00"
-                        step="0.01"
-                        min="0"
-                    >
-                </label>
-
-
-                <label>
-                    Categoria
-
-                    <select
-                        id="finance-category"
-                    >
-
-                        <option value="alimentacao">
-                            Alimentação
-                        </option>
-
-                        <option value="transporte">
-                            Transporte
-                        </option>
-
-                        <option value="casa">
-                            Casa
-                        </option>
-
-                        <option value="lazer">
-                            Lazer
-                        </option>
-
-                        <option value="estudos">
-                            Estudos
-                        </option>
-
-                        <option value="saude">
-                            Saúde
-                        </option>
-
-                        <option value="outros">
-                            Outros
-                        </option>
-
-                    </select>
-
-                </label>
-
-
-                <label>
-                    Data
-
-                    <input
-                        type="date"
-                        id="finance-date"
-                    >
-                </label>
-
-
-                <button
-                    class="primary-button"
-                    id="finance-save-button"
-                >
-                    Salvar movimentação
-                </button>
-
+                <label>Descrição<input type="text" id="finance-description" placeholder="Ex: Mercado"></label>
+                <div class="finance-form-row">
+                    <label>Valor<input type="number" id="finance-amount" placeholder="0,00" step="0.01" min="0"></label>
+                    <label>Data<input type="date" id="finance-date"></label>
+                </div>
+                <label>Categoria<select id="finance-category">
+                    <option value="alimentacao">Alimentação</option><option value="transporte">Transporte</option><option value="casa">Casa</option><option value="lazer">Lazer</option><option value="estudos">Estudos</option><option value="saude">Saúde</option><option value="trabalho">Trabalho</option><option value="assinaturas">Assinaturas</option><option value="compras">Compras</option><option value="dividas">Dívidas</option><option value="investimentos">Investimentos</option><option value="outros">Outros</option>
+                </select></label>
+                <button class="primary-button" id="finance-save-button">Salvar movimentação</button>
             </div>
-
         </div>
-
     </div>
-
 </section>
-
-
 
         <!-- =========================
             ANIMES
@@ -2918,6 +2968,19 @@
                                 </div>
                             </div>
 
+                            <div class="settings-avatar-photo">
+                                <div>
+                                    <span class="settings-field-label">Foto do perfil</span>
+                                    <small>A imagem fica salva neste navegador para esta conta.</small>
+                                </div>
+                                <div class="settings-avatar-photo-actions">
+                                    <input type="file" id="settings-avatar-file" accept="image/png,image/jpeg,image/webp" hidden>
+                                    <button type="button" class="secondary-button" id="settings-avatar-upload">Escolher foto</button>
+                                    <button type="button" class="secondary-button settings-avatar-remove" id="settings-avatar-remove">Remover foto</button>
+                                </div>
+                                <span class="settings-status" id="settings-avatar-status"></span>
+                            </div>
+
                             <div class="settings-actions">
                                 <button type="button" class="primary-button" id="settings-save-profile">Salvar alterações</button>
                                 <span class="settings-status" id="settings-profile-status"></span>
@@ -3052,11 +3115,12 @@
                                 <select id="settings-default-page" class="settings-select">
                                     <option value="dashboard">Dashboard</option>
                                     <option value="tasks">Tarefas</option>
-                                    <option value="agenda">Agenda</option>
+                                    <option value="calendar">Agenda</option>
                                     <option value="projects">Projetos</option>
                                     <option value="studies">Estudos</option>
                                     <option value="finance">Finanças</option>
-                                    <option value="animes">Animes</option>
+                                    <option value="fitness">Fitness</option>
+                                    <option value="anime">Animes</option>
                                     <option value="movies">Filmes</option>
                                     <option value="series">Séries</option>
                                     <option value="games">Jogos</option>

@@ -7472,6 +7472,116 @@ let financeData = [];
 
 let editingFinanceId = null;
 
+const financeMonthFilter = document.getElementById("finance-month-filter");
+const financePrevMonth = document.getElementById("finance-prev-month");
+const financeNextMonth = document.getElementById("finance-next-month");
+const financeSearch = document.getElementById("finance-search");
+const financeTypeFilter = document.getElementById("finance-type-filter");
+const financeCategoryFilter = document.getElementById("finance-category-filter");
+const financeClearFilters = document.getElementById("finance-clear-filters");
+const financeMonthTitle = document.getElementById("finance-month-title");
+const financeMonthChart = document.getElementById("finance-month-chart");
+const financeLargestExpense = document.getElementById("finance-largest-expense");
+const financeTopCategory = document.getElementById("finance-top-category");
+const financeAverageExpense = document.getElementById("finance-average-expense");
+const financeMonthCount = document.getElementById("finance-month-count");
+const financeIncomeCount = document.getElementById("finance-income-count");
+const financeExpenseCount = document.getElementById("finance-expense-count");
+const financeResultRate = document.getElementById("finance-result-rate");
+const financeBalanceNote = document.getElementById("finance-balance-note");
+const financeResultsLabel = document.getElementById("finance-results-label");
+const financeInsights = document.getElementById("finance-insights");
+const financeBudgetInput = document.getElementById("finance-budget-input");
+const financeBudgetSave = document.getElementById("finance-budget-save");
+const financeBudgetFill = document.getElementById("finance-budget-fill");
+const financeBudgetUsed = document.getElementById("finance-budget-used");
+const financeBudgetRemaining = document.getElementById("finance-budget-remaining");
+
+const FINANCE_CATEGORY_NAMES = {
+    alimentacao: "Alimentação", transporte: "Transporte", casa: "Casa", lazer: "Lazer",
+    estudos: "Estudos", saude: "Saúde", trabalho: "Trabalho", assinaturas: "Assinaturas",
+    compras: "Compras", dividas: "Dívidas", investimentos: "Investimentos", outros: "Outros"
+};
+
+function getFinanceMonthKey(date = new Date()) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}`;
+}
+
+function getFinanceMonthLabel(key) {
+    if (!key) return "Resumo financeiro";
+    const [year, month] = key.split("-").map(Number);
+    return new Date(year, month - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+}
+
+function getFinanceBudgetKey() {
+    return window.orbitUserId ? `orbitFinanceBudget:${window.orbitUserId}` : null;
+}
+
+function getFinanceBudgets() {
+    try {
+        const raw = getFinanceBudgetKey() ? localStorage.getItem(getFinanceBudgetKey()) : null;
+        const data = raw ? JSON.parse(raw) : {};
+        return data && typeof data === "object" ? data : {};
+    } catch { return {}; }
+}
+
+function saveFinanceBudget(value) {
+    const key = getFinanceBudgetKey();
+    if (!key || !financeMonthFilter?.value) return;
+    const budgets = getFinanceBudgets();
+    if (value > 0) budgets[financeMonthFilter.value] = value;
+    else delete budgets[financeMonthFilter.value];
+    localStorage.setItem(key, JSON.stringify(budgets));
+}
+
+function getFinanceMonthData() {
+    const month = financeMonthFilter?.value || getFinanceMonthKey();
+    return financeData.filter(item => String(item.transaction_date || "").slice(0, 7) === month);
+}
+
+function getFinanceVisibleData() {
+    const monthData = getFinanceMonthData();
+    const search = (financeSearch?.value || "").trim().toLowerCase();
+    const type = financeTypeFilter?.value || "all";
+    const category = financeCategoryFilter?.value || "all";
+    return monthData.filter(item => {
+        const matchesSearch = !search || `${item.description || ""} ${getFinanceCategoryName(item.category)}`.toLowerCase().includes(search);
+        const matchesType = type === "all" || item.type === type;
+        const matchesCategory = category === "all" || item.category === category;
+        return matchesSearch && matchesType && matchesCategory;
+    });
+}
+
+function populateFinanceCategoryFilter() {
+    if (!financeCategoryFilter) return;
+    const categories = [...new Set(financeData.map(item => item.category).filter(Boolean))].sort();
+    const current = financeCategoryFilter.value || "all";
+    financeCategoryFilter.innerHTML = `<option value="all">Todas as categorias</option>` + categories.map(category => `<option value="${escapeHTML(category)}">${escapeHTML(getFinanceCategoryName(category))}</option>`).join("");
+    financeCategoryFilter.value = categories.includes(current) ? current : "all";
+}
+
+function updateFinanceBudget() {
+    if (!financeBudgetInput || !financeBudgetFill) return;
+    const budget = Number(getFinanceBudgets()[financeMonthFilter?.value] || 0);
+    const expenses = getFinanceMonthData().filter(item => item.type === "expense").reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    financeBudgetInput.value = budget || "";
+    financeBudgetUsed.textContent = `${formatFinanceCurrency(expenses)} usados`;
+    if (!budget) {
+        financeBudgetFill.style.width = "0%";
+        financeBudgetRemaining.textContent = "Sem limite definido";
+        financeBudgetRemaining.className = "";
+        return;
+    }
+    const percent = Math.min((expenses / budget) * 100, 100);
+    financeBudgetFill.style.width = `${percent}%`;
+    const remaining = budget - expenses;
+    financeBudgetRemaining.textContent = remaining >= 0 ? `${formatFinanceCurrency(remaining)} disponíveis` : `${formatFinanceCurrency(Math.abs(remaining))} acima do limite`;
+    financeBudgetRemaining.className = remaining < 0 ? "is-over" : "";
+}
+
+
 
 /* =========================
    ABRIR / FECHAR MODAL
@@ -7527,6 +7637,8 @@ function closeFinanceModal() {
     financeDate.value = "";
 
     currentFinanceType = "expense";
+    const financeModalTitle = document.getElementById("finance-modal-title");
+    if (financeModalTitle) financeModalTitle.textContent = "Nova movimentação";
 
     financeTypeButtons.forEach(
         (button) => {
@@ -7940,441 +8052,108 @@ async function loadFinance() {
 ========================= */
 
 function renderFinance() {
-
+    populateFinanceCategoryFilter();
     updateFinanceSummary();
-
     renderFinanceTransactions();
-
     renderFinanceCategories();
-
+    renderFinanceInsights();
+    renderFinanceBudgetChart();
+    updateFinanceBudget();
 }
-
-
-/* =========================
-   RESUMO
-========================= */
 
 function updateFinanceSummary() {
+    const monthData = getFinanceMonthData();
+    const allIncome = financeData.filter(t => t.type === "income").reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    const allExpenses = financeData.filter(t => t.type === "expense").reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    const income = monthData.filter(t => t.type === "income").reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    const expenses = monthData.filter(t => t.type === "expense").reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    const result = income - expenses;
+    const rate = income > 0 ? (result / income) * 100 : 0;
 
-    let income = 0;
-
-    let expenses = 0;
-
-
-    financeData.forEach(
-        (transaction) => {
-
-            const amount =
-                Number(transaction.amount) || 0;
-
-
-            if (
-                transaction.type ===
-                "income"
-            ) {
-
-                income += amount;
-
-            } else {
-
-                expenses += amount;
-
-            }
-
-        }
-    );
-
-
-    const balance =
-        income - expenses;
-
-
-    financeBalance.textContent =
-        formatFinanceCurrency(balance);
-
-    if (dashboardFinanceBalance) {
-            dashboardFinanceBalance.textContent =
-                formatFinanceCurrency(balance);
-        }
-
-    financeIncome.textContent =
-        formatFinanceCurrency(income);
-
-    financeExpenses.textContent =
-        formatFinanceCurrency(expenses);
-
-    financeResult.textContent =
-        formatFinanceCurrency(balance);
-
+    financeBalance.textContent = formatFinanceCurrency(allIncome - allExpenses);
+    financeIncome.textContent = formatFinanceCurrency(income);
+    financeExpenses.textContent = formatFinanceCurrency(expenses);
+    financeResult.textContent = formatFinanceCurrency(result);
+    if (dashboardFinanceBalance) dashboardFinanceBalance.textContent = formatFinanceCurrency(allIncome - allExpenses);
+    if (financeBalanceNote) financeBalanceNote.textContent = `${financeData.length} movimentações no total`;
+    if (financeIncomeCount) financeIncomeCount.textContent = `${monthData.filter(t => t.type === "income").length} ${monthData.filter(t => t.type === "income").length === 1 ? "movimentação" : "movimentações"}`;
+    if (financeExpenseCount) financeExpenseCount.textContent = `${monthData.filter(t => t.type === "expense").length} ${monthData.filter(t => t.type === "expense").length === 1 ? "movimentação" : "movimentações"}`;
+    if (financeResultRate) financeResultRate.textContent = income > 0 ? `${rate.toFixed(0).replace(".", ",")}% de economia` : "Sem entradas no mês";
+    if (financeMonthTitle) financeMonthTitle.textContent = `Resumo de ${getFinanceMonthLabel(financeMonthFilter?.value)}`;
+    if (financeMonthCount) financeMonthCount.textContent = String(monthData.length);
 }
-
-
-/* =========================
-   MOVIMENTAÇÕES
-========================= */
 
 function renderFinanceTransactions() {
-
-    if (financeData.length === 0) {
-
-        financeTransactions.innerHTML = `
-            <div class="finance-empty">
-
-                <h3>
-                    Nenhuma movimentação
-                </h3>
-
-                <p>
-                    Adicione sua primeira receita ou despesa.
-                </p>
-
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    financeTransactions.innerHTML =
-        financeData.map(
-            (transaction) => {
-
-                const isIncome =
-                    transaction.type ===
-                    "income";
-
-
-                const sign =
-                    isIncome
-                        ? "+"
-                        : "-";
-
-
-                const icon =
-                    isIncome
-                        ? "↗"
-                        : "↘";
-
-
-                const date =
-                    formatFinanceDate(
-                        transaction.transaction_date
-                    );
-
-
-                return `
-                    <div
-                        class="finance-transaction"
-                    >
-
-                        <div
-                            class="finance-transaction-info"
-                        >
-
-                            <div
-                                class="finance-transaction-icon"
-                            >
-                                ${icon}
-                            </div>
-
-                            <div
-                                class="finance-transaction-text"
-                            >
-
-                                <strong>
-                                    ${escapeHTML(
-                                        transaction.description
-                                    )}
-                                </strong>
-
-                                <span>
-                                    ${getFinanceCategoryName(
-                                        transaction.category
-                                    )}
-                                    ·
-                                    ${date}
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                        <div
-                            class="finance-transaction-value ${
-                                isIncome
-                                    ? "income"
-                                    : "expense"
-                            }"
-                        >
-                            ${sign}
-                            ${formatFinanceCurrency(
-                                transaction.amount
-                            )}
-
-                            <button
-                                class="finance-edit-button"
-                                data-finance-id="${transaction.id}"
-                                title="Editar movimentação"
-                            >
-                                ✎
-                            </button>
-
-                            <button
-                                class="finance-delete-button"
-                                data-finance-id="${transaction.id}"
-                                title="Excluir movimentação"
-                            >
-                                ×
-                            </button>
-
-                        </div>
-
-                    </div>
-                `;
-
-            }
-        ).join("");
-
-
-    financeTransactions
-    .querySelectorAll(
-        ".finance-edit-button"
-    )
-    .forEach(
-        (button) => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    editFinanceTransaction(
-                        button.dataset.financeId
-                    );
-
-                }
-            );
-
-        }
-    );
-    
-    financeTransactions
-        .querySelectorAll(
-            ".finance-delete-button"
-        )
-        .forEach(
-            (button) => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        deleteFinanceTransaction(
-                            button.dataset.financeId
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-}
-
-/* =========================
-   EDITAR
-========================= */
-
-function editFinanceTransaction(id) {
-
-    const transaction =
-        financeData.find(
-            (item) =>
-                String(item.id) === String(id)
-        );
-
-
-    if (!transaction) {
+    const visible = [...getFinanceVisibleData()].sort((a, b) => String(b.transaction_date || "").localeCompare(String(a.transaction_date || "")) || Number(b.id || 0) - Number(a.id || 0));
+    const monthCount = getFinanceMonthData().length;
+    if (financeResultsLabel) financeResultsLabel.textContent = `${visible.length} de ${monthCount} movimentações no mês selecionado.`;
+    if (!visible.length) {
+        financeTransactions.innerHTML = `<div class="finance-empty"><h3>${monthCount ? "Nenhum resultado" : "Nenhuma movimentação no mês"}</h3><p>${monthCount ? "Tente limpar os filtros ou buscar outro termo." : "Adicione sua primeira receita ou despesa."}</p></div>`;
         return;
     }
-
-
-    editingFinanceId =
-        transaction.id;
-
-
-    currentFinanceType =
-        transaction.type;
-
-
-    financeDescription.value =
-        transaction.description;
-
-
-    financeAmount.value =
-        transaction.amount;
-
-
-    financeCategory.value =
-        transaction.category;
-
-
-    financeDate.value =
-        transaction.transaction_date;
-
-
-    financeTypeButtons.forEach(
-        (button) => {
-
-            button.classList.toggle(
-                "active",
-                button.dataset.financeType ===
-                    currentFinanceType
-            );
-
-        }
-    );
-
-
-    financeSaveButton.textContent =
-        "Salvar alterações";
-
-
-    financeModal.classList.remove(
-        "hidden"
-    );
-
+    financeTransactions.innerHTML = visible.map(transaction => {
+        const isIncome = transaction.type === "income";
+        const sign = isIncome ? "+" : "−";
+        const icon = isIncome ? "↗" : "↘";
+        return `<div class="finance-transaction">
+            <div class="finance-transaction-info"><div class="finance-transaction-icon ${isIncome ? "is-income" : "is-expense"}">${icon}</div>
+            <div class="finance-transaction-text"><strong>${escapeHTML(transaction.description || "Sem descrição")}</strong><span>${escapeHTML(getFinanceCategoryName(transaction.category))} · ${formatFinanceDate(transaction.transaction_date)}</span></div></div>
+            <div class="finance-transaction-value ${isIncome ? "income" : "expense"}"><span>${sign} ${formatFinanceCurrency(transaction.amount)}</span>
+                <button class="finance-edit-button" data-finance-id="${transaction.id}" title="Editar">✎</button>
+                <button class="finance-delete-button" data-finance-id="${transaction.id}" title="Excluir">×</button>
+            </div></div>`;
+    }).join("");
+    financeTransactions.querySelectorAll(".finance-edit-button").forEach(button => button.addEventListener("click", () => editFinanceTransaction(button.dataset.financeId)));
+    financeTransactions.querySelectorAll(".finance-delete-button").forEach(button => button.addEventListener("click", () => deleteFinanceTransaction(button.dataset.financeId)));
 }
-
-
-/* =========================
-   CATEGORIAS
-========================= */
 
 function renderFinanceCategories() {
-
-    const expenses =
-        financeData.filter(
-            (transaction) =>
-                transaction.type ===
-                "expense"
-        );
-
-
-    if (expenses.length === 0) {
-
-        financeCategories.innerHTML = `
-            <div class="finance-empty">
-
-                <h3>
-                    Ainda não há dados
-                </h3>
-
-                <p>
-                    Suas categorias aparecerão aqui.
-                </p>
-
-            </div>
-        `;
-
+    const expenses = getFinanceMonthData().filter(t => t.type === "expense");
+    if (!expenses.length) {
+        financeCategories.innerHTML = `<div class="finance-empty"><h3>Ainda não há gastos</h3><p>As categorias do mês aparecerão aqui.</p></div>`;
         return;
-
     }
-
-
-    const categoryTotals = {};
-
-
-    expenses.forEach(
-        (transaction) => {
-
-            const category =
-                transaction.category;
-
-            const amount =
-                Number(transaction.amount) || 0;
-
-
-            categoryTotals[category] =
-                (categoryTotals[category] || 0) +
-                amount;
-
-        }
-    );
-
-
-    const totalExpenses =
-        expenses.reduce(
-            (total, transaction) =>
-                total +
-                (Number(transaction.amount) || 0),
-            0
-        );
-
-
-    const categories =
-        Object.entries(categoryTotals)
-            .sort(
-                (a, b) =>
-                    b[1] - a[1]
-            );
-
-
-    financeCategories.innerHTML =
-        categories.map(
-            ([category, amount]) => {
-
-                const percentage =
-                    totalExpenses > 0
-                        ? (
-                            amount /
-                            totalExpenses
-                        ) * 100
-                        : 0;
-
-
-                return `
-                    <div
-                        class="finance-category"
-                    >
-
-                        <div
-                            class="finance-category-header"
-                        >
-
-                            <span>
-                                ${getFinanceCategoryName(
-                                    category
-                                )}
-                            </span>
-
-                            <strong>
-                                ${formatFinanceCurrency(
-                                    amount
-                                )}
-                            </strong>
-
-                        </div>
-
-                        <div
-                            class="finance-category-bar"
-                        >
-
-                            <div
-                                class="finance-category-fill"
-                                style="width: ${percentage}%"
-                            ></div>
-
-                        </div>
-
-                    </div>
-                `;
-
-            }
-        ).join("");
-
+    const totals = {};
+    expenses.forEach(t => { totals[t.category] = (totals[t.category] || 0) + Number(t.amount || 0); });
+    const total = expenses.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    financeCategories.innerHTML = Object.entries(totals).sort((a,b) => b[1] - a[1]).map(([category, amount]) => {
+        const percentage = total ? (amount / total) * 100 : 0;
+        return `<div class="finance-category"><div class="finance-category-header"><span><i class="finance-category-dot"></i>${escapeHTML(getFinanceCategoryName(category))}</span><strong>${formatFinanceCurrency(amount)}</strong></div><div class="finance-category-bar"><div class="finance-category-fill" style="width:${percentage}%"></div></div><small>${percentage.toFixed(0)}% das saídas</small></div>`;
+    }).join("");
 }
 
+function renderFinanceBudgetChart() {
+    if (!financeMonthChart) return;
+    const monthData = getFinanceMonthData();
+    const income = monthData.filter(t => t.type === "income").reduce((sum,t) => sum + Number(t.amount || 0), 0);
+    const expenses = monthData.filter(t => t.type === "expense").reduce((sum,t) => sum + Number(t.amount || 0), 0);
+    const max = Math.max(income, expenses, 1);
+    financeMonthChart.innerHTML = `<div class="finance-chart-legend"><span><i class="income-dot"></i>Entradas</span><span><i class="expense-dot"></i>Saídas</span></div><div class="finance-chart-bars"><div class="finance-chart-column"><span>${formatFinanceCurrency(income)}</span><div class="finance-chart-track"><i class="income-bar" style="height:${Math.max(8, income/max*100)}%"></i></div><small>Entradas</small></div><div class="finance-chart-column"><span>${formatFinanceCurrency(expenses)}</span><div class="finance-chart-track"><i class="expense-bar" style="height:${Math.max(8, expenses/max*100)}%"></i></div><small>Saídas</small></div></div>`;
+}
+
+function renderFinanceInsights() {
+    if (!financeInsights) return;
+    const monthData = getFinanceMonthData();
+    const expenses = monthData.filter(t => t.type === "expense");
+    const income = monthData.filter(t => t.type === "income").reduce((sum,t) => sum + Number(t.amount || 0), 0);
+    const spent = expenses.reduce((sum,t) => sum + Number(t.amount || 0), 0);
+    const largest = [...expenses].sort((a,b) => Number(b.amount || 0) - Number(a.amount || 0))[0];
+    const average = expenses.length ? spent / expenses.length : 0;
+    const categoryTotals = {};
+    expenses.forEach(t => categoryTotals[t.category] = (categoryTotals[t.category] || 0) + Number(t.amount || 0));
+    const top = Object.entries(categoryTotals).sort((a,b) => b[1]-a[1])[0];
+    if (financeLargestExpense) financeLargestExpense.textContent = largest ? `${escapeHTML(largest.description)} · ${formatFinanceCurrency(largest.amount)}` : "—";
+    if (financeTopCategory) financeTopCategory.textContent = top ? `${getFinanceCategoryName(top[0])} · ${formatFinanceCurrency(top[1])}` : "—";
+    if (financeAverageExpense) financeAverageExpense.textContent = formatFinanceCurrency(average);
+    const cards = [];
+    if (!monthData.length) cards.push(["Comece pelo básico", "Registre entradas e saídas para o ORBIT montar seu resumo."]);
+    else if (income <= 0 && spent > 0) cards.push(["Atenção ao mês", "Você registrou saídas, mas nenhuma entrada neste período."]);
+    else if (income > 0 && spent <= income) cards.push(["Dentro do que entrou", `Você gastou ${((spent/income)*100).toFixed(0)}% do que entrou no mês.`]);
+    else if (income > 0) cards.push(["Saídas acima das entradas", `O mês está ${formatFinanceCurrency(spent-income)} acima do total de entradas.`]);
+    if (top) cards.push(["Onde mais saiu", `${getFinanceCategoryName(top[0])} representa ${((top[1]/Math.max(spent,1))*100).toFixed(0)}% das suas saídas.`]);
+    if (largest) cards.push(["Maior movimentação", `${largest.description} foi a maior saída registrada no período.`]);
+    financeInsights.innerHTML = cards.map(([title,text]) => `<article class="finance-insight"><span>ORBIT</span><strong>${title}</strong><p>${text}</p></article>`).join("");
+}
 
 /* =========================
    EXCLUIR
@@ -8471,42 +8250,41 @@ function formatFinanceDate(date) {
 
 
 function getFinanceCategoryName(category) {
-
-    const names = {
-
-        alimentacao:
-            "Alimentação",
-
-        transporte:
-            "Transporte",
-
-        casa:
-            "Casa",
-
-        lazer:
-            "Lazer",
-
-        estudos:
-            "Estudos",
-
-        saude:
-            "Saúde",
-
-        outros:
-            "Outros"
-
-    };
-
-
-    return names[category] ||
-        category;
-
+    return FINANCE_CATEGORY_NAMES[category] || category || "Outros";
 }
 
 
 /* =========================
    INICIALIZAR FINANÇAS
 ========================= */
+
+(function initFinanceControls() {
+    if (!financeMonthFilter) return;
+    financeMonthFilter.value = getFinanceMonthKey();
+    financePrevMonth?.addEventListener("click", () => {
+        const [y,m] = financeMonthFilter.value.split("-").map(Number);
+        financeMonthFilter.value = getFinanceMonthKey(new Date(y, m - 2, 1));
+        renderFinance();
+    });
+    financeNextMonth?.addEventListener("click", () => {
+        const [y,m] = financeMonthFilter.value.split("-").map(Number);
+        financeMonthFilter.value = getFinanceMonthKey(new Date(y, m, 1));
+        renderFinance();
+    });
+    [financeMonthFilter, financeSearch, financeTypeFilter, financeCategoryFilter].forEach(control => {
+        control?.addEventListener(control === financeSearch ? "input" : "change", renderFinance);
+    });
+    financeClearFilters?.addEventListener("click", () => {
+        financeSearch.value = "";
+        financeTypeFilter.value = "all";
+        financeCategoryFilter.value = "all";
+        renderFinance();
+    });
+    financeBudgetSave?.addEventListener("click", () => {
+        saveFinanceBudget(Number(financeBudgetInput.value || 0));
+        renderFinance();
+    });
+})();
 
 loadFinance();
 
@@ -10468,7 +10246,7 @@ function navigateToSavedOrbitPage() {
     const target = settings.rememberPage && settings.lastPage
         ? settings.lastPage
         : settings.defaultPage || "dashboard";
-    const allowed = ["dashboard", "tasks", "agenda", "projects", "studies", "finance", "animes", "movies", "series", "games", "settings"];
+    const allowed = ["dashboard", "tasks", "calendar", "projects", "studies", "finance", "fitness", "anime", "movies", "series", "games", "settings"];
     navigateToPage(allowed.includes(target) ? target : "dashboard");
 }
 
@@ -10523,7 +10301,8 @@ async function exportOrbitData() {
         const localKeys = [
             `orbitSettings:${userId}`,
             `orbitNotificationSettings:${userId}`,
-            `orbitStudies:${userId}`
+            `orbitStudies:${userId}`,
+            `orbitFitness:${userId}`
         ];
 
         localKeys.forEach((key) => {
@@ -10718,3 +10497,523 @@ window.addEventListener("orbit:events-updated", () => {
 });
 
 applyOrbitSettings();
+
+/* =====================================================
+   ORBIT — FITNESS
+===================================================== */
+(function initOrbitFitness() {
+    const days = [
+        ["monday", "Segunda"], ["tuesday", "Terça"], ["wednesday", "Quarta"],
+        ["thursday", "Quinta"], ["friday", "Sexta"], ["saturday", "Sábado"], ["sunday", "Domingo"]
+    ];
+    const defaultDay = () => ({ name: "", notes: "", completed: false, completionDates: [], exercises: [] });
+    const defaultData = () => ({
+        workouts: Object.fromEntries(days.map(([id]) => [id, defaultDay()])),
+        cardio: [],
+        measures: { height: "", weight: "", goalWeight: "" },
+        weightHistory: []
+    });
+    let selectedDay = "monday";
+
+    function key() {
+        return window.orbitUserId ? `orbitFitness:${window.orbitUserId}` : null;
+    }
+
+    function getData() {
+        const storageKey = key();
+        const base = defaultData();
+        if (!storageKey) return base;
+        try {
+            const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+            if (!saved || typeof saved !== "object") return base;
+            const data = {
+                ...base,
+                ...saved,
+                workouts: { ...base.workouts, ...(saved.workouts || {}) },
+                measures: { ...base.measures, ...(saved.measures || {}) },
+                cardio: Array.isArray(saved.cardio) ? saved.cardio : [],
+                weightHistory: Array.isArray(saved.weightHistory) ? saved.weightHistory : []
+            };
+            days.forEach(([id]) => {
+                data.workouts[id] = { ...defaultDay(), ...(data.workouts[id] || {}) };
+                data.workouts[id].completionDates = Array.isArray(data.workouts[id].completionDates) ? data.workouts[id].completionDates : [];
+                data.workouts[id].exercises = Array.isArray(data.workouts[id].exercises) ? data.workouts[id].exercises : [];
+            });
+            return data;
+        } catch {
+            return base;
+        }
+    }
+
+    function saveData(data) {
+        const storageKey = key();
+        if (storageKey) localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+
+    function escape(value) {
+        return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
+    }
+
+    function currentMonth() {
+        const input = document.getElementById("fitness-summary-month");
+        return input?.value || new Date().toISOString().slice(0, 7);
+    }
+
+    function formatNumber(value, digits = 1) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return "0";
+        return number.toLocaleString("pt-BR", { maximumFractionDigits: digits });
+    }
+
+    function renderWorkout() {
+        const data = getData();
+        const workout = data.workouts[selectedDay] || defaultDay();
+        const dayName = days.find(([id]) => id === selectedDay)?.[1] || "Dia";
+        const nameInput = document.getElementById("fitness-day-name");
+        const notesInput = document.getElementById("fitness-day-notes");
+        const completed = document.getElementById("fitness-day-completed");
+        const title = document.getElementById("fitness-exercises-title");
+        if (nameInput) nameInput.value = workout.name || "";
+        if (notesInput) notesInput.value = workout.notes || "";
+        if (completed) completed.checked = workout.completionDates.includes(new Date().toISOString().slice(0, 10));
+        if (title) title.textContent = `Exercícios de ${dayName.toLowerCase()}`;
+        document.querySelectorAll(".fitness-day-tab").forEach(tab => tab.classList.toggle("active", tab.dataset.fitnessDay === selectedDay));
+
+        const list = document.getElementById("fitness-exercise-list");
+        const empty = document.getElementById("fitness-exercise-empty");
+        if (!list || !empty) return;
+        list.innerHTML = "";
+        empty.classList.toggle("hidden", workout.exercises.length > 0);
+        workout.exercises.forEach((exercise, index) => {
+            const row = document.createElement("div");
+            row.className = "fitness-exercise-row";
+            row.innerHTML = `
+                <label class="fitness-exercise-check"><input type="checkbox" data-exercise-completed="${index}" ${exercise.completed ? "checked" : ""}><span></span></label>
+                <input class="fitness-exercise-name" data-exercise-field="name" data-index="${index}" value="${escape(exercise.name)}" placeholder="Ex.: Supino reto">
+                <input type="number" min="0" step="1" data-exercise-field="sets" data-index="${index}" value="${exercise.sets ?? ""}" placeholder="Séries" aria-label="Séries">
+                <input type="number" min="0" step="1" data-exercise-field="reps" data-index="${index}" value="${exercise.reps ?? ""}" placeholder="Reps" aria-label="Repetições">
+                <input type="number" min="0" step="0.5" data-exercise-field="weight" data-index="${index}" value="${exercise.weight ?? ""}" placeholder="kg" aria-label="Carga">
+                <input data-exercise-field="notes" data-index="${index}" value="${escape(exercise.notes)}" placeholder="Observação" aria-label="Observação">
+                <button type="button" class="fitness-delete-button" data-delete-exercise="${index}" aria-label="Excluir exercício">×</button>`;
+            list.appendChild(row);
+        });
+        updateWorkoutSummary();
+    }
+
+    function updateWorkoutSummary() {
+        const data = getData();
+        const month = currentMonth();
+        let sessions = 0, daysWithWorkout = 0, exercises = 0, sets = 0;
+        days.forEach(([id]) => {
+            const workout = data.workouts[id] || defaultDay();
+            if (workout.name || workout.exercises.length) daysWithWorkout++;
+            sessions += workout.completionDates.filter(date => String(date).slice(0, 7) === month).length;
+            workout.exercises.forEach(ex => {
+                exercises++;
+                sets += Number(ex.sets) || 0;
+            });
+        });
+        // Weekly plans are not date-bound; completed sessions are shown as the current plan summary.
+        const monthLabel = month ? new Date(`${month}-01T12:00:00`) : new Date();
+        const monthDays = new Date(monthLabel.getFullYear(), monthLabel.getMonth() + 1, 0).getDate();
+        const estimatedSessions = Math.min(sessions, monthDays);
+        document.getElementById("fitness-summary-workout-sessions")?.replaceChildren(String(estimatedSessions));
+        document.getElementById("fitness-summary-workout-days")?.replaceChildren(String(daysWithWorkout));
+        document.getElementById("fitness-summary-workout-exercises")?.replaceChildren(String(exercises));
+        document.getElementById("fitness-summary-workout-sets")?.replaceChildren(String(sets));
+    }
+
+    function renderCardio() {
+        const data = getData();
+        const month = currentMonth();
+        const activities = data.cardio.filter(item => String(item.date || "").slice(0, 7) === month).sort((a,b) => String(b.date).localeCompare(String(a.date)));
+        const distance = activities.reduce((sum, item) => sum + (Number(item.distance) || 0), 0);
+        const duration = activities.reduce((sum, item) => sum + (Number(item.duration) || 0), 0);
+        const calories = activities.reduce((sum, item) => sum + (Number(item.calories) || 0), 0);
+        document.getElementById("fitness-cardio-count")?.replaceChildren(String(activities.length));
+        document.getElementById("fitness-cardio-distance")?.replaceChildren(`${formatNumber(distance, 2)} km`);
+        document.getElementById("fitness-cardio-duration")?.replaceChildren(`${formatNumber(duration, 0)} min`);
+        document.getElementById("fitness-cardio-calories")?.replaceChildren(`${formatNumber(calories, 0)} kcal`);
+        const list = document.getElementById("fitness-cardio-list");
+        const empty = document.getElementById("fitness-cardio-empty");
+        if (!list || !empty) return;
+        list.innerHTML = "";
+        empty.classList.toggle("hidden", activities.length > 0);
+        activities.forEach(activity => {
+            const row = document.createElement("div");
+            row.className = "fitness-activity-row";
+            const type = activity.type === "bike" ? "Pedal" : "Caminhada";
+            row.innerHTML = `<div class="fitness-activity-main"><strong>${type}</strong><span>${new Date(`${activity.date}T12:00:00`).toLocaleDateString("pt-BR")}${activity.notes ? ` · ${escape(activity.notes)}` : ""}</span></div><div class="fitness-activity-metrics"><span>${formatNumber(activity.distance, 2)} km</span><span>${formatNumber(activity.duration, 0)} min</span>${Number(activity.calories) ? `<span>${formatNumber(activity.calories, 0)} kcal</span>` : ""}</div><button type="button" class="fitness-delete-button" data-delete-cardio="${escape(activity.id)}" aria-label="Excluir atividade">×</button>`;
+            list.appendChild(row);
+        });
+    }
+
+    function bmiValue(height, weight) {
+        const meters = Number(height) / 100;
+        const kg = Number(weight);
+        if (!meters || !kg || meters <= 0 || kg <= 0) return null;
+        return kg / (meters * meters);
+    }
+
+    function bmiLabel(value) {
+        if (value == null) return "Informe altura e peso.";
+        if (value < 18.5) return "Abaixo de 18,5";
+        if (value < 25) return "Faixa de 18,5 a 24,9";
+        if (value < 30) return "Faixa de 25,0 a 29,9";
+        return "30,0 ou mais";
+    }
+
+    function renderBMI() {
+        const data = getData();
+        const height = data.measures.height;
+        const weight = data.measures.weight;
+        const goal = data.measures.goalWeight;
+        const heightInput = document.getElementById("fitness-height");
+        const weightInput = document.getElementById("fitness-weight");
+        const goalInput = document.getElementById("fitness-goal-weight");
+        if (heightInput) heightInput.value = height || "";
+        if (weightInput) weightInput.value = weight || "";
+        if (goalInput) goalInput.value = goal || "";
+        const value = bmiValue(height, weight);
+        const valueElement = document.getElementById("fitness-bmi-value");
+        const label = document.getElementById("fitness-bmi-label");
+        if (valueElement) valueElement.textContent = value == null ? "—" : value.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+        if (label) label.textContent = bmiLabel(value);
+        const marker = document.getElementById("fitness-bmi-marker");
+        if (marker) marker.style.left = `${Math.max(3, Math.min(97, ((value || 0) / 40) * 100))}%`;
+
+        const month = currentMonth();
+        const history = data.weightHistory.filter(item => String(item.date || "").slice(0, 7) === month).sort((a,b) => String(a.date).localeCompare(String(b.date)));
+        const start = history[0]?.weight;
+        const end = history[history.length - 1]?.weight;
+        const change = start != null && end != null ? Number(end) - Number(start) : null;
+        document.getElementById("fitness-month-weight-start")?.replaceChildren(start != null ? `${formatNumber(start)} kg` : "—");
+        document.getElementById("fitness-month-weight-end")?.replaceChildren(end != null ? `${formatNumber(end)} kg` : "—");
+        document.getElementById("fitness-month-weight-change")?.replaceChildren(change != null ? `${change > 0 ? "+" : ""}${formatNumber(change)} kg` : "—");
+        document.getElementById("fitness-month-weight-count")?.replaceChildren(String(history.length));
+
+        const list = document.getElementById("fitness-weight-history");
+        const empty = document.getElementById("fitness-weight-empty");
+        if (!list || !empty) return;
+        list.innerHTML = "";
+        empty.classList.toggle("hidden", history.length > 0);
+        history.slice().reverse().forEach(item => {
+            const row = document.createElement("div");
+            row.className = "fitness-weight-row";
+            const bmi = bmiValue(data.measures.height, item.weight);
+            row.innerHTML = `<div><strong>${new Date(`${item.date}T12:00:00`).toLocaleDateString("pt-BR")}</strong><span>${bmi == null ? "IMC —" : `IMC ${bmi.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}`}</span></div><strong>${formatNumber(item.weight)} kg</strong><button type="button" class="fitness-delete-button" data-delete-weight="${escape(item.id)}" aria-label="Excluir registro">×</button>`;
+            list.appendChild(row);
+        });
+    }
+
+    function renderAll() {
+        renderWorkout();
+        renderCardio();
+        renderBMI();
+    }
+
+    function addExercise() {
+        const data = getData();
+        data.workouts[selectedDay].exercises.push({ name: "", sets: 3, reps: 10, weight: "", notes: "", completed: false });
+        saveData(data);
+        window.dispatchEvent(new CustomEvent("orbit:fitness-updated"));
+        renderWorkout();
+        const inputs = document.querySelectorAll('.fitness-exercise-name');
+        inputs[inputs.length - 1]?.focus();
+    }
+
+    function saveCurrentWorkoutField() {
+        const data = getData();
+        const workout = data.workouts[selectedDay];
+        workout.name = document.getElementById("fitness-day-name")?.value.trim() || "";
+        workout.notes = document.getElementById("fitness-day-notes")?.value.trim() || "";
+        const checked = document.getElementById("fitness-day-completed")?.checked === true;
+        workout.completed = checked;
+        const today = new Date().toISOString().slice(0, 10);
+        workout.completionDates = Array.isArray(workout.completionDates) ? workout.completionDates : [];
+        if (checked && !workout.completionDates.includes(today)) workout.completionDates.push(today);
+        if (!checked) workout.completionDates = workout.completionDates.filter(date => date !== today);
+        saveData(data);
+        window.dispatchEvent(new CustomEvent("orbit:fitness-updated"));
+        updateWorkoutSummary();
+    }
+
+    function saveMeasures() {
+        const data = getData();
+        data.measures = {
+            height: document.getElementById("fitness-height")?.value || "",
+            weight: document.getElementById("fitness-weight")?.value || "",
+            goalWeight: document.getElementById("fitness-goal-weight")?.value || ""
+        };
+        saveData(data);
+        window.dispatchEvent(new CustomEvent("orbit:fitness-updated"));
+        renderBMI();
+        const status = document.getElementById("fitness-bmi-status");
+        if (status) { status.textContent = "Medidas salvas."; status.className = "settings-status success"; }
+    }
+
+    function registerWeight() {
+        const data = getData();
+        const weight = Number(document.getElementById("fitness-weight")?.value);
+        if (!weight || weight <= 0) {
+            const status = document.getElementById("fitness-bmi-status");
+            if (status) { status.textContent = "Informe um peso válido."; status.className = "settings-status error"; }
+            return;
+        }
+        const date = new Date().toISOString().slice(0, 10);
+        data.weightHistory.push({ id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, date, weight });
+        data.measures.weight = String(weight);
+        saveData(data);
+        window.dispatchEvent(new CustomEvent("orbit:fitness-updated"));
+        renderBMI();
+        const status = document.getElementById("fitness-bmi-status");
+        if (status) { status.textContent = "Peso registrado."; status.className = "settings-status success"; }
+    }
+
+    function openCardioForm() {
+        document.getElementById("fitness-cardio-form")?.classList.remove("hidden");
+        const date = document.getElementById("fitness-cardio-date");
+        if (date && !date.value) date.value = new Date().toISOString().slice(0, 10);
+        document.getElementById("fitness-cardio-distance-input")?.focus();
+    }
+
+    function saveCardio() {
+        const data = getData();
+        const date = document.getElementById("fitness-cardio-date")?.value;
+        const distance = Number(document.getElementById("fitness-cardio-distance-input")?.value);
+        const duration = Number(document.getElementById("fitness-cardio-duration-input")?.value);
+        if (!date || (!distance && !duration)) {
+            const status = document.getElementById("fitness-cardio-status");
+            if (status) { status.textContent = "Informe data e distância ou duração."; status.className = "settings-status error"; }
+            return;
+        }
+        data.cardio.push({
+            id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            type: document.getElementById("fitness-cardio-type")?.value || "walk",
+            date,
+            distance: distance || 0,
+            duration: duration || 0,
+            calories: Number(document.getElementById("fitness-cardio-calories-input")?.value) || 0,
+            notes: document.getElementById("fitness-cardio-notes")?.value.trim() || ""
+        });
+        saveData(data);
+        ["fitness-cardio-distance-input", "fitness-cardio-duration-input", "fitness-cardio-calories-input", "fitness-cardio-notes"].forEach(id => { const el=document.getElementById(id); if(el) el.value=""; });
+        document.getElementById("fitness-cardio-form")?.classList.add("hidden");
+        renderCardio();
+    }
+
+    document.querySelectorAll(".fitness-nav-item").forEach(button => button.addEventListener("click", () => {
+        const section = document.getElementById(button.dataset.fitnessSection);
+        if (!section) return;
+        section.scrollIntoView({ behavior: getOrbitSettings().reducedMotion ? "auto" : "smooth", block: "start" });
+        document.querySelectorAll(".fitness-nav-item").forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+    }));
+    document.querySelectorAll(".fitness-day-tab").forEach(button => button.addEventListener("click", () => {
+        selectedDay = button.dataset.fitnessDay || "monday";
+        renderWorkout();
+    }));
+    document.getElementById("fitness-day-name")?.addEventListener("input", saveCurrentWorkoutField);
+    document.getElementById("fitness-day-notes")?.addEventListener("input", saveCurrentWorkoutField);
+    document.getElementById("fitness-day-completed")?.addEventListener("change", saveCurrentWorkoutField);
+    document.getElementById("fitness-add-exercise")?.addEventListener("click", addExercise);
+    document.getElementById("fitness-summary-month")?.addEventListener("change", renderAll);
+    document.getElementById("fitness-add-cardio")?.addEventListener("click", openCardioForm);
+    document.getElementById("fitness-cancel-cardio")?.addEventListener("click", () => document.getElementById("fitness-cardio-form")?.classList.add("hidden"));
+    document.getElementById("fitness-save-cardio")?.addEventListener("click", saveCardio);
+    document.getElementById("fitness-save-measures")?.addEventListener("click", saveMeasures);
+    document.getElementById("fitness-register-weight")?.addEventListener("click", registerWeight);
+
+    document.getElementById("fitness-exercise-list")?.addEventListener("input", event => {
+        const field = event.target.closest("[data-exercise-field]");
+        if (!field) return;
+        const data = getData();
+        const index = Number(field.dataset.index);
+        const keyName = field.dataset.exerciseField;
+        if (!data.workouts[selectedDay]?.exercises[index]) return;
+        data.workouts[selectedDay].exercises[index][keyName] = field.value;
+        saveData(data);
+        window.dispatchEvent(new CustomEvent("orbit:fitness-updated"));
+        updateWorkoutSummary();
+    });
+    document.getElementById("fitness-exercise-list")?.addEventListener("change", event => {
+        const check = event.target.closest("[data-exercise-completed]");
+        if (!check) return;
+        const data = getData();
+        const index = Number(check.dataset.exerciseCompleted);
+        if (data.workouts[selectedDay]?.exercises[index]) data.workouts[selectedDay].exercises[index].completed = check.checked;
+        saveData(data);
+    });
+    document.getElementById("fitness-exercise-list")?.addEventListener("click", event => {
+        const button = event.target.closest("[data-delete-exercise]");
+        if (!button) return;
+        const data = getData();
+        data.workouts[selectedDay].exercises.splice(Number(button.dataset.deleteExercise), 1);
+        saveData(data);
+        window.dispatchEvent(new CustomEvent("orbit:fitness-updated"));
+        renderWorkout();
+    });
+    document.getElementById("fitness-cardio-list")?.addEventListener("click", event => {
+        const button = event.target.closest("[data-delete-cardio]");
+        if (!button) return;
+        const data = getData();
+        data.cardio = data.cardio.filter(item => String(item.id) !== String(button.dataset.deleteCardio));
+        saveData(data);
+        window.dispatchEvent(new CustomEvent("orbit:fitness-updated"));
+        renderCardio();
+    });
+    document.getElementById("fitness-weight-history")?.addEventListener("click", event => {
+        const button = event.target.closest("[data-delete-weight]");
+        if (!button) return;
+        const data = getData();
+        data.weightHistory = data.weightHistory.filter(item => String(item.id) !== String(button.dataset.deleteWeight));
+        saveData(data);
+        window.dispatchEvent(new CustomEvent("orbit:fitness-updated"));
+        renderBMI();
+    });
+
+    const monthInput = document.getElementById("fitness-summary-month");
+    if (monthInput) monthInput.value = new Date().toISOString().slice(0, 7);
+
+    window.addEventListener("orbit:auth-changed", event => {
+        if (event.detail?.user) renderAll();
+    });
+    renderAll();
+})();
+
+/* =====================================================
+   ORBIT — FITNESS NO DASHBOARD
+===================================================== */
+(function initDashboardFitness() {
+    const dayMap = [
+        ["sunday", "Domingo"], ["monday", "Segunda"], ["tuesday", "Terça"],
+        ["wednesday", "Quarta"], ["thursday", "Quinta"], ["friday", "Sexta"], ["saturday", "Sábado"]
+    ];
+
+    function storageKey() {
+        return window.orbitUserId ? `orbitFitness:${window.orbitUserId}` : null;
+    }
+
+    function getFitnessData() {
+        const key = storageKey();
+        if (!key) return null;
+        try {
+            const saved = JSON.parse(localStorage.getItem(key) || "null");
+            return saved && typeof saved === "object" ? saved : null;
+        } catch {
+            return null;
+        }
+    }
+
+    function render() {
+        const name = document.getElementById("dashboard-fitness-workout-name");
+        const meta = document.getElementById("dashboard-fitness-workout-meta");
+        const label = document.getElementById("dashboard-fitness-day-label");
+        const status = document.getElementById("dashboard-fitness-status");
+        const count = document.getElementById("dashboard-fitness-exercise-count");
+        const next = document.getElementById("dashboard-fitness-next");
+        if (!name || !meta || !label || !status || !count || !next) return;
+
+        const data = getFitnessData();
+        const today = new Date();
+        const [dayId, dayName] = dayMap[today.getDay()];
+        const workout = data?.workouts?.[dayId] || null;
+        const exercises = Array.isArray(workout?.exercises) ? workout.exercises : [];
+        const completedToday = Array.isArray(workout?.completionDates)
+            ? workout.completionDates.includes(today.toISOString().slice(0, 10))
+            : false;
+
+        label.textContent = `HOJE · ${dayName.toUpperCase()}`;
+        count.textContent = `${exercises.length} ${exercises.length === 1 ? "exercício" : "exercícios"}`;
+        next.textContent = workout?.notes || "Sua rotina de hoje";
+        status.classList.toggle("is-done", completedToday);
+        status.textContent = completedToday ? "✓ Concluído" : (workout?.name || exercises.length ? "Pendente" : "Sem treino");
+
+        if (workout?.name) {
+            name.textContent = workout.name;
+            meta.textContent = workout.notes || `${exercises.length} ${exercises.length === 1 ? "exercício planejado" : "exercícios planejados"}`;
+        } else if (exercises.length) {
+            name.textContent = "Treino do dia";
+            meta.textContent = `${exercises.length} ${exercises.length === 1 ? "exercício planejado" : "exercícios planejados"}`;
+        } else {
+            name.textContent = "Dia sem treino cadastrado";
+            meta.textContent = "Você pode configurar este dia na aba Fitness.";
+        }
+    }
+
+    document.getElementById("dashboard-fitness-link")?.addEventListener("click", event => {
+        event.preventDefault();
+        navigateToPage("fitness");
+    });
+
+    window.addEventListener("orbit:auth-changed", () => setTimeout(render, 50));
+    window.addEventListener("storage", event => {
+        if (event.key === storageKey()) render();
+    });
+    window.addEventListener("orbit:fitness-updated", render);
+    render();
+})();
+
+/* =====================================================
+   ORBIT — FOTO DO PERFIL
+===================================================== */
+(function initOrbitProfilePhoto() {
+    function photoKey() {
+        return window.orbitUserId ? `orbitAvatarPhoto:${window.orbitUserId}` : null;
+    }
+    function applyPhoto() {
+        const avatar = document.getElementById("settings-avatar");
+        if (!avatar) return;
+        const photo = photoKey() ? localStorage.getItem(photoKey()) : null;
+        let image = avatar.querySelector("img");
+        if (photo) {
+            if (!image) {
+                image = document.createElement("img");
+                avatar.replaceChildren(image);
+            }
+            image.src = photo;
+            image.alt = "Foto do perfil";
+            image.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;";
+            avatar.classList.add("has-photo");
+        } else {
+            if (image) image.remove();
+            avatar.classList.remove("has-photo");
+            const name = document.getElementById("settings-profile-name")?.textContent?.trim() || "Celen";
+            avatar.textContent = name.charAt(0).toUpperCase();
+        }
+    }
+    const fileInput = document.getElementById("settings-avatar-file");
+    document.getElementById("settings-avatar-upload")?.addEventListener("click", () => fileInput?.click());
+    fileInput?.addEventListener("change", () => {
+        const file = fileInput.files?.[0];
+        if (!file) return;
+        if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return;
+        if (file.size > 2 * 1024 * 1024) {
+            setSettingsStatus("settings-avatar-status", "Escolha uma imagem de até 2 MB.", "error");
+            fileInput.value = "";
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+            const storageKey = photoKey();
+            if (!storageKey) return;
+            try {
+                localStorage.setItem(storageKey, reader.result);
+                applyPhoto();
+                setSettingsStatus("settings-avatar-status", "Foto atualizada.", "success");
+            } catch {
+                setSettingsStatus("settings-avatar-status", "Não foi possível salvar esta foto neste navegador.", "error");
+            }
+            fileInput.value = "";
+        };
+        reader.readAsDataURL(file);
+    });
+    document.getElementById("settings-avatar-remove")?.addEventListener("click", () => {
+        const storageKey = photoKey();
+        if (storageKey) localStorage.removeItem(storageKey);
+        applyPhoto();
+        setSettingsStatus("settings-avatar-status", "Foto removida.", "success");
+    });
+    window.addEventListener("orbit:auth-changed", () => setTimeout(applyPhoto, 0));
+    setTimeout(applyPhoto, 0);
+})();

@@ -7384,3 +7384,395 @@ body.orbit-reduced-motion *::after {
     .settings-info-list > div, .settings-session-details > div { align-items: flex-start; flex-direction: column; gap: 5px; }
     .settings-info-list strong, .settings-session-details strong { max-width: 100%; text-align: left; }
 }
+
+/* =====================================================
+   ORBIT — FITNESS
+===================================================== */
+.fitness-page-header { align-items: flex-end; }
+.fitness-eyebrow {
+    display: block;
+    margin-bottom: 7px;
+    color: #a78bfa;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+.fitness-month-picker { display:flex; align-items:flex-end; gap:8px; }
+.fitness-month-picker label { display:block; color:var(--text-muted); font-size:10px; }
+.fitness-month-picker input { width:145px; padding:10px 11px; border:1px solid var(--border); border-radius:9px; background:var(--surface); color:var(--text); outline:none; }
+.fitness-month-picker input:focus { border-color:var(--accent); }
+.fitness-nav { display:flex; gap:7px; margin:0 0 24px; padding-bottom:2px; overflow-x:auto; scrollbar-width:none; }
+.fitness-nav::-webkit-scrollbar { display:none; }
+.fitness-nav-item { flex:0 0 auto; border:1px solid var(--border); border-radius:9px; padding:9px 14px; background:var(--surface); color:var(--text-secondary); font-size:11px; cursor:pointer; transition:.2s ease; }
+.fitness-nav-item:hover { color:var(--text); border-color:var(--text-muted); }
+.fitness-nav-item.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.fitness-section { scroll-margin-top:90px; margin-bottom:42px; }
+.fitness-section-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:18px; }
+.fitness-section-heading h2 { margin:0 0 6px; font-size:18px; }
+.fitness-section-heading p { margin:0; color:var(--text-secondary); font-size:12px; line-height:1.5; }
+.fitness-week-tabs { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:7px; margin-bottom:12px; }
+.fitness-day-tab { min-width:0; display:flex; flex-direction:column; gap:4px; align-items:flex-start; padding:11px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-secondary); text-align:left; cursor:pointer; }
+.fitness-day-tab strong { color:var(--text); font-size:10px; letter-spacing:.5px; }
+.fitness-day-tab span { overflow:hidden; width:100%; color:var(--text-muted); font-size:9px; text-overflow:ellipsis; white-space:nowrap; }
+.fitness-day-tab.active { border-color:var(--accent); background:color-mix(in srgb, var(--accent) 9%, var(--surface)); box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent); }
+.fitness-day-tab.active strong { color:var(--accent); }
+.fitness-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+.fitness-workout-editor { display:grid; gap:12px; }
+.fitness-workout-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; }
+.fitness-workout-title-fields { flex:1; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.fitness-field { display:flex; flex-direction:column; gap:7px; min-width:0; }
+.fitness-field label, .settings-field-label { color:var(--text-secondary); font-size:10px; font-weight:600; }
+.fitness-field input, .fitness-field select { width:100%; min-width:0; padding:10px 11px; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); color:var(--text); outline:none; font:inherit; font-size:12px; }
+.fitness-field input:focus, .fitness-field select:focus { border-color:var(--accent); }
+.fitness-complete-toggle { display:flex; align-items:center; gap:8px; flex:0 0 auto; padding:10px 12px; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); color:var(--text-secondary); font-size:11px; cursor:pointer; }
+.fitness-complete-toggle input { accent-color:var(--accent); }
+.fitness-card-header { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:16px; }
+.fitness-card-header h3 { margin:0; font-size:14px; }
+.fitness-exercise-list { display:grid; gap:7px; }
+.fitness-exercise-row { display:grid; grid-template-columns:28px minmax(180px,1.6fr) 90px 90px 90px minmax(130px,1fr) 34px; gap:7px; align-items:center; }
+.fitness-exercise-row input { width:100%; padding:9px 9px; border:1px solid var(--border); border-radius:8px; background:var(--surface-2); color:var(--text); outline:none; font:inherit; font-size:11px; }
+.fitness-exercise-row input:focus { border-color:var(--accent); }
+.fitness-exercise-name { min-width:0; }
+.fitness-exercise-check { display:flex; justify-content:center; cursor:pointer; }
+.fitness-exercise-check input { width:15px; height:15px; accent-color:var(--accent); }
+.fitness-delete-button { width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text-muted); cursor:pointer; font-size:18px; line-height:1; }
+.fitness-delete-button:hover { border-color:var(--danger); color:var(--danger); }
+.fitness-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; min-height:110px; border:1px dashed var(--border); border-radius:10px; color:var(--text-muted); text-align:center; }
+.fitness-empty strong { color:var(--text-secondary); font-size:12px; }
+.fitness-empty span { max-width:420px; font-size:10px; line-height:1.5; }
+.fitness-summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:12px; }
+.fitness-summary-card { min-width:0; padding:16px; border:1px solid var(--border); border-radius:11px; background:var(--surface); }
+.fitness-summary-card span, .fitness-summary-card small { display:block; color:var(--text-muted); font-size:10px; }
+.fitness-summary-card strong { display:block; margin:7px 0 4px; color:var(--text); font-size:21px; letter-spacing:-.4px; }
+.fitness-summary-card small { font-size:9px; }
+.fitness-cardio-form { margin-bottom:12px; }
+.fitness-form-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.fitness-field-wide { grid-column:span 2; }
+.fitness-actions { display:flex; align-items:center; gap:10px; margin-top:15px; }
+.fitness-actions .settings-status { flex:1; }
+.fitness-activity-list, .fitness-weight-history { display:grid; gap:7px; }
+.fitness-activity-row, .fitness-weight-row { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--border); }
+.fitness-activity-row:last-child, .fitness-weight-row:last-child { border-bottom:0; }
+.fitness-activity-main strong, .fitness-activity-main span, .fitness-weight-row div strong, .fitness-weight-row div span { display:block; }
+.fitness-activity-main strong, .fitness-weight-row div strong { color:var(--text); font-size:12px; }
+.fitness-activity-main span, .fitness-weight-row div span { margin-top:3px; color:var(--text-muted); font-size:10px; }
+.fitness-activity-metrics { display:flex; gap:14px; color:var(--text-secondary); font-size:10px; white-space:nowrap; }
+.fitness-bmi-grid { display:grid; grid-template-columns:1.4fr .6fr; gap:12px; }
+.fitness-bmi-result-card { display:flex; flex-direction:column; justify-content:center; }
+.fitness-bmi-number { margin:4px 0 2px; font-size:42px; line-height:1; letter-spacing:-1.5px; }
+.fitness-bmi-label { color:var(--text-secondary); font-size:11px; }
+.fitness-bmi-result-card small { margin-top:18px; color:var(--text-muted); font-size:9px; line-height:1.5; }
+.fitness-bmi-bar { position:relative; height:7px; margin-top:16px; border-radius:99px; background:linear-gradient(90deg,#60a5fa 0 46.25%,#22c55e 46.25% 62.5%,#f59e0b 62.5% 75%,#ef4444 75%); opacity:.8; }
+.fitness-bmi-bar span { position:absolute; top:50%; width:11px; height:11px; transform:translate(-50%,-50%); border:2px solid var(--surface); border-radius:50%; background:var(--text); box-shadow:0 0 0 1px var(--border); }
+.settings-avatar.has-photo { overflow:hidden; padding:0; }
+.settings-avatar-photo { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:14px; padding:13px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); }
+.settings-avatar-photo > div:first-child small { display:block; margin-top:4px; color:var(--text-muted); font-size:9px; }
+.settings-avatar-photo-actions { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.settings-avatar-remove { color:#fca5a5; }
+
+@media (max-width: 1000px) {
+    .fitness-week-tabs { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .fitness-exercise-row { grid-template-columns:28px minmax(140px,1.5fr) 70px 70px 80px minmax(110px,1fr) 34px; }
+    .fitness-bmi-grid { grid-template-columns:1fr; }
+}
+@media (max-width: 760px) {
+    .fitness-page-header { align-items:flex-start; flex-direction:column; }
+    .fitness-month-picker { width:100%; align-items:flex-start; flex-direction:column; }
+    .fitness-month-picker input { width:100%; }
+    .fitness-week-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .fitness-workout-head { align-items:stretch; flex-direction:column; }
+    .fitness-workout-title-fields, .fitness-form-grid { grid-template-columns:1fr; }
+    .fitness-field-wide { grid-column:auto; }
+    .fitness-summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .fitness-exercise-row { grid-template-columns:28px minmax(0,1fr) 70px 70px 70px 34px; }
+    .fitness-exercise-row input[data-exercise-field="notes"] { grid-column:2 / -1; }
+    .fitness-activity-row { grid-template-columns:1fr auto; }
+    .fitness-activity-metrics { grid-column:1 / 2; }
+    .fitness-activity-row .fitness-delete-button { grid-column:2; grid-row:1 / span 2; }
+    .fitness-actions { align-items:stretch; flex-direction:column; }
+    .fitness-actions button { width:100%; }
+    .settings-avatar-photo { align-items:flex-start; flex-direction:column; }
+}
+@media (max-width: 460px) {
+    .fitness-summary-grid { grid-template-columns:1fr; }
+    .fitness-exercise-row { grid-template-columns:28px minmax(0,1fr) 64px 64px 34px; }
+    .fitness-exercise-row input[data-exercise-field="weight"] { grid-column:2 / 3; }
+    .fitness-exercise-row input[data-exercise-field="notes"] { grid-column:2 / -1; }
+}
+
+
+/* =====================================================
+   ORBIT — AJUSTES FITNESS + DASHBOARD
+===================================================== */
+.fitness-section + .fitness-section {
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+}
+.fitness-workout-editor {
+    gap: 16px;
+}
+.fitness-workout-head,
+.fitness-card {
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
+.fitness-card + .fitness-card {
+    margin-top: 4px;
+}
+.fitness-week-tabs {
+    gap: 9px;
+    margin-bottom: 16px;
+}
+.fitness-day-tab {
+    min-height: 64px;
+    transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+.fitness-day-tab:hover { transform: translateY(-1px); }
+.fitness-complete-toggle {
+    position: relative;
+    min-width: 154px;
+    justify-content: space-between;
+    user-select: none;
+}
+.fitness-complete-toggle input,
+.fitness-exercise-check input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.fitness-complete-toggle::after {
+    content: "";
+    width: 34px;
+    height: 20px;
+    flex: 0 0 34px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 2px var(--surface);
+    transition: .2s ease;
+}
+.fitness-complete-toggle:has(input:checked) {
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+    color: var(--text);
+}
+.fitness-complete-toggle:has(input:checked)::after {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 5px var(--surface);
+}
+.fitness-exercise-check {
+    position: relative;
+    width: 28px;
+    height: 34px;
+    align-items: center;
+}
+.fitness-exercise-check span {
+    width: 19px;
+    height: 19px;
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface-2);
+    transition: .18s ease;
+}
+.fitness-exercise-check input:checked + span {
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.fitness-exercise-check input:checked + span::after {
+    content: "✓";
+    display: block;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 17px;
+    text-align: center;
+}
+.fitness-month-picker input[type="month"],
+.fitness-field input[type="date"] {
+    color-scheme: light;
+}
+.dashboard-fitness-panel { min-width: 0; }
+.dashboard-fitness-content {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-2);
+}
+.dashboard-fitness-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    font-size: 19px;
+}
+.dashboard-fitness-label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--accent);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+.dashboard-fitness-main h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 14px;
+}
+.dashboard-fitness-main p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 10px;
+    line-height: 1.4;
+}
+.dashboard-fitness-status {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    background: var(--surface);
+    font-size: 9px;
+    white-space: nowrap;
+}
+.dashboard-fitness-status.is-done {
+    border-color: color-mix(in srgb, #22c55e 45%, var(--border));
+    color: #86efac;
+}
+.dashboard-fitness-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+    color: var(--text-muted);
+    font-size: 9px;
+}
+@media (max-width: 760px) {
+    .fitness-section + .fitness-section { padding-top: 18px; }
+    .dashboard-fitness-content { grid-template-columns: auto minmax(0,1fr); }
+    .dashboard-fitness-status { grid-column: 2; justify-self: start; }
+}
+
+/* =====================================================
+   ORBIT — FINANÇAS 2.0
+===================================================== */
+.finance-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 22px 0 16px;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+}
+.finance-period-control { display: flex; align-items: center; gap: 8px; }
+.finance-period-control label { display:flex; flex-direction:column; gap:4px; min-width:180px; }
+.finance-period-control label span { color:var(--text-muted); font-size:9px; text-transform:uppercase; letter-spacing:.9px; font-weight:800; }
+.finance-period-control input,
+.finance-filters input,
+.finance-filters select {
+    height: 38px; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); color:var(--text); outline:none; padding:0 11px; font-size:12px;
+}
+.finance-period-control input { color-scheme: light; }
+.finance-period-arrow { width:34px; height:34px; border:1px solid var(--border); border-radius:9px; background:transparent; color:var(--text-secondary); cursor:pointer; font-size:20px; transition:.2s; }
+.finance-period-arrow:hover { color:var(--text); border-color:var(--accent); background:color-mix(in srgb,var(--accent) 7%,var(--surface)); }
+.finance-filters { display:grid; grid-template-columns:minmax(180px,1.3fr) 140px 160px; gap:8px; flex:1; justify-content:flex-end; max-width:650px; }
+.finance-filters input:focus,.finance-filters select:focus,.finance-period-control input:focus { border-color:var(--accent); }
+.finance-summary { margin-bottom:18px; }
+.finance-card { min-height:105px; display:flex; flex-direction:column; justify-content:center; }
+.finance-card small { margin-top:7px; color:var(--text-muted); font-size:10px; }
+.finance-card-balance strong { font-size:25px; }
+.finance-card-balance { background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 8%,var(--surface)),var(--surface)); }
+.finance-dashboard-grid { display:grid; grid-template-columns:1.45fr .9fr; gap:18px; margin-bottom:18px; }
+.finance-overview-section,.finance-budget-section,.finance-insights-section { min-width:0; }
+.finance-eyebrow { display:block; margin-bottom:5px; color:var(--accent); font-size:9px; font-weight:800; letter-spacing:1.2px; }
+.finance-month-overview { display:grid; grid-template-columns:minmax(260px,1.2fr) minmax(180px,.8fr); gap:20px; align-items:stretch; }
+.finance-chart { min-height:205px; padding:14px 16px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); }
+.finance-chart-legend { display:flex; gap:16px; color:var(--text-muted); font-size:10px; }
+.finance-chart-legend span { display:flex; align-items:center; gap:5px; }
+.income-dot,.expense-dot,.finance-category-dot { width:7px; height:7px; border-radius:50%; display:inline-block; background:var(--accent); }
+.income-dot { background:var(--success); } .expense-dot { background:var(--danger); }
+.finance-chart-bars { height:165px; display:flex; align-items:flex-end; justify-content:center; gap:42px; padding-top:10px; }
+.finance-chart-column { width:72px; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; }
+.finance-chart-column > span { color:var(--text-secondary); font-size:10px; white-space:nowrap; }
+.finance-chart-column small { color:var(--text-muted); font-size:9px; }
+.finance-chart-track { width:34px; height:112px; display:flex; align-items:flex-end; border-radius:8px 8px 4px 4px; background:var(--surface-3); overflow:hidden; }
+.finance-chart-track i { display:block; width:100%; min-height:5px; border-radius:8px 8px 4px 4px; }
+.income-bar { background:var(--success); } .expense-bar { background:var(--danger); }
+.finance-overview-stats { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.finance-overview-stats > div { padding:13px; border:1px solid var(--border); border-radius:11px; background:var(--surface-2); min-width:0; }
+.finance-overview-stats span { display:block; color:var(--text-muted); font-size:9px; margin-bottom:7px; }
+.finance-overview-stats strong { display:block; color:var(--text); font-size:12px; line-height:1.35; overflow:hidden; text-overflow:ellipsis; }
+.finance-budget-form { display:flex; gap:9px; align-items:flex-end; }
+.finance-budget-form label { flex:1; display:flex; flex-direction:column; gap:6px; color:var(--text-secondary); font-size:11px; }
+.finance-money-input { display:flex; align-items:center; height:40px; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); overflow:hidden; }
+.finance-money-input span { padding-left:12px; color:var(--text-muted); font-size:11px; }
+.finance-money-input input { width:100%; height:100%; padding:0 10px; border:0; outline:0; background:transparent; color:var(--text); font-size:13px; }
+.finance-budget-form .secondary-button { height:40px; white-space:nowrap; }
+.finance-budget-status { margin-top:20px; }
+.finance-budget-track { height:8px; overflow:hidden; border-radius:999px; background:var(--surface-3); }
+.finance-budget-track span { display:block; width:0; height:100%; border-radius:inherit; background:var(--accent); transition:width .25s ease; }
+.finance-budget-meta { display:flex; justify-content:space-between; gap:10px; margin-top:8px; color:var(--text-muted); font-size:10px; }
+.finance-budget-meta strong { color:var(--text-secondary); font-weight:600; }
+.finance-budget-meta strong.is-over { color:var(--danger); }
+.finance-clear-filters { border:0; background:transparent; color:var(--text-muted); font-size:10px; cursor:pointer; padding:5px; }
+.finance-clear-filters:hover { color:var(--accent); }
+.finance-category-header span { display:flex; align-items:center; gap:7px; }
+.finance-category-dot { width:6px; height:6px; background:var(--accent); }
+.finance-category small { color:var(--text-muted); font-size:9px; }
+.finance-transaction-icon.is-income { color:var(--success); } .finance-transaction-icon.is-expense { color:var(--danger); }
+.finance-insights-section { margin-top:18px; }
+.finance-insights { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.finance-insight { min-width:0; padding:15px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); }
+.finance-insight span { color:var(--accent); font-size:8px; letter-spacing:1px; font-weight:800; }
+.finance-insight strong { display:block; margin-top:7px; font-size:12px; }
+.finance-insight p { margin:5px 0 0; color:var(--text-muted); font-size:10px; line-height:1.5; }
+.finance-form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.finance-form input[type="date"] { color-scheme:light; }
+
+/* Date/month inputs: keep the native calendar readable in ORBIT's dark UI. */
+input[type="date"], input[type="month"] { color-scheme: light !important; }
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.8;
+    cursor: pointer;
+}
+/* Dashboard: Fitness should flow naturally with the existing grid. */
+.dashboard-fitness-panel { grid-column:auto; }
+
+@media (max-width: 1050px) {
+    .finance-toolbar { align-items:stretch; flex-direction:column; }
+    .finance-filters { width:100%; max-width:none; }
+    .finance-dashboard-grid { grid-template-columns:1fr; }
+}
+@media (max-width: 760px) {
+    .finance-filters { grid-template-columns:1fr 1fr; }
+    .finance-search-wrap { grid-column:1 / -1; }
+    .finance-month-overview { grid-template-columns:1fr; }
+    .finance-insights { grid-template-columns:1fr; }
+}
+@media (max-width: 520px) {
+    .finance-toolbar { padding:10px; }
+    .finance-filters { grid-template-columns:1fr; }
+    .finance-search-wrap { grid-column:auto; }
+    .finance-period-control label { min-width:0; flex:1; }
+    .finance-period-control { width:100%; }
+    .finance-period-control input { width:100%; }
+    .finance-summary { grid-template-columns:1fr 1fr; }
+    .finance-form-row { grid-template-columns:1fr; }
+    .finance-budget-form { flex-direction:column; align-items:stretch; }
+}
+
+/* Keep the dashboard balanced after adding Fitness: four main panels form a clean 2×2 grid. */
+@media (min-width: 761px) {
+    .agenda-dashboard-panel { grid-column: auto; }
+}
