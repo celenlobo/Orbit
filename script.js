@@ -5434,9 +5434,9 @@ async function loadSteamGames(steamId) {
     try {
 
         const response =
-    await fetch(
-        `http://localhost:3000/api/steam/games?steamId=${steamId}`
-    );
+            await fetch(
+            `/api/steam/games?steamId=${encodeURIComponent(steamId)}`
+        );
         const result =
             await response.json();
 
