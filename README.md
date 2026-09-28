@@ -89,3 +89,56 @@ ORBIT
 └── APIs externas
     ├── Steam
     └── TMDB
+☁️ Deploy
+
+O ORBIT está hospedado utilizando Render, com deploy conectado ao GitHub.
+
+GitHub
+   ↓
+Render
+   ↓
+ORBIT
+
+Cada atualização enviada para a branch principal pode gerar um novo deploy automaticamente.
+
+📱 Responsividade
+
+O ORBIT foi desenvolvido para funcionar em diferentes tamanhos de tela:
+
+🖥️ Desktop
+💻 Notebook
+📱 Celular
+📲 PWA
+
+A interface possui ajustes específicos para dispositivos móveis, incluindo áreas como a conexão com a Steam.
+
+🔐 Segurança
+
+As credenciais utilizadas pelas APIs e pelo banco de dados devem ser armazenadas através de variáveis de ambiente.
+
+O arquivo .env não deve ser enviado para o GitHub.
+
+🗺️ Próximos passos
+
+O ORBIT continua em desenvolvimento.
+
+Algumas ideias futuras incluem:
+
+🤖 Recursos de IA
+🔗 Integração com Strava
+✨ Novos módulos pessoais
+🎨 Melhorias visuais
+⚡ Otimizações de desempenho
+📌 Status
+
+🟢 Em desenvolvimento ativo
+
+O ORBIT já possui uma versão funcional publicada e pode ser acessado online.
+
+👨‍💻 Desenvolvedor
+
+Desenvolvido por Célen Lobo.
+
+Projeto pessoal criado com o objetivo de desenvolver habilidades em desenvolvimento web, integração de APIs, banco de dados, deploy e construção de aplicações completas.
+
+<p align="center"> 🪐 <strong>ORBIT</strong><br> <i>Everything in your orbit.</i> </p>
