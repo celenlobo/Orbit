@@ -6,6 +6,8 @@ O ORBIT é um dashboard pessoal desenvolvido para reunir diferentes áreas da vi
 
 🌐 Acesse: ORBIT — versão online
 
+https://orbit-a0v1.onrender.com
+
 ✨ Funcionalidades
 📊 Dashboard
 
