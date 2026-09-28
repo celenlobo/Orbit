@@ -1,21 +1,89 @@
-# ORBIT
+🪐 ORBIT
 
-Dashboard pessoal ORBIT com autenticação Supabase e módulos de tarefas, agenda, projetos, estudos, finanças, entretenimento, jogos e Fitness. A versão atual inclui Configurações 2.0, identidade web, notificações, preferências por conta, treinos semanais, cardio e acompanhamento de peso/IMC.
+Seu painel pessoal, centralizado em um só lugar.
 
-## Configuração
+O ORBIT é um dashboard pessoal desenvolvido para reunir diferentes áreas da vida digital em uma única interface: estudos, finanças, fitness, entretenimento, jogos e outras informações importantes.
 
-1. Instale as dependências: `npm install`
-2. Copie `.env.example` para `.env` e preencha as chaves do backend.
-3. Execute `npm start`.
-4. Abra `http://localhost:3000`.
+🌐 Acesse: ORBIT — versão online
 
-## Verificação
+✨ Funcionalidades
+📊 Dashboard
 
-Use `npm run check` para validar a sintaxe dos arquivos JavaScript. A versão do app acompanha o pacote em `package.json`.
+Visão geral das principais informações do usuário em um único painel.
 
-> Nunca publique o arquivo `.env` nem chaves privadas do Supabase.
+📚 Estudos
+Organização de matérias
+Anotações
+Conteúdos
+Arquivos
+Organização dos estudos
+💰 Finanças
+Controle financeiro
+Organização de receitas e despesas
+Visualização dos dados financeiros
+Dashboard financeiro
+🏋️ Fitness
+Acompanhamento de atividades
+Dados relacionados ao treino
+Integração com o dashboard
+🎮 Games
 
+Integração com a Steam para consultar os jogos da conta.
 
-## Estrutura de identidade
+Conexão através do SteamID64
+Consulta dos jogos
+Exibição dos dados dentro do ORBIT
+🎬 Filmes e séries
+Organização de filmes
+Organização de séries
+Gerenciamento da lista
+Remoção de itens
+🔔 Notificações
 
-O projeto inclui favicon, ícone para dispositivos Apple e manifesto web. O arquivo `.env` continua fora do versionamento.
+Sistema de notificações integrado ao dashboard para informar o usuário sobre eventos e informações importantes.
+
+⚙️ Configurações
+
+Área de configurações para personalizar e administrar o ORBIT.
+
+📱 PWA
+
+O ORBIT pode ser instalado como aplicativo em dispositivos compatíveis.
+
+Interface responsiva
+Ícone próprio
+Suporte a instalação como aplicativo
+Experiência adaptada para celular
+🛠️ Tecnologias
+
+O projeto utiliza principalmente:
+
+HTML5
+CSS3
+JavaScript
+Node.js
+Express
+Supabase
+Steam Web API
+TMDB API
+Git / GitHub
+🏗️ Arquitetura
+
+O ORBIT possui uma aplicação web com:
+
+ORBIT
+├── Front-end
+│   ├── HTML
+│   ├── CSS
+│   └── JavaScript
+│
+├── Back-end
+│   ├── Node.js
+│   └── Express
+│
+├── Banco de dados
+│   └── Supabase
+│
+└── APIs externas
+    ├── Steam
+    └── TMDB
