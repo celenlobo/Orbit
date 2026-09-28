@@ -6698,3 +6698,689 @@ body {
         width: 100%;
     }
 }
+
+
+/* =====================================================
+   ORBIT 2.0 — NOTIFICAÇÕES
+===================================================== */
+
+.user-area {
+    position: relative;
+}
+
+.notification-trigger {
+    position: relative;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 13px;
+    height: 13px;
+    padding: 0 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.orbit-notifications-panel {
+    position: absolute;
+    top: 74px;
+    right: 0;
+    z-index: 5000;
+    width: min(360px, calc(100vw - 28px));
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+.orbit-notifications-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.orbit-notifications-header strong,
+.orbit-notifications-header span {
+    display: block;
+}
+
+.orbit-notifications-header strong {
+    font-size: 14px;
+}
+
+.orbit-notifications-header span {
+    margin-top: 3px;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.orbit-notifications-close {
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.orbit-notifications-list {
+    max-height: 320px;
+    overflow: auto;
+}
+
+.orbit-notification-item {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 13px 16px;
+    border: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.orbit-notification-item:hover {
+    background: var(--surface-2);
+}
+
+.orbit-notification-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    margin-top: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+.orbit-notification-content strong,
+.orbit-notification-content small {
+    display: block;
+}
+
+.orbit-notification-content strong {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.orbit-notification-content small {
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.orbit-notification-empty {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 22px 16px;
+    color: var(--text-muted);
+}
+
+.orbit-notification-empty > span {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: rgba(34,197,94,0.1);
+    color: var(--success);
+}
+
+.orbit-notification-empty strong,
+.orbit-notification-empty p {
+    display: block;
+}
+
+.orbit-notification-empty strong {
+    color: var(--text);
+    font-size: 12px;
+}
+
+.orbit-notification-empty p {
+    margin: 3px 0 0;
+    font-size: 11px;
+}
+
+.orbit-notifications-settings {
+    width: 100%;
+    padding: 12px 16px;
+    border: 0;
+    border-top: 1px solid var(--border);
+    background: transparent;
+    color: var(--accent-soft, #a78bfa);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.orbit-notifications-settings:hover {
+    background: var(--surface-2);
+}
+
+/* =====================================================
+   ORBIT 2.0 — CONFIGURAÇÕES
+===================================================== */
+
+.settings-preference-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 13px 0;
+}
+
+.settings-preference-row strong,
+.settings-preference-row span {
+    display: block;
+}
+
+.settings-preference-row strong {
+    font-size: 13px;
+}
+
+.settings-preference-row span {
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.orbit-switch {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    flex: 0 0 42px;
+    cursor: pointer;
+}
+
+.orbit-switch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.orbit-switch-slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: #27272a;
+    border: 1px solid var(--border);
+    transition: 0.2s ease;
+}
+
+.orbit-switch-slider::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 2px;
+    top: 2px;
+    border-radius: 50%;
+    background: #a1a1aa;
+    transition: 0.2s ease;
+}
+
+.orbit-switch input:checked + .orbit-switch-slider {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.orbit-switch input:checked + .orbit-switch-slider::before {
+    transform: translateX(18px);
+    background: #fff;
+}
+
+.orbit-switch input:focus-visible + .orbit-switch-slider {
+    outline: 2px solid rgba(139,92,246,0.45);
+    outline-offset: 2px;
+}
+
+.settings-notification-actions {
+    margin-top: 8px;
+}
+
+.settings-about-meta {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 6px 18px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+}
+
+.settings-about-meta span {
+    color: var(--text-muted);
+}
+
+.settings-about-meta strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* =====================================================
+   ORBIT 2.0 — MOBILE FINAL
+===================================================== */
+
+@media (max-width: 768px) {
+    .main-content {
+        padding-bottom: 92px;
+    }
+
+    .orbit-notifications-panel {
+        position: fixed;
+        top: 68px;
+        right: 12px;
+    }
+}
+
+@media (max-width: 600px) {
+    .main-content {
+        padding: 18px 14px 92px;
+    }
+
+    .topbar {
+        gap: 12px;
+    }
+
+    .topbar > div:first-child {
+        min-width: 0;
+    }
+
+    .topbar p {
+        line-height: 1.4;
+    }
+
+    .user-area {
+        gap: 7px;
+        flex-shrink: 0;
+    }
+
+    .settings-preference-row {
+        align-items: flex-start;
+    }
+
+    .settings-notification-actions {
+        align-items: flex-start;
+    }
+}
+
+
+/* =====================================================
+   ORBIT — CONFIGURAÇÕES 2.0 COMPLETA
+===================================================== */
+
+.settings-page-header {
+    align-items: center;
+    gap: 20px;
+}
+
+.settings-header-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 11px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.settings-badge-hidden {
+    display: none !important;
+}
+
+.settings-status-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.10);
+}
+
+.settings-nav {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    gap: 6px;
+    margin: 0 0 24px;
+    padding: 6px;
+    overflow-x: auto;
+    background: rgba(9,9,11,0.92);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    backdrop-filter: blur(14px);
+    scrollbar-width: none;
+}
+
+.settings-nav::-webkit-scrollbar { display: none; }
+
+.settings-nav-item {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.settings-nav-item:hover {
+    color: var(--text-secondary);
+    background: var(--surface-2);
+}
+
+.settings-nav-item.active {
+    color: var(--text);
+    background: var(--surface-3);
+    border-color: var(--border);
+}
+
+.settings-section {
+    scroll-margin-top: 84px;
+    margin-bottom: 38px;
+}
+
+.settings-section-heading {
+    margin-bottom: 15px;
+}
+
+.settings-section-heading h2 {
+    margin: 0 0 5px;
+    font-size: 19px;
+}
+
+.settings-section-heading p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.settings-grid-account {
+    grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
+}
+
+.settings-card-header h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+}
+
+.settings-profile-preview-copy {
+    min-width: 0;
+}
+
+.settings-profile-preview-copy strong,
+.settings-profile-preview-copy span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.settings-field-label {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.settings-avatar-picker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 18px;
+    padding-top: 17px;
+    border-top: 1px solid var(--border);
+}
+
+.settings-avatar-swatches {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-avatar-swatch {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.settings-avatar-swatch:hover { transform: scale(1.08); }
+.settings-avatar-swatch.active { border-color: var(--text); box-shadow: 0 0 0 2px var(--surface); }
+.settings-avatar-swatch[data-avatar-color="purple"] { background: #8b5cf6; }
+.settings-avatar-swatch[data-avatar-color="blue"] { background: #3b82f6; }
+.settings-avatar-swatch[data-avatar-color="pink"] { background: #ec4899; }
+.settings-avatar-swatch[data-avatar-color="green"] { background: #22c55e; }
+.settings-avatar-swatch[data-avatar-color="orange"] { background: #f97316; }
+
+.settings-info-list,
+.settings-session-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    overflow: hidden;
+}
+
+.settings-info-list > div,
+.settings-session-details > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 12px 13px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+}
+
+.settings-info-list > div:last-child,
+.settings-session-details > div:last-child { border-bottom: 0; }
+
+.settings-info-list span,
+.settings-session-details span {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.settings-info-list strong,
+.settings-session-details strong {
+    max-width: 62%;
+    overflow: hidden;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.settings-theme-options {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.settings-theme-option {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.settings-theme-option:hover { border-color: var(--text-muted); }
+.settings-theme-option.active { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(139,92,246,0.16); }
+.settings-theme-dot {
+    width: 22px;
+    height: 22px;
+    margin-bottom: 3px;
+    border-radius: 7px;
+    background: var(--theme-option-color, var(--accent));
+}
+.settings-theme-option[data-accent="purple"] { --theme-option-color: #8b5cf6; }
+.settings-theme-option[data-accent="blue"] { --theme-option-color: #3b82f6; }
+.settings-theme-option[data-accent="pink"] { --theme-option-color: #ec4899; }
+.settings-theme-option[data-accent="green"] { --theme-option-color: #22c55e; }
+.settings-theme-option[data-accent="orange"] { --theme-option-color: #f97316; }
+.settings-theme-option strong { font-size: 11px; }
+.settings-theme-option small { color: var(--text-muted); font-size: 9px; }
+
+.settings-select {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface-2);
+    color: var(--text);
+    outline: none;
+}
+.settings-select:focus { border-color: var(--accent); }
+
+.settings-password-strength {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 11px;
+}
+.settings-password-strength span {
+    height: 4px;
+    flex: 1;
+    border-radius: 99px;
+    background: var(--surface-3);
+    transition: 0.2s ease;
+}
+.settings-password-strength em {
+    min-width: 52px;
+    color: var(--text-muted);
+    font-size: 9px;
+    font-style: normal;
+    text-align: right;
+}
+
+.settings-session-details { margin-top: 4px; margin-bottom: 14px; }
+.settings-online-text { color: var(--success) !important; }
+
+.settings-data-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.settings-help-text {
+    display: block;
+    margin-top: 13px;
+    color: var(--text-muted);
+    font-size: 10px;
+    line-height: 1.5;
+}
+.settings-reset-button { color: #fbbf24; }
+
+.settings-about-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.settings-about-orbit-mark {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: white;
+    font-size: 18px;
+    font-weight: 800;
+}
+.settings-about-brand strong,
+.settings-about-brand span { display: block; }
+.settings-about-brand strong { font-size: 15px; letter-spacing: 0.7px; }
+.settings-about-brand span { margin-top: 3px; color: var(--text-muted); font-size: 10px; }
+.settings-about-description { margin-bottom: 17px !important; }
+
+.settings-health-row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 54px;
+    margin-bottom: 14px;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-2);
+}
+.settings-health-row > span:first-child {
+    width: 9px;
+    height: 9px;
+    flex: 0 0 9px;
+    border-radius: 50%;
+    background: var(--warning);
+}
+.settings-health-row strong,
+.settings-health-row span { display: block; }
+.settings-health-row strong { font-size: 12px; }
+.settings-health-row div span { margin-top: 3px; color: var(--text-muted); font-size: 10px; }
+
+body.orbit-reduced-motion *,
+body.orbit-reduced-motion *::before,
+body.orbit-reduced-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}
+
+@media (max-width: 900px) {
+    .settings-grid-account { grid-template-columns: 1fr; }
+    .settings-theme-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+    .settings-page-header { align-items: flex-start; flex-direction: column; }
+    .settings-header-status { align-self: flex-start; }
+    .settings-nav { margin-bottom: 20px; }
+    .settings-section { scroll-margin-top: 74px; margin-bottom: 30px; }
+    .settings-theme-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .settings-avatar-picker { align-items: flex-start; flex-direction: column; }
+    .settings-data-actions { align-items: stretch; flex-direction: column; }
+    .settings-data-actions button { width: 100%; }
+    .settings-info-list > div, .settings-session-details > div { align-items: flex-start; flex-direction: column; gap: 5px; }
+    .settings-info-list strong, .settings-session-details strong { max-width: 100%; text-align: left; }
+}

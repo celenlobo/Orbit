@@ -4,10 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#09090b">
+    <meta name="description" content="ORBIT — seu dashboard pessoal para organizar tarefas, agenda, projetos, estudos, finanças e entretenimento.">
+    <meta name="application-name" content="ORBIT">
 
-    <title>ORBIT</title>
+    <title>ORBIT — Dashboard pessoal</title>
+
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.webmanifest">
 
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
 </head>
 
 <body>
@@ -48,6 +57,20 @@
                 <input id="orbit-register-password" type="password" autocomplete="new-password" minlength="6" required>
 
                 <button type="submit">Criar conta</button>
+            </form>
+
+            <form class="orbit-auth-form hidden" id="orbit-recovery-form">
+                <div class="orbit-auth-recovery-title">Redefinir senha</div>
+                <p class="orbit-auth-recovery-description">Escolha uma nova senha para continuar usando o ORBIT.</p>
+
+                <label for="orbit-recovery-password">Nova senha</label>
+                <input id="orbit-recovery-password" type="password" autocomplete="new-password" minlength="6" required>
+
+                <label for="orbit-recovery-confirm">Confirmar senha</label>
+                <input id="orbit-recovery-confirm" type="password" autocomplete="new-password" minlength="6" required>
+
+                <button type="submit">Salvar nova senha</button>
+                <button type="button" id="orbit-recovery-cancel" class="orbit-auth-secondary">Voltar para entrar</button>
             </form>
 
             <div class="orbit-auth-message" id="orbit-auth-message"></div>
@@ -347,11 +370,12 @@
 
             <div class="user-area">
 
-    <button class="icon-button" aria-label="Notificações">
-        <svg viewBox="0 0 24 24">
-            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+    <button class="icon-button notification-trigger" id="top-notifications-button" aria-label="Notificações" aria-expanded="false" aria-controls="orbit-notifications-panel">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-3-3-9"/>
             <path d="M10 21h4"/>
         </svg>
+        <span class="notification-badge hidden" id="notification-badge">0</span>
     </button>
 
     <span>Celen</span>
@@ -367,6 +391,17 @@
 
         </header>
 
+        <div class="orbit-notifications-panel hidden" id="orbit-notifications-panel" aria-hidden="true">
+            <div class="orbit-notifications-header">
+                <div>
+                    <strong>Notificações</strong>
+                    <span>Seus próximos compromissos.</span>
+                </div>
+                <button type="button" class="orbit-notifications-close" id="orbit-notifications-close" aria-label="Fechar notificações">×</button>
+            </div>
+            <div class="orbit-notifications-list" id="orbit-notifications-list"></div>
+            <button type="button" class="orbit-notifications-settings" id="orbit-notifications-settings">Gerenciar notificações</button>
+        </div>
 
 
         <!-- =========================
@@ -2813,106 +2848,362 @@
 </section>
 
         <!-- =========================
-             CONFIGURAÇÕES
+             CONFIGURAÇÕES 2.0
         ========================== -->
 
         <section class="page hidden" id="settings">
 
-            <div class="page-header">
+            <div class="page-header settings-page-header">
                 <div>
+                    <span class="settings-eyebrow">ORBIT • PREFERÊNCIAS</span>
                     <h1>Configurações</h1>
-                    <p>Gerencie sua conta e as informações do seu perfil.</p>
+                    <p>Personalize sua experiência, proteja sua conta e controle seus dados.</p>
+                </div>
+                <div class="settings-header-status" id="settings-header-status">
+                    <span class="settings-status-dot"></span>
+                    <span>Conta conectada</span>
                 </div>
             </div>
 
-            <div class="settings-grid">
+            <nav class="settings-nav" aria-label="Seções das configurações">
+                <button type="button" class="settings-nav-item active" data-settings-section="settings-account">Conta</button>
+                <button type="button" class="settings-nav-item" data-settings-section="settings-appearance">Aparência</button>
+                <button type="button" class="settings-nav-item" data-settings-section="settings-notifications">Notificações</button>
+                <button type="button" class="settings-nav-item" data-settings-section="settings-preferences">Preferências</button>
+                <button type="button" class="settings-nav-item" data-settings-section="settings-security">Segurança</button>
+                <button type="button" class="settings-nav-item" data-settings-section="settings-data">Dados</button>
+                <button type="button" class="settings-nav-item" data-settings-section="settings-about">Sobre</button>
+            </nav>
 
-                <section class="settings-card settings-profile-card">
-                    <div class="settings-card-header">
+            <div class="settings-sections">
+
+                <section class="settings-section" id="settings-account" data-settings-panel>
+                    <div class="settings-section-heading">
                         <div>
                             <span class="settings-eyebrow">CONTA</span>
-                            <h2>Seu perfil</h2>
-                            <p>Essas informações identificam sua conta no ORBIT.</p>
+                            <h2>Perfil</h2>
+                            <p>As informações que identificam você dentro do ORBIT.</p>
                         </div>
                     </div>
 
-                    <div class="settings-profile-preview">
-                        <div class="settings-avatar" id="settings-avatar">C</div>
-                        <div>
-                            <strong id="settings-profile-name">Carregando...</strong>
-                            <span id="settings-profile-email">Carregando...</span>
-                        </div>
-                    </div>
+                    <div class="settings-grid settings-grid-account">
+                        <section class="settings-card settings-profile-card">
+                            <div class="settings-profile-preview">
+                                <div class="settings-avatar" id="settings-avatar">C</div>
+                                <div class="settings-profile-preview-copy">
+                                    <strong id="settings-profile-name">Carregando...</strong>
+                                    <span id="settings-profile-email">Carregando...</span>
+                                </div>
+                            </div>
 
-                    <div class="settings-form-grid">
-                        <div class="settings-field">
-                            <label for="settings-name">Nome</label>
-                            <input id="settings-name" type="text" placeholder="Seu nome" autocomplete="name">
-                        </div>
+                            <div class="settings-form-grid">
+                                <div class="settings-field">
+                                    <label for="settings-name">Nome</label>
+                                    <input id="settings-name" type="text" placeholder="Seu nome" autocomplete="name" maxlength="80">
+                                </div>
+                                <div class="settings-field">
+                                    <label for="settings-email">E-mail</label>
+                                    <input id="settings-email" type="email" disabled>
+                                </div>
+                            </div>
 
-                        <div class="settings-field">
-                            <label for="settings-email">E-mail</label>
-                            <input id="settings-email" type="email" disabled>
-                        </div>
-                    </div>
+                            <div class="settings-avatar-picker">
+                                <span class="settings-field-label">Cor do perfil</span>
+                                <div class="settings-avatar-swatches" role="radiogroup" aria-label="Cor do perfil">
+                                    <button type="button" class="settings-avatar-swatch active" data-avatar-color="purple" aria-label="Roxo"></button>
+                                    <button type="button" class="settings-avatar-swatch" data-avatar-color="blue" aria-label="Azul"></button>
+                                    <button type="button" class="settings-avatar-swatch" data-avatar-color="pink" aria-label="Rosa"></button>
+                                    <button type="button" class="settings-avatar-swatch" data-avatar-color="green" aria-label="Verde"></button>
+                                    <button type="button" class="settings-avatar-swatch" data-avatar-color="orange" aria-label="Laranja"></button>
+                                </div>
+                            </div>
 
-                    <div class="settings-actions">
-                        <button type="button" class="primary-button" id="settings-save-profile">Salvar alterações</button>
-                        <span class="settings-status" id="settings-profile-status"></span>
+                            <div class="settings-actions">
+                                <button type="button" class="primary-button" id="settings-save-profile">Salvar alterações</button>
+                                <span class="settings-status" id="settings-profile-status"></span>
+                            </div>
+                        </section>
+
+                        <section class="settings-card settings-account-info-card">
+                            <div class="settings-card-header">
+                                <span class="settings-eyebrow">INFORMAÇÕES</span>
+                                <h3>Dados da conta</h3>
+                                <p>Informações fornecidas pelo sistema de autenticação.</p>
+                            </div>
+                            <div class="settings-info-list">
+                                <div><span>Conta criada</span><strong id="settings-account-created">—</strong></div>
+                                <div><span>Último acesso</span><strong id="settings-last-sign-in">—</strong></div>
+                                <div><span>E-mail verificado</span><strong id="settings-email-verified">—</strong></div>
+                                <div><span>Método de acesso</span><strong id="settings-auth-provider">—</strong></div>
+                            </div>
+                        </section>
                     </div>
                 </section>
 
-                <section class="settings-card">
-                    <div class="settings-card-header">
+                <section class="settings-section" id="settings-appearance" data-settings-panel>
+                    <div class="settings-section-heading">
+                        <div>
+                            <span class="settings-eyebrow">APARÊNCIA</span>
+                            <h2>Personalize o ORBIT</h2>
+                            <p>Escolha a cor de destaque e deixe a interface com a sua cara.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <section class="settings-card">
+                            <div class="settings-card-header">
+                                <span class="settings-eyebrow">COR DE DESTAQUE</span>
+                                <h3>Accent</h3>
+                                <p>A cor escolhida é salva somente para a sua conta neste navegador.</p>
+                            </div>
+                            <div class="settings-theme-options" id="settings-accent-options" role="radiogroup" aria-label="Cor de destaque">
+                                <button type="button" class="settings-theme-option active" data-accent="purple"><span class="settings-theme-dot"></span><strong>Roxo</strong><small>ORBIT clássico</small></button>
+                                <button type="button" class="settings-theme-option" data-accent="blue"><span class="settings-theme-dot"></span><strong>Azul</strong><small>Mais frio</small></button>
+                                <button type="button" class="settings-theme-option" data-accent="pink"><span class="settings-theme-dot"></span><strong>Rosa</strong><small>Mais vibrante</small></button>
+                                <button type="button" class="settings-theme-option" data-accent="green"><span class="settings-theme-dot"></span><strong>Verde</strong><small>Mais suave</small></button>
+                                <button type="button" class="settings-theme-option" data-accent="orange"><span class="settings-theme-dot"></span><strong>Laranja</strong><small>Mais quente</small></button>
+                            </div>
+                        </section>
+
+                        <section class="settings-card">
+                            <div class="settings-card-header">
+                                <span class="settings-eyebrow">ACESSIBILIDADE</span>
+                                <h3>Movimento</h3>
+                                <p>Reduza animações e transições da interface.</p>
+                            </div>
+                            <div class="settings-preference-row">
+                                <div>
+                                    <strong>Reduzir animações</strong>
+                                    <span>Útil para quem prefere uma interface mais estática.</span>
+                                </div>
+                                <label class="orbit-switch" aria-label="Reduzir animações">
+                                    <input type="checkbox" id="settings-reduced-motion">
+                                    <span class="orbit-switch-slider"></span>
+                                </label>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+
+                <section class="settings-section" id="settings-notifications" data-settings-panel>
+                    <div class="settings-section-heading">
+                        <div>
+                            <span class="settings-eyebrow">NOTIFICAÇÕES</span>
+                            <h2>Controle seus avisos</h2>
+                            <p>Escolha como o ORBIT deve avisar você sobre o que está por vir.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <section class="settings-card">
+                            <div class="settings-card-header">
+                                <span class="settings-eyebrow">NAVEGADOR</span>
+                                <h3>Lembretes da Agenda</h3>
+                                <p>Receba avisos do navegador quando um compromisso estiver próximo.</p>
+                            </div>
+                            <div class="settings-preference-row">
+                                <div><strong>Ativar lembretes</strong><span>Usa a permissão de notificações deste navegador.</span></div>
+                                <label class="orbit-switch" aria-label="Ativar lembretes">
+                                    <input type="checkbox" id="settings-notifications-toggle">
+                                    <span class="orbit-switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="settings-actions settings-notification-actions">
+                                <button type="button" class="secondary-button" id="settings-notifications-permission">Permitir notificações</button>
+                                <span class="settings-status" id="settings-notifications-status"></span>
+                            </div>
+                        </section>
+
+                        <section class="settings-card">
+                            <div class="settings-card-header">
+                                <span class="settings-eyebrow">CENTRAL</span>
+                                <h3>Central de notificações</h3>
+                                <p>Controle o contador exibido no sino do topo.</p>
+                            </div>
+                            <div class="settings-preference-row">
+                                <div><strong>Mostrar contador</strong><span>Exibe a quantidade de compromissos próximos no sino.</span></div>
+                                <label class="orbit-switch" aria-label="Mostrar contador de notificações">
+                                    <input type="checkbox" id="settings-notification-badge-toggle" checked>
+                                    <span class="orbit-switch-slider"></span>
+                                </label>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+
+                <section class="settings-section" id="settings-preferences" data-settings-panel>
+                    <div class="settings-section-heading">
+                        <div>
+                            <span class="settings-eyebrow">PREFERÊNCIAS</span>
+                            <h2>Como o ORBIT deve se comportar</h2>
+                            <p>Preferências pessoais, sem alterar seus dados.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <section class="settings-card">
+                            <div class="settings-card-header">
+                                <span class="settings-eyebrow">INICIALIZAÇÃO</span>
+                                <h3>Página inicial</h3>
+                                <p>Escolha onde o ORBIT deve abrir depois do login.</p>
+                            </div>
+                            <div class="settings-field">
+                                <label for="settings-default-page">Abrir em</label>
+                                <select id="settings-default-page" class="settings-select">
+                                    <option value="dashboard">Dashboard</option>
+                                    <option value="tasks">Tarefas</option>
+                                    <option value="agenda">Agenda</option>
+                                    <option value="projects">Projetos</option>
+                                    <option value="studies">Estudos</option>
+                                    <option value="finance">Finanças</option>
+                                    <option value="animes">Animes</option>
+                                    <option value="movies">Filmes</option>
+                                    <option value="series">Séries</option>
+                                    <option value="games">Jogos</option>
+                                </select>
+                            </div>
+                        </section>
+
+                        <section class="settings-card">
+                            <div class="settings-card-header">
+                                <span class="settings-eyebrow">CONFIRMAÇÕES</span>
+                                <h3>Proteção contra acidentes</h3>
+                                <p>Evita ações destrutivas acidentais nos módulos que suportarem a preferência.</p>
+                            </div>
+                            <div class="settings-preference-row">
+                                <div><strong>Lembrar última página</strong><span>Ao entrar novamente, o ORBIT pode voltar para a última área que você estava usando.</span></div>
+                                <label class="orbit-switch" aria-label="Lembrar última página">
+                                    <input type="checkbox" id="settings-remember-page">
+                                    <span class="orbit-switch-slider"></span>
+                                </label>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+
+                <section class="settings-section" id="settings-security" data-settings-panel>
+                    <div class="settings-section-heading">
                         <div>
                             <span class="settings-eyebrow">SEGURANÇA</span>
-                            <h2>Alterar senha</h2>
-                            <p>Atualize sua senha de acesso ao ORBIT.</p>
+                            <h2>Proteja sua conta</h2>
+                            <p>Gerencie sua senha e confira o estado da sessão atual.</p>
                         </div>
                     </div>
 
-                    <div class="settings-form-grid">
-                        <div class="settings-field">
-                            <label for="settings-new-password">Nova senha</label>
-                            <input id="settings-new-password" type="password" minlength="6" placeholder="Mínimo de 6 caracteres" autocomplete="new-password">
-                        </div>
+                    <div class="settings-grid">
+                        <section class="settings-card">
+                            <div class="settings-card-header">
+                                <span class="settings-eyebrow">SENHA</span>
+                                <h3>Alterar senha</h3>
+                                <p>Use uma senha forte com pelo menos 6 caracteres.</p>
+                            </div>
+                            <div class="settings-form-grid">
+                                <div class="settings-field">
+                                    <label for="settings-new-password">Nova senha</label>
+                                    <input id="settings-new-password" type="password" minlength="6" placeholder="Mínimo de 6 caracteres" autocomplete="new-password">
+                                </div>
+                                <div class="settings-field">
+                                    <label for="settings-confirm-password">Confirmar nova senha</label>
+                                    <input id="settings-confirm-password" type="password" minlength="6" placeholder="Digite novamente" autocomplete="new-password">
+                                </div>
+                            </div>
+                            <div class="settings-password-strength" id="settings-password-strength" aria-live="polite"><span></span><span></span><span></span><span></span><em></em></div>
+                            <div class="settings-actions">
+                                <button type="button" class="secondary-button" id="settings-update-password">Atualizar senha</button>
+                                <span class="settings-status" id="settings-password-status"></span>
+                            </div>
+                        </section>
 
-                        <div class="settings-field">
-                            <label for="settings-confirm-password">Confirmar nova senha</label>
-                            <input id="settings-confirm-password" type="password" minlength="6" placeholder="Digite novamente" autocomplete="new-password">
-                        </div>
-                    </div>
-
-                    <div class="settings-actions">
-                        <button type="button" class="secondary-button" id="settings-update-password">Atualizar senha</button>
-                        <span class="settings-status" id="settings-password-status"></span>
+                        <section class="settings-card settings-session-card">
+                            <div>
+                                <div class="settings-card-header">
+                                    <span class="settings-eyebrow">SESSÃO ATUAL</span>
+                                    <h3>Este dispositivo</h3>
+                                    <p>Você está conectado com esta conta neste navegador.</p>
+                                </div>
+                                <div class="settings-session-details">
+                                    <div><span>Status</span><strong class="settings-online-text">Conectado</strong></div>
+                                    <div><span>ID da conta</span><strong id="settings-user-id">—</strong></div>
+                                </div>
+                            </div>
+                            <button type="button" id="settings-logout-button" class="orbit-settings-logout">Sair da conta</button>
+                        </section>
                     </div>
                 </section>
 
-                <section class="settings-card settings-session-card">
-                    <div class="settings-card-header">
+                <section class="settings-section" id="settings-data" data-settings-panel>
+                    <div class="settings-section-heading">
                         <div>
-                            <span class="settings-eyebrow">SESSÃO</span>
-                            <h2>Sua sessão</h2>
-                            <p>Encerre o acesso ao ORBIT neste dispositivo.</p>
+                            <span class="settings-eyebrow">DADOS</span>
+                            <h2>Seus dados</h2>
+                            <p>Exporte uma cópia do que está disponível na sua conta ou redefina preferências locais.</p>
                         </div>
                     </div>
 
-                    <button type="button" id="settings-logout-button" class="orbit-settings-logout">Sair da conta</button>
+                    <div class="settings-grid">
+                        <section class="settings-card">
+                            <div class="settings-card-header">
+                                <span class="settings-eyebrow">BACKUP</span>
+                                <h3>Exportar dados</h3>
+                                <p>Gera um arquivo JSON com os dados acessíveis pelo ORBIT para esta conta.</p>
+                            </div>
+                            <div class="settings-data-actions">
+                                <button type="button" class="secondary-button" id="settings-export-data">Exportar meus dados</button>
+                                <span class="settings-status" id="settings-data-status"></span>
+                            </div>
+                            <small class="settings-help-text">Arquivos binários enviados para o Storage não são incorporados ao JSON; seus registros e configurações são incluídos quando disponíveis.</small>
+                        </section>
+
+                        <section class="settings-card">
+                            <div class="settings-card-header">
+                                <span class="settings-eyebrow">PREFERÊNCIAS LOCAIS</span>
+                                <h3>Redefinir preferências</h3>
+                                <p>Volta aparência, notificações e página inicial para os valores padrão.</p>
+                            </div>
+                            <div class="settings-data-actions">
+                                <button type="button" class="secondary-button settings-reset-button" id="settings-reset-preferences">Restaurar padrões</button>
+                                <span class="settings-status" id="settings-reset-status"></span>
+                            </div>
+                        </section>
+                    </div>
                 </section>
 
-                <section class="settings-card settings-about-card">
-                    <div class="settings-card-header">
+                <section class="settings-section" id="settings-about" data-settings-panel>
+                    <div class="settings-section-heading">
                         <div>
                             <span class="settings-eyebrow">ORBIT</span>
-                            <h2>Dashboard pessoal</h2>
-                            <p>Seu espaço para organizar tarefas, agenda, projetos, estudos, finanças e entretenimento.</p>
+                            <h2>Sobre o projeto</h2>
+                            <p>Informações da versão e estado atual do seu painel pessoal.</p>
                         </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <section class="settings-card settings-about-card">
+                            <div class="settings-about-brand">
+                                <div class="settings-about-orbit-mark">O</div>
+                                <div><strong>ORBIT</strong><span>Dashboard pessoal</span></div>
+                            </div>
+                            <p class="settings-about-description">Um espaço pessoal para organizar tarefas, agenda, projetos, estudos, finanças e entretenimento em um único lugar.</p>
+                            <div class="settings-about-meta">
+                                <span>Versão</span><strong id="settings-app-version">1.1.0</strong>
+                                <span>Backend</span><strong id="settings-backend-status">Verificando...</strong>
+                                <span>Conta criada</span><strong id="settings-about-account-created">—</strong>
+                            </div>
+                        </section>
+
+                        <section class="settings-card">
+                            <div class="settings-card-header">
+                                <span class="settings-eyebrow">ESTADO</span>
+                                <h3>Saúde do ORBIT</h3>
+                                <p>Verificação rápida da conexão com o servidor.</p>
+                            </div>
+                            <div class="settings-health-row"><span class="settings-status-dot" id="settings-health-dot"></span><div><strong id="settings-health-title">Verificando conexão...</strong><span id="settings-health-description">Aguarde um instante.</span></div></div>
+                            <button type="button" class="secondary-button" id="settings-check-health">Verificar novamente</button>
+                        </section>
                     </div>
                 </section>
 
             </div>
-
         </section>
 
 

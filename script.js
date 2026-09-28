@@ -18,6 +18,10 @@ function navigateToPage(pageId, clickedItem = null) {
         return;
     }
 
+    if (typeof window.orbitRememberPage === "function") {
+        window.orbitRememberPage(pageId);
+    }
+
     pages.forEach((page) => {
         page.classList.add("hidden");
     });
@@ -106,8 +110,10 @@ async function saveTasks() {
             body: JSON.stringify({ tasks })
         });
         if (!response.ok) throw new Error("Falha ao salvar tarefas");
+        return true;
     } catch (error) {
         console.error("Erro ao salvar tarefas:", error);
+        return false;
     }
 }
 
@@ -394,54 +400,6 @@ function updateTaskStats() {
 
     completedTasks.textContent = completed;
 
-}
-
-function updateDashboardTasks() {
-
-    const dashboardFocusTitle =
-        document.getElementById(
-            "dashboard-focus-title"
-        );
-
-    const dashboardFocusDescription =
-        document.getElementById(
-            "dashboard-focus-description"
-        );
-
-    if (
-        !dashboardFocusTitle ||
-        !dashboardFocusDescription
-    ) {
-        return;
-    }
-
-    const pendingTask = tasks.find(
-        (task) => !task.completed
-    );
-
-    if (!pendingTask) {
-
-        dashboardFocusTitle.textContent =
-            "Nenhuma tarefa pendente";
-
-        dashboardFocusDescription.textContent =
-            "Você está em dia.";
-
-        return;
-    }
-
-    dashboardFocusTitle.textContent =
-        pendingTask.title;
-
-    const priorityText = {
-        high: "Prioridade alta",
-        normal: "Prioridade normal",
-        low: "Prioridade baixa"
-    };
-
-    dashboardFocusDescription.textContent =
-        priorityText[pendingTask.priority] ||
-        "Tarefa pendente";
 }
 
 // =========================
@@ -2447,6 +2405,7 @@ async function saveEvents() {
             body: JSON.stringify({ events })
         });
         if (!response.ok) throw new Error("Falha ao salvar agenda");
+        window.dispatchEvent(new CustomEvent("orbit:events-updated"));
     } catch (error) {
         console.error("Erro ao salvar agenda:", error);
     }
@@ -2788,56 +2747,6 @@ function eventOccursOnDate(event, date) {
     return false;
 }
 
-function eventOccursOnDate(event, date) {
-
-    const originalDate =
-        new Date(`${event.date}T12:00:00`);
-
-    const targetDate =
-        new Date(`${formatDateForInput(date)}T12:00:00`);
-
-    if (targetDate < originalDate) {
-        return false;
-    }
-
-    if (!event.repeat || event.repeat === "none") {
-        return (
-            formatDateForInput(targetDate) ===
-            event.date
-        );
-    }
-
-    if (event.repeat === "daily") {
-        return true;
-    }
-
-    if (event.repeat === "weekly") {
-    return (
-        targetDate.getDay() ===
-        originalDate.getDay()
-    );
-}
-
-if (event.repeat === "monthly") {
-    return (
-        targetDate.getDate() ===
-        originalDate.getDate()
-    );
-}
-
-if (event.repeat === "weekdays") {
-    return (
-        event.weekdays || []
-    ).includes(
-        targetDate.getDay()
-    );
-}
-
-    return false;
-}
-
-
-
 function renderAgenda() {
 
     if (!agenda) {
@@ -2985,92 +2894,71 @@ function deleteEvent(id) {
 }
 
 
-function scheduleReminder(event) {
-
-    if (
-        event.reminder === "none" ||
-        !event.start ||
-        !event.date
-    ) {
-
-        return;
-
-    }
-
-
-    const eventDateTime =
-        new Date(
-            `${event.date}T${event.start}:00`
-        );
-
-
-    const reminderMinutes =
-        Number(event.reminder);
-
-
-    const reminderTime =
-        eventDateTime.getTime() -
-        reminderMinutes * 60 * 1000;
-
-
-    const delay =
-        reminderTime -
-        Date.now();
-
-
-    if (delay <= 0) {
-        return;
-    }
-
-
-    setTimeout(
-        () => {
-
-            showReminder(event);
-
-        },
-        delay
-    );
-
+function getNotificationStorageKey() {
+    return window.orbitUserId ? `orbitNotificationSettings:${window.orbitUserId}` : null;
 }
 
+function getNotificationSettings() {
+    const key = getNotificationStorageKey();
+    if (!key) return { enabled: false };
+
+    try {
+        const saved = JSON.parse(localStorage.getItem(key) || "{}");
+        return { enabled: saved.enabled === true };
+    } catch {
+        return { enabled: false };
+    }
+}
+
+function setNotificationSettings(settings) {
+    const key = getNotificationStorageKey();
+    if (!key) return;
+    localStorage.setItem(key, JSON.stringify({ enabled: settings.enabled === true }));
+}
+
+function browserNotificationsSupported() {
+    return "Notification" in window;
+}
+
+function scheduleReminder(event) {
+    if (event.reminder === "none" || !event.start || !event.date || !getNotificationSettings().enabled) {
+        return;
+    }
+
+    const eventDateTime = new Date(`${event.date}T${event.start}:00`);
+    const reminderMinutes = Number(event.reminder);
+    const reminderTime = eventDateTime.getTime() - reminderMinutes * 60 * 1000;
+    const delay = reminderTime - Date.now();
+
+    if (!Number.isFinite(delay) || delay <= 0) return;
+
+    setTimeout(() => {
+        if (getNotificationSettings().enabled) {
+            showReminder(event);
+        }
+    }, delay);
+}
 
 function showReminder(event) {
-
-    if (
-        "Notification" in window &&
-        Notification.permission === "granted"
-    ) {
-
-        new Notification(
-            "ORBIT — Lembrete 🔔",
-            {
-                body: event.title
-            }
-        );
-
-    } else {
-
-        alert(
-            `🔔 Lembrete ORBIT\n\n${event.title}`
-        );
-
+    if (browserNotificationsSupported() && Notification.permission === "granted") {
+        const notification = new Notification("ORBIT — Lembrete 🔔", { body: event.title });
+        notification.onclick = () => {
+            window.focus();
+            navigateToPage("agenda");
+            notification.close();
+        };
+        return;
     }
 
+    alert(`🔔 Lembrete ORBIT\n\n${event.title}`);
 }
 
+async function requestNotificationPermission() {
+    if (!browserNotificationsSupported()) return "unsupported";
+    if (Notification.permission === "granted") return "granted";
+    if (Notification.permission === "denied") return "denied";
 
-function requestNotificationPermission() {
-
-    if (
-        "Notification" in window &&
-        Notification.permission === "default"
-    ) {
-
-        Notification.requestPermission();
-
-    }
-
+    return Notification.requestPermission();
 }
 
 /* =====================================================
@@ -3241,16 +3129,6 @@ function updateDashboardFinance() {
 
     dashboardFinanceBalance.textContent =
         formatFinanceCurrency(balance);
-
-    const dashboardFinanceBalance =
-        document.getElementById(
-            "dashboard-finance-balance"
-        );
-
-    if (dashboardFinanceBalance) {
-        dashboardFinanceBalance.textContent =
-            formatFinanceCurrency(balance);
-    }
 
 }
 
@@ -4083,7 +3961,7 @@ function deleteProject(id) {
 
     const confirmed =
         confirm(
-            `Excluir o projeto "${project.name}"?`
+            `Excluir o projeto "${escapeHTML(project.name)}"?`
         );
 
 
@@ -5213,9 +5091,29 @@ function escapeHTML(text) {
    INICIALIZAÇÃO
 ===================================================== */
 
+let orbitLoadedUserId = null;
+let orbitLoadingPromise = null;
+
 async function loadOrbitUserData() {
-    try {
-        await window.orbitAuthReady;
+    if (orbitLoadingPromise) {
+        return orbitLoadingPromise;
+    }
+
+    orbitLoadingPromise = (async () => {
+        try {
+            await window.orbitAuthReady;
+
+            const userId = window.orbitUserId;
+            if (!userId) {
+                return;
+            }
+
+            if (orbitLoadedUserId === userId) {
+                loadSubjectsForUser(userId);
+                return;
+            }
+
+            loadSubjectsForUser(userId);
 
         const [tasksResponse, eventsResponse, projectsResponse, projectTasksResponse] =
             await Promise.all([
@@ -5242,34 +5140,44 @@ async function loadOrbitUserData() {
         projects = projectsResult.projects || [];
         projectTasks = projectTasksResult.projectTasks || [];
 
-        // Migra dados antigos deste navegador somente se a conta ainda estiver vazia.
-        const localTasks = JSON.parse(localStorage.getItem("orbitTasks") || "null");
-        const localEvents = JSON.parse(localStorage.getItem("orbitEvents") || "null");
-        const localProjects = JSON.parse(localStorage.getItem("orbitProjects") || "null");
-        const localProjectTasks = JSON.parse(localStorage.getItem("orbitProjectTasks") || "null");
+        // Migra dados antigos deste navegador apenas uma vez, para a primeira
+        // conta que os importar. Depois disso os dados ficam exclusivamente
+        // no backend e não podem vazar para outra conta no mesmo navegador.
+        const legacyMigrationKey = "orbitLegacyBackendMigrationDone";
+        if (!localStorage.getItem(legacyMigrationKey)) {
+            const localTasks = parseLocalStorageArray("orbitTasks");
+            const localEvents = parseLocalStorageArray("orbitEvents");
+            const localProjects = parseLocalStorageArray("orbitProjects");
+            const localProjectTasks = parseLocalStorageArray("orbitProjectTasks");
 
-        if (tasks.length === 0 && Array.isArray(localTasks) && localTasks.length) {
-            tasks = localTasks;
-            await saveTasks();
-            localStorage.removeItem("orbitTasks");
-        }
+            if (tasks.length === 0 && localTasks.length) {
+                tasks = localTasks;
+                await saveTasks();
+            }
 
-        if (events.length === 0 && Array.isArray(localEvents) && localEvents.length) {
-            events = localEvents;
-            await saveEvents();
-            localStorage.removeItem("orbitEvents");
-        }
+            if (events.length === 0 && localEvents.length) {
+                events = localEvents;
+                await saveEvents();
+            }
 
-        if (projects.length === 0 && Array.isArray(localProjects) && localProjects.length) {
-            projects = localProjects;
-            await saveProjects();
-            localStorage.removeItem("orbitProjects");
-        }
+            if (projects.length === 0 && localProjects.length) {
+                projects = localProjects;
+                await saveProjects();
+            }
 
-        if (projectTasks.length === 0 && Array.isArray(localProjectTasks) && localProjectTasks.length) {
-            projectTasks = localProjectTasks;
-            await saveProjectTasks();
-            localStorage.removeItem("orbitProjectTasks");
+            if (projectTasks.length === 0 && localProjectTasks.length) {
+                projectTasks = localProjectTasks;
+                await saveProjectTasks();
+            }
+
+            [
+                "orbitTasks",
+                "orbitEvents",
+                "orbitProjects",
+                "orbitProjectTasks"
+            ].forEach((key) => localStorage.removeItem(key));
+
+            localStorage.setItem(legacyMigrationKey, "1");
         }
 
         renderTasks();
@@ -5280,24 +5188,73 @@ async function loadOrbitUserData() {
         renderDashboardProjects();
         renderDashboardAgenda();
 
-        requestNotificationPermission();
+            if (getNotificationSettings().enabled) {
+                events.forEach(event => scheduleReminder(event));
+            }
+            orbitLoadedUserId = userId;
+        } catch (error) {
+            console.error("Erro ao carregar dados do ORBIT:", error);
+            alert("Não foi possível carregar os dados da sua conta. Verifique o servidor e tente novamente.");
+        } finally {
+            orbitLoadingPromise = null;
+        }
+    })();
 
-        events.forEach(event => scheduleReminder(event));
-    } catch (error) {
-        console.error("Erro ao carregar dados do ORBIT:", error);
-        alert("Não foi possível carregar os dados da sua conta. Verifique o servidor e tente novamente.");
-    }
+    return orbitLoadingPromise;
 }
 
 loadOrbitUserData();
 
+window.addEventListener("orbit:auth-changed", async (event) => {
+    const user = event.detail?.user || null;
+
+    if (!user) {
+        orbitLoadedUserId = null;
+        tasks = [];
+        events = [];
+        projects = [];
+        projectTasks = [];
+        subjects = [];
+        currentStudyStorageKey = null;
+        savedMoviesCache = [];
+        savedSeriesCache = [];
+        animeLibraryCache = [];
+        financeData = [];
+        games = [];
+
+        renderTasks();
+        renderProjects();
+        renderDashboardProjects();
+        renderDashboardAgenda();
+        renderSubjects();
+        renderMovieLibrary();
+        renderSeriesLibrary();
+        renderAnimeLibrary();
+        renderFinance();
+        renderGames();
+        return;
+    }
+
+    await loadOrbitUserData();
+
+    // Alguns módulos carregam dados protegidos durante a inicialização.
+    // Recarregamos aqui para cobrir login sem recarregar a página.
+    await Promise.allSettled([
+        loadSavedSteamId(),
+        loadMovieLibrary(),
+        loadSeriesLibrary(),
+        loadAnimeLibrary(),
+        loadFinance()
+    ]);
+});
+
 const mobileMoreButton = document.getElementById("mobile-more-button");
 const mobileMoreMenu = document.getElementById("mobile-more-menu");
 
-mobileMoreButton.addEventListener("click", (event) => {
+mobileMoreButton?.addEventListener("click", (event) => {
     event.preventDefault();
 
-    mobileMoreMenu.classList.toggle("open");
+    mobileMoreMenu?.classList.toggle("open");
 });
 
 mobileMoreItems.forEach((item) => {
@@ -5758,21 +5715,80 @@ const subjectsContainer =
     document.getElementById("subjects-container");
 
 
-let subjects =
-    JSON.parse(
-        localStorage.getItem("orbitStudies")
-    ) || [];
+let subjects = [];
 
 let currentStudySubjectId = null;
+let currentStudyStorageKey = null;
 
+function parseLocalStorageArray(key) {
+    try {
+        const value = JSON.parse(localStorage.getItem(key) || "null");
+        return Array.isArray(value) ? value : [];
+    } catch (error) {
+        console.warn(`Dados locais inválidos em ${key}:`, error);
+        return [];
+    }
+}
+
+function getStudyStorageKey(userId = window.orbitUserId) {
+    return userId ? `orbitStudies:${userId}` : null;
+}
+
+function loadSubjectsForUser(userId) {
+    const key = getStudyStorageKey(userId);
+
+    if (!key) {
+        subjects = [];
+        currentStudyStorageKey = null;
+        return;
+    }
+
+    currentStudyStorageKey = key;
+    subjects = parseLocalStorageArray(key).map((subject) => ({
+        ...subject,
+        id: Number(subject.id) || Date.now(),
+        name: String(subject.name || "Matéria"),
+        files: Array.isArray(subject.files) ? subject.files : [],
+        notes: Array.isArray(subject.notes) ? subject.notes : [],
+        topics: Array.isArray(subject.topics) ? subject.topics : [],
+        studyHours: Number(subject.studyHours) || 0
+    }));
+
+    // Migração única do formato antigo, que não separava as contas.
+    const legacyKey = "orbitStudies";
+    const legacyMigrationKey = `orbitStudiesMigrated:${userId}`;
+
+    if (!subjects.length && !localStorage.getItem(legacyMigrationKey)) {
+        const legacySubjects = parseLocalStorageArray(legacyKey);
+        if (legacySubjects.length) {
+            subjects = legacySubjects.map((subject) => ({
+                ...subject,
+                id: Number(subject.id) || Date.now(),
+                name: String(subject.name || "Matéria"),
+                files: Array.isArray(subject.files) ? subject.files : [],
+                notes: Array.isArray(subject.notes) ? subject.notes : [],
+                topics: Array.isArray(subject.topics) ? subject.topics : [],
+                studyHours: Number(subject.studyHours) || 0
+            }));
+            localStorage.setItem(key, JSON.stringify(subjects));
+            localStorage.removeItem(legacyKey);
+        }
+        localStorage.setItem(legacyMigrationKey, "1");
+    }
+
+    renderSubjects();
+    updateDashboardStudies();
+}
 
 function saveSubjects() {
+    if (!currentStudyStorageKey) {
+        return;
+    }
 
     localStorage.setItem(
-        "orbitStudies",
+        currentStudyStorageKey,
         JSON.stringify(subjects)
     );
-
 }
 
 
@@ -5892,11 +5908,11 @@ function renderSubjects() {
                     <div class="subject-card-info">
 
                         <h3>
-                            ${subject.name}
+                            ${escapeHTML(subject.name)}
                         </h3>
 
                         <p>
-                            ${subject.files.length} arquivos
+                            ${Array.isArray(subject.files) ? subject.files.length : 0} arquivo${(Array.isArray(subject.files) ? subject.files.length : 0) === 1 ? "" : "s"}
                         </p>
 
                     </div>
@@ -5916,50 +5932,13 @@ function renderSubjects() {
 
 }
 
-function updateDashboardStudies() {
-
-    const dashboardStudyCount =
-        document.getElementById(
-            "dashboard-study-count"
-        );
-
-    if (!dashboardStudyCount) {
-        return;
-    }
-
-    const total = subjects.length;
-
-    dashboardStudyCount.textContent =
-        `${total} matéria${total === 1 ? "" : "s"}`;
-}
-
 renderSubjects();
 
 updateDashboardStudies();
 
-function updateDashboardEntertainment() {
-
-    const dashboardEntertainmentCount =
-        document.getElementById(
-            "dashboard-entertainment-count"
-        );
-
-    if (!dashboardEntertainmentCount) {
-        return;
-    }
-
-    const total =
-        savedMoviesCache.length +
-        savedSeriesCache.length +
-        animeLibraryCache.length;
-
-    dashboardEntertainmentCount.textContent =
-        `${total} salvo${total === 1 ? "" : "s"}`;
-}
-
 subjectsContainer.addEventListener(
     "click",
-    (event) => {
+    async (event) => {
 
         const removeButton =
             event.target.closest(".subject-remove");
@@ -5980,6 +5959,26 @@ subjectsContainer.addEventListener(
                 return;
             }
 
+            try {
+                const response = await fetch(
+                    `/api/studies/files/subject/${subjectId}`,
+                    { method: "DELETE" }
+                );
+
+                const result = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(
+                        result.message ||
+                        "Não foi possível remover os arquivos da matéria."
+                    );
+                }
+            } catch (error) {
+                console.error("Erro ao limpar arquivos da matéria:", error);
+                alert(error.message || "Não foi possível remover a matéria.");
+                return;
+            }
+
             subjects =
                 subjects.filter(
                     (subject) =>
@@ -5987,8 +5986,8 @@ subjectsContainer.addEventListener(
                 );
 
             saveSubjects();
-
             renderSubjects();
+            updateDashboardStudies();
 
             return;
         }
@@ -6109,6 +6108,16 @@ async function loadStudyFiles(subjectId) {
         }
 
 
+        const subject = subjects.find(
+            (item) => item.id === Number(subjectId)
+        );
+
+        if (subject) {
+            subject.files = Array.isArray(result.files) ? result.files : [];
+            saveSubjects();
+            renderSubjects();
+        }
+
         renderStudyFiles(
             result.files
         );
@@ -6190,11 +6199,11 @@ function renderStudyFiles(files) {
                         <div>
 
                             <h4>
-                                ${file.title}
+                                ${escapeHTML(file.title)}
                             </h4>
 
                             <p>
-                                ${file.file_name}
+                                ${escapeHTML(file.file_name)}
                             </p>
 
                         </div>
@@ -6499,11 +6508,11 @@ function renderStudyNotes(subject) {
                     <div class="study-note-card-content">
 
                         <h4>
-                            ${note.title}
+                            ${escapeHTML(note.title)}
                         </h4>
 
                         <p>
-                            ${note.content}
+                            ${escapeHTML(note.content)}
                         </p>
 
                     </div>
@@ -6596,11 +6605,11 @@ function renderFilteredStudyNotes(notes) {
                     <div class="study-note-card-content">
 
                         <h4>
-                            ${note.title}
+                            ${escapeHTML(note.title)}
                         </h4>
 
                         <p>
-                            ${note.content}
+                            ${escapeHTML(note.content)}
                         </p>
 
                     </div>
@@ -7068,6 +7077,10 @@ studyFileInput.addEventListener(
             studyFileInput.value = "";
 
 
+            await loadStudyFiles(
+                currentStudySubjectId
+            );
+
             alert(
                 "Arquivo enviado com sucesso!"
             );
@@ -7301,7 +7314,7 @@ progressText.textContent =
                         >
 
                         <span>
-                            ${topic.title}
+                            ${escapeHTML(topic.title)}
                         </span>
 
                     </label>
@@ -10132,3 +10145,576 @@ async function addAnimeEpisodeProgress(
         details
     );
 }
+
+/* =====================================================
+   ORBIT 2.0 — NOTIFICAÇÕES / PREFERÊNCIAS / UX
+===================================================== */
+
+const orbitNotificationButton = document.getElementById("top-notifications-button");
+const orbitNotificationPanel = document.getElementById("orbit-notifications-panel");
+const orbitNotificationClose = document.getElementById("orbit-notifications-close");
+const orbitNotificationList = document.getElementById("orbit-notifications-list");
+const orbitNotificationBadge = document.getElementById("notification-badge");
+const orbitNotificationSettingsButton = document.getElementById("orbit-notifications-settings");
+const settingsNotificationsToggle = document.getElementById("settings-notifications-toggle");
+const settingsNotificationsPermission = document.getElementById("settings-notifications-permission");
+const settingsNotificationsStatus = document.getElementById("settings-notifications-status");
+
+function getUpcomingOrbitNotifications() {
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+
+    return events
+        .filter((event) => {
+            if (!event?.date || !event?.title) return false;
+            const date = new Date(`${event.date}T${event.start || "00:00"}:00`);
+            return eventOccursOnDate(event, date) && date >= start && date < end;
+        })
+        .map((event) => ({
+            ...event,
+            _date: new Date(`${event.date}T${event.start || "00:00"}:00`)
+        }))
+        .sort((a, b) => a._date - b._date)
+        .slice(0, 5);
+}
+
+function formatNotificationDate(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dateOnly = new Date(date);
+    dateOnly.setHours(0, 0, 0, 0);
+
+    const prefix = dateOnly.getTime() === today.getTime()
+        ? "Hoje"
+        : dateOnly.getTime() === tomorrow.getTime()
+            ? "Amanhã"
+            : date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+
+    return `${prefix}${eventHasTime(date) ? ` • ${date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}` : ""}`;
+}
+
+function eventHasTime(date) {
+    return date.getHours() !== 0 || date.getMinutes() !== 0;
+}
+
+function renderOrbitNotifications() {
+    if (!orbitNotificationList) return;
+
+    const upcoming = getUpcomingOrbitNotifications();
+    if (orbitNotificationBadge) {
+        orbitNotificationBadge.textContent = String(upcoming.length);
+        orbitNotificationBadge.classList.toggle("hidden", upcoming.length === 0);
+    }
+
+    if (!upcoming.length) {
+        orbitNotificationList.innerHTML = `
+            <div class="orbit-notification-empty">
+                <span>✓</span>
+                <div><strong>Tudo em dia</strong><p>Nenhum compromisso nos próximos dias.</p></div>
+            </div>`;
+        return;
+    }
+
+    orbitNotificationList.innerHTML = upcoming.map((event) => `
+        <button type="button" class="orbit-notification-item" data-notification-event-id="${String(event.id)}">
+            <span class="orbit-notification-dot"></span>
+            <span class="orbit-notification-content">
+                <strong>${escapeHTML(event.title)}</strong>
+                <small>${formatNotificationDate(event._date)}</small>
+            </span>
+        </button>
+    `).join("");
+
+    orbitNotificationList.querySelectorAll("[data-notification-event-id]").forEach((item) => {
+        item.addEventListener("click", () => {
+            closeOrbitNotifications();
+            navigateToPage("agenda");
+        });
+    });
+}
+
+function openOrbitNotifications() {
+    renderOrbitNotifications();
+    orbitNotificationPanel?.classList.remove("hidden");
+    orbitNotificationPanel?.setAttribute("aria-hidden", "false");
+    orbitNotificationButton?.setAttribute("aria-expanded", "true");
+}
+
+function closeOrbitNotifications() {
+    orbitNotificationPanel?.classList.add("hidden");
+    orbitNotificationPanel?.setAttribute("aria-hidden", "true");
+    orbitNotificationButton?.setAttribute("aria-expanded", "false");
+}
+
+function refreshNotificationSettingsUI() {
+    const enabled = getNotificationSettings().enabled;
+    if (settingsNotificationsToggle) settingsNotificationsToggle.checked = enabled;
+
+    if (settingsNotificationsPermission) {
+        settingsNotificationsPermission.disabled = !browserNotificationsSupported();
+        settingsNotificationsPermission.textContent = !browserNotificationsSupported()
+            ? "Não suportado neste navegador"
+            : Notification.permission === "granted"
+                ? "Notificações permitidas"
+                : "Permitir notificações";
+    }
+
+    if (settingsNotificationsStatus) {
+        if (!browserNotificationsSupported()) {
+            settingsNotificationsStatus.textContent = "Seu navegador não oferece notificações.";
+        } else if (Notification.permission === "denied") {
+            settingsNotificationsStatus.textContent = "Bloqueadas pelo navegador. Altere a permissão nas configurações do site.";
+        } else if (enabled) {
+            settingsNotificationsStatus.textContent = "Lembretes ativados.";
+        } else {
+            settingsNotificationsStatus.textContent = "Lembretes desativados.";
+        }
+    }
+}
+
+orbitNotificationButton?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (orbitNotificationPanel?.classList.contains("hidden")) openOrbitNotifications();
+    else closeOrbitNotifications();
+});
+
+orbitNotificationClose?.addEventListener("click", closeOrbitNotifications);
+
+orbitNotificationSettingsButton?.addEventListener("click", () => {
+    closeOrbitNotifications();
+    navigateToPage("settings");
+});
+
+document.addEventListener("click", (event) => {
+    if (!orbitNotificationPanel || orbitNotificationPanel.classList.contains("hidden")) return;
+    if (!orbitNotificationPanel.contains(event.target) && !orbitNotificationButton?.contains(event.target)) {
+        closeOrbitNotifications();
+    }
+});
+
+settingsNotificationsToggle?.addEventListener("change", async () => {
+    const enabled = settingsNotificationsToggle.checked;
+
+    if (enabled) {
+        const permission = await requestNotificationPermission();
+        if (permission !== "granted") {
+            settingsNotificationsToggle.checked = false;
+            setNotificationSettings({ enabled: false });
+            refreshNotificationSettingsUI();
+            return;
+        }
+    }
+
+    setNotificationSettings({ enabled });
+    refreshNotificationSettingsUI();
+    renderOrbitNotifications();
+
+    if (enabled) {
+        events.forEach((event) => scheduleReminder(event));
+    }
+});
+
+settingsNotificationsPermission?.addEventListener("click", async () => {
+    const permission = await requestNotificationPermission();
+    if (permission === "granted") {
+        setNotificationSettings({ enabled: true });
+        if (settingsNotificationsToggle) settingsNotificationsToggle.checked = true;
+        events.forEach((event) => scheduleReminder(event));
+    }
+    refreshNotificationSettingsUI();
+});
+
+window.addEventListener("orbit:auth-changed", () => {
+    refreshNotificationSettingsUI();
+    renderOrbitNotifications();
+});
+
+window.addEventListener("orbit:events-updated", () => {
+    renderOrbitNotifications();
+});
+
+refreshNotificationSettingsUI();
+renderOrbitNotifications();
+
+/* =====================================================
+   ORBIT — CONFIGURAÇÕES 2.0 / CONTROLES
+===================================================== */
+
+const ORBIT_SETTINGS_DEFAULTS = {
+    accent: "purple",
+    reducedMotion: false,
+    notificationBadge: true,
+    defaultPage: "dashboard",
+    rememberPage: false,
+    avatarColor: "purple"
+};
+
+const ORBIT_ACCENTS = {
+    purple: { accent: "#8b5cf6", hover: "#7c3aed" },
+    blue: { accent: "#3b82f6", hover: "#2563eb" },
+    pink: { accent: "#ec4899", hover: "#db2777" },
+    green: { accent: "#22c55e", hover: "#16a34a" },
+    orange: { accent: "#f97316", hover: "#ea580c" }
+};
+
+function getOrbitSettingsKey() {
+    return window.orbitUserId ? `orbitSettings:${window.orbitUserId}` : null;
+}
+
+function getOrbitSettings() {
+    const key = getOrbitSettingsKey();
+    if (!key) return { ...ORBIT_SETTINGS_DEFAULTS };
+
+    try {
+        const saved = JSON.parse(localStorage.getItem(key) || "{}");
+        return { ...ORBIT_SETTINGS_DEFAULTS, ...saved };
+    } catch {
+        return { ...ORBIT_SETTINGS_DEFAULTS };
+    }
+}
+
+function saveOrbitSettings(settings) {
+    const key = getOrbitSettingsKey();
+    if (!key) return;
+
+    localStorage.setItem(key, JSON.stringify({
+        ...ORBIT_SETTINGS_DEFAULTS,
+        ...settings
+    }));
+}
+
+function updateOrbitSettings(patch) {
+    const settings = getOrbitSettings();
+    const next = { ...settings, ...patch };
+    saveOrbitSettings(next);
+    return next;
+}
+
+function applyOrbitAccent(accentName) {
+    const accent = ORBIT_ACCENTS[accentName] || ORBIT_ACCENTS.purple;
+    document.documentElement.style.setProperty("--accent", accent.accent);
+    document.documentElement.style.setProperty("--accent-hover", accent.hover);
+
+    document.querySelectorAll(".settings-theme-option").forEach((button) => {
+        button.classList.toggle("active", button.dataset.accent === accentName);
+    });
+}
+
+function applyOrbitAvatarColor(colorName) {
+    const colors = {
+        purple: ["rgba(139, 92, 246, 0.14)", "#c4b5fd"],
+        blue: ["rgba(59, 130, 246, 0.14)", "#93c5fd"],
+        pink: ["rgba(236, 72, 153, 0.14)", "#f9a8d4"],
+        green: ["rgba(34, 197, 94, 0.14)", "#86efac"],
+        orange: ["rgba(249, 115, 22, 0.14)", "#fdba74"]
+    };
+    const [background, foreground] = colors[colorName] || colors.purple;
+    const avatar = document.getElementById("settings-avatar");
+    if (avatar) {
+        avatar.style.background = background;
+        avatar.style.color = foreground;
+    }
+
+    document.querySelectorAll(".settings-avatar-swatch").forEach((button) => {
+        button.classList.toggle("active", button.dataset.avatarColor === colorName);
+    });
+}
+
+function applyOrbitSettings() {
+    const settings = getOrbitSettings();
+
+    applyOrbitAccent(settings.accent);
+    applyOrbitAvatarColor(settings.avatarColor);
+
+    document.body.classList.toggle("orbit-reduced-motion", settings.reducedMotion === true);
+
+    const reducedMotion = document.getElementById("settings-reduced-motion");
+    if (reducedMotion) reducedMotion.checked = settings.reducedMotion === true;
+
+    const badgeToggle = document.getElementById("settings-notification-badge-toggle");
+    if (badgeToggle) badgeToggle.checked = settings.notificationBadge !== false;
+
+    const defaultPage = document.getElementById("settings-default-page");
+    if (defaultPage) defaultPage.value = settings.defaultPage || "dashboard";
+
+    const rememberPage = document.getElementById("settings-remember-page");
+    if (rememberPage) rememberPage.checked = settings.rememberPage === true;
+
+    updateOrbitNotificationBadgeVisibility();
+}
+
+function updateOrbitNotificationBadgeVisibility() {
+    const badge = document.getElementById("notification-badge");
+    if (!badge) return;
+    badge.classList.toggle("settings-badge-hidden", getOrbitSettings().notificationBadge === false);
+}
+
+window.orbitRememberPage = function (pageId) {
+    if (!pageId || !window.orbitUserId) return;
+    const settings = getOrbitSettings();
+    if (!settings.rememberPage) return;
+    saveOrbitSettings({ ...settings, lastPage: pageId });
+};
+
+function navigateToSavedOrbitPage() {
+    if (!window.orbitUserId) return;
+    const settings = getOrbitSettings();
+    const target = settings.rememberPage && settings.lastPage
+        ? settings.lastPage
+        : settings.defaultPage || "dashboard";
+    const allowed = ["dashboard", "tasks", "agenda", "projects", "studies", "finance", "animes", "movies", "series", "games", "settings"];
+    navigateToPage(allowed.includes(target) ? target : "dashboard");
+}
+
+function setSettingsStatus(id, message, type = "") {
+    const element = document.getElementById(id);
+    if (!element) return;
+    element.textContent = message;
+    element.className = `settings-status ${type}`.trim();
+}
+
+async function exportOrbitData() {
+    const button = document.getElementById("settings-export-data");
+    if (!window.orbitUserId) {
+        setSettingsStatus("settings-data-status", "Faça login para exportar seus dados.", "error");
+        return;
+    }
+
+    button && (button.disabled = true);
+    setSettingsStatus("settings-data-status", "Preparando exportação...");
+
+    try {
+        const endpoints = [
+            ["tasks", "/api/tasks"],
+            ["agenda_events", "/api/events"],
+            ["projects", "/api/projects"],
+            ["project_tasks", "/api/project-tasks"],
+            ["finance_transactions", "/api/finance"],
+            ["movies", "/api/media/movie"],
+            ["series", "/api/media/series"],
+            ["animes", "/api/media/anime"],
+            ["steam_id", "/api/user/steam-id"]
+        ];
+
+        const results = await Promise.allSettled(
+            endpoints.map(async ([name, url]) => {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`${name}: HTTP ${response.status}`);
+                return [name, await response.json()];
+            })
+        );
+
+        const remote = {};
+        const unavailable = [];
+        results.forEach((result, index) => {
+            const [name] = endpoints[index];
+            if (result.status === "fulfilled") remote[name] = result.value[1];
+            else unavailable.push(name);
+        });
+
+        const local = {};
+        const userId = window.orbitUserId;
+        const localKeys = [
+            `orbitSettings:${userId}`,
+            `orbitNotificationSettings:${userId}`,
+            `orbitStudies:${userId}`
+        ];
+
+        localKeys.forEach((key) => {
+            const value = localStorage.getItem(key);
+            if (value !== null) {
+                try { local[key] = JSON.parse(value); }
+                catch { local[key] = value; }
+            }
+        });
+
+        const user = window.orbitCurrentUser || {};
+        const payload = {
+            exportedAt: new Date().toISOString(),
+            app: "ORBIT",
+            version: "1.1.0",
+            account: {
+                id: user.id || userId,
+                email: user.email || null,
+                name: user.user_metadata?.name || null,
+                createdAt: user.created_at || null,
+                lastSignInAt: user.last_sign_in_at || null
+            },
+            remote,
+            local,
+            notes: {
+                unavailableEndpoints: unavailable,
+                studyFiles: "Os arquivos binários do Storage não são incorporados ao JSON; o export contém os dados locais/metadados disponíveis."
+            }
+        };
+
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        const date = new Date().toISOString().slice(0, 10);
+        anchor.href = url;
+        anchor.download = `orbit-backup-${date}.json`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+
+        setSettingsStatus(
+            "settings-data-status",
+            unavailable.length ? `Exportado. ${unavailable.length} fonte(s) não responderam.` : "Backup exportado com sucesso.",
+            unavailable.length ? "" : "success"
+        );
+    } catch (error) {
+        console.error("Erro ao exportar dados do ORBIT:", error);
+        setSettingsStatus("settings-data-status", "Não foi possível gerar o backup.", "error");
+    } finally {
+        button && (button.disabled = false);
+    }
+}
+
+function resetOrbitPreferences() {
+    if (!window.orbitUserId) return;
+    if (!window.confirm("Restaurar as preferências do ORBIT para os padrões? Seus dados não serão apagados.")) return;
+
+    localStorage.removeItem(`orbitSettings:${window.orbitUserId}`);
+    localStorage.removeItem(`orbitNotificationSettings:${window.orbitUserId}`);
+    applyOrbitSettings();
+    refreshNotificationSettingsUI();
+    renderOrbitNotifications();
+    setSettingsStatus("settings-reset-status", "Preferências restauradas.", "success");
+}
+
+async function checkOrbitBackendHealth() {
+    const button = document.getElementById("settings-check-health");
+    const title = document.getElementById("settings-health-title");
+    const description = document.getElementById("settings-health-description");
+    const status = document.getElementById("settings-backend-status");
+    const dot = document.getElementById("settings-health-dot");
+
+    if (button) button.disabled = true;
+    if (title) title.textContent = "Verificando conexão...";
+    if (description) description.textContent = "Consultando o servidor do ORBIT.";
+    if (status) status.textContent = "Verificando...";
+    if (dot) dot.style.background = "var(--warning)";
+
+    try {
+        const started = performance.now();
+        const response = await fetch("/api/status", { cache: "no-store" });
+        const elapsed = Math.round(performance.now() - started);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        if (title) title.textContent = "Tudo funcionando";
+        if (description) description.textContent = `Servidor conectado em ${elapsed} ms.`;
+        if (status) status.textContent = "Online";
+        if (dot) dot.style.background = "var(--success)";
+    } catch (error) {
+        if (title) title.textContent = "Servidor indisponível";
+        if (description) description.textContent = "Verifique se o backend do ORBIT está em execução.";
+        if (status) status.textContent = "Offline";
+        if (dot) dot.style.background = "var(--danger)";
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
+function initOrbitSettingsControls() {
+    document.querySelectorAll(".settings-nav-item").forEach((button) => {
+        button.addEventListener("click", () => {
+            const sectionId = button.dataset.settingsSection;
+            const section = document.getElementById(sectionId);
+            if (!section) return;
+            section.scrollIntoView({ behavior: getOrbitSettings().reducedMotion ? "auto" : "smooth", block: "start" });
+            document.querySelectorAll(".settings-nav-item").forEach((item) => item.classList.remove("active"));
+            button.classList.add("active");
+        });
+    });
+
+    document.querySelectorAll(".settings-theme-option").forEach((button) => {
+        button.addEventListener("click", () => {
+            const accent = button.dataset.accent || "purple";
+            updateOrbitSettings({ accent });
+            applyOrbitAccent(accent);
+        });
+    });
+
+    document.querySelectorAll(".settings-avatar-swatch").forEach((button) => {
+        button.addEventListener("click", () => {
+            const avatarColor = button.dataset.avatarColor || "purple";
+            updateOrbitSettings({ avatarColor });
+            applyOrbitAvatarColor(avatarColor);
+        });
+    });
+
+    document.getElementById("settings-reduced-motion")?.addEventListener("change", (event) => {
+        updateOrbitSettings({ reducedMotion: event.target.checked });
+        applyOrbitSettings();
+    });
+
+    document.getElementById("settings-notification-badge-toggle")?.addEventListener("change", (event) => {
+        updateOrbitSettings({ notificationBadge: event.target.checked });
+        updateOrbitNotificationBadgeVisibility();
+    });
+
+    document.getElementById("settings-default-page")?.addEventListener("change", (event) => {
+        updateOrbitSettings({ defaultPage: event.target.value });
+    });
+
+    document.getElementById("settings-remember-page")?.addEventListener("change", (event) => {
+        updateOrbitSettings({ rememberPage: event.target.checked });
+    });
+
+    document.getElementById("settings-export-data")?.addEventListener("click", exportOrbitData);
+    document.getElementById("settings-reset-preferences")?.addEventListener("click", resetOrbitPreferences);
+    document.getElementById("settings-check-health")?.addEventListener("click", checkOrbitBackendHealth);
+
+    const panels = [...document.querySelectorAll("[data-settings-panel]")];
+    const navItems = [...document.querySelectorAll(".settings-nav-item")];
+    if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver((entries) => {
+            const visible = entries
+                .filter((entry) => entry.isIntersecting)
+                .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (!visible) return;
+            navItems.forEach((item) => item.classList.toggle("active", item.dataset.settingsSection === visible.target.id));
+        }, { root: null, rootMargin: "-110px 0px -55% 0px", threshold: [0.1, 0.35, 0.6] });
+        panels.forEach((panel) => observer.observe(panel));
+    }
+
+    applyOrbitSettings();
+    checkOrbitBackendHealth();
+}
+
+initOrbitSettingsControls();
+
+window.addEventListener("orbit:auth-changed", (event) => {
+    if (!event.detail?.user) {
+        document.body.classList.remove("orbit-reduced-motion");
+        return;
+    }
+
+    applyOrbitSettings();
+    refreshNotificationSettingsUI();
+    renderOrbitNotifications();
+
+    const authEvent = event.detail?.event;
+    if (authEvent === "INITIAL_SESSION" || authEvent === "SIGNED_IN") {
+        setTimeout(() => {
+            navigateToSavedOrbitPage();
+            checkOrbitBackendHealth();
+        }, 60);
+    } else {
+        checkOrbitBackendHealth();
+    }
+});
+
+window.addEventListener("orbit:events-updated", () => {
+    updateOrbitNotificationBadgeVisibility();
+});
+
+applyOrbitSettings();

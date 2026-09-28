@@ -7,18 +7,18 @@ const supabase = require("./supabase");
 const multer = require("multer");
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json());
 
 const upload =
     multer({
-        storage: multer.memoryStorage()
+        storage: multer.memoryStorage(),
+        limits: {
+            fileSize: 25 * 1024 * 1024
+        }
     });
 
-
-
-app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
 // =========================
@@ -61,6 +61,19 @@ async function requireAuth(req, res, next) {
 
 app.use("/api", requireAuth);
 
+function sanitizeFileName(fileName) {
+    return String(fileName || "arquivo")
+        .normalize("NFKC")
+        .replace(/[\\/:*?"<>|\u0000-\u001F]/g, "_")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 180) || "arquivo";
+}
+
+function isValidPositiveInteger(value) {
+    return Number.isInteger(Number(value)) && Number(value) > 0;
+}
+
 app.post(
     "/api/studies/files",
     upload.single("file"),
@@ -84,7 +97,7 @@ app.post(
                 req.body.title?.trim();
 
 
-            if (!subjectId) {
+            if (!isValidPositiveInteger(subjectId)) {
                 return res.status(400).json({
                     success: false,
                     message: "Matéria não informada"
@@ -100,9 +113,11 @@ app.post(
             }
 
 
+            // As matérias ainda são armazenadas localmente; o arquivo continua
+            // isolado pelo user_id e pelo caminho privado do usuário.
+            const safeOriginalName = sanitizeFileName(req.file.originalname);
             const fileName =
-                `${Date.now()}-${req.file.originalname}`;
-
+                `${Date.now()}-${safeOriginalName}`;
 
             const filePath =
                 `users/${req.user.id}/studies/${fileName}`;
@@ -282,7 +297,83 @@ app.get(
         }
 
     }
-);~
+);
+
+app.delete(
+    "/api/studies/files/subject/:subjectId",
+    async (req, res) => {
+        try {
+            const subjectId = Number(req.params.subjectId);
+
+            if (!isValidPositiveInteger(subjectId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Matéria inválida"
+                });
+            }
+
+            const { data: files, error: listError } =
+                await supabase
+                    .from("study_files")
+                    .select("id,file_path")
+                    .eq("subject_id", subjectId)
+                    .eq("user_id", req.user.id);
+
+            if (listError) {
+                console.error("Erro ao listar arquivos da matéria:", listError);
+                return res.status(500).json({
+                    success: false,
+                    message: "Não foi possível remover os arquivos da matéria"
+                });
+            }
+
+            const paths = (files || [])
+                .map(file => file.file_path)
+                .filter(Boolean);
+
+            if (paths.length) {
+                const { error: storageError } =
+                    await supabase.storage
+                        .from("study-files")
+                        .remove(paths);
+
+                if (storageError) {
+                    console.error("Erro ao remover arquivos do Storage:", storageError);
+                    return res.status(500).json({
+                        success: false,
+                        message: "Não foi possível remover os arquivos da matéria"
+                    });
+                }
+            }
+
+            const { error: deleteError } =
+                await supabase
+                    .from("study_files")
+                    .delete()
+                    .eq("subject_id", subjectId)
+                    .eq("user_id", req.user.id);
+
+            if (deleteError) {
+                console.error("Erro ao remover registros da matéria:", deleteError);
+                return res.status(500).json({
+                    success: false,
+                    message: "Os arquivos foram removidos, mas os registros não puderam ser excluídos"
+                });
+            }
+
+            return res.json({
+                success: true,
+                removed: files?.length || 0
+            });
+        } catch (error) {
+            console.error("Erro ao remover arquivos da matéria:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Erro interno ao remover arquivos da matéria"
+            });
+        }
+    }
+);
 
 app.get(
     "/api/studies/file/:fileId",
@@ -464,9 +555,9 @@ app.get("/api/steam/games", async (req, res) => {
 
     try {
 
-        const steamId = req.query.steamId;
+        const steamId = String(req.query.steamId || "").trim();
 
-        if (!steamId) {
+        if (!/^\d{17}$/.test(steamId)) {
             return res.status(400).json({
                 success: false,
                 message: "Steam ID não informado"
@@ -577,7 +668,7 @@ app.post("/api/user/steam-id", async (req, res) => {
         const steamId =
             req.body?.steamId?.trim();
 
-        if (!steamId) {
+        if (!/^\d{17}$/.test(steamId || "")) {
             return res.status(400).json({
                 success: false,
                 message: "Steam ID não informado"
@@ -1617,18 +1708,14 @@ app.put("/api/project-tasks/sync", async (req, res) => {
     }));
 });
 
-app.listen(PORT, () => {
-    console.log(`ORBIT rodando em http://localhost:${PORT}`);
-});
-
 app.get("/api/steam/achievements", async (req, res) => {
 
     try {
 
-        const steamId = req.query.steamId;
-        const appId = req.query.appId;
+        const steamId = String(req.query.steamId || "").trim();
+        const appId = String(req.query.appId || "").trim();
 
-        if (!steamId || !appId) {
+        if (!/^\d{17}$/.test(steamId) || !/^\d+$/.test(appId)) {
             return res.status(400).json({
                 success: false,
                 message: "Steam ID ou App ID não informado"
@@ -1873,4 +1960,39 @@ app.get("/api/tmdb/series/:id", async (req, res) => {
 
     }
 
+});
+
+// =========================
+// ERROS / INICIALIZAÇÃO
+// =========================
+
+app.use("/api", (req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Endpoint não encontrado"
+    });
+});
+
+app.use((error, req, res, next) => {
+    if (error?.code === "LIMIT_FILE_SIZE") {
+        return res.status(413).json({
+            success: false,
+            message: "O arquivo é muito grande. O limite é de 25 MB."
+        });
+    }
+
+    console.error("Erro não tratado no servidor:", error);
+
+    if (res.headersSent) {
+        return next(error);
+    }
+
+    res.status(500).json({
+        success: false,
+        message: "Erro interno no servidor"
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`ORBIT rodando em http://localhost:${PORT}`);
 });
